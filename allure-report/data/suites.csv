@@ -1,0 +1,6 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","6513","Verify user is able to login to the page @smoke @regression","Opera","Tue Sep 09 23:23:35 CEST 2025","passed","Tue Sep 09 23:23:41 CEST 2025","","tests\example.spec.ts","",""
+"","11307","Verify user is able to login to the page @smoke @regression","WebKit","Tue Sep 09 23:23:35 CEST 2025","passed","Tue Sep 09 23:23:46 CEST 2025","","tests\example.spec.ts","",""
+"","6149","Verify user is able to login to the page @smoke @regression","Edge","Tue Sep 09 23:23:35 CEST 2025","passed","Tue Sep 09 23:23:41 CEST 2025","","tests\example.spec.ts","",""
+"","7041","Verify user is able to login to the page @smoke @regression","Chromium","Tue Sep 09 23:23:35 CEST 2025","passed","Tue Sep 09 23:23:42 CEST 2025","","tests\example.spec.ts","",""
+"","9640","Verify user is able to login to the page @smoke @regression","Firefox","Tue Sep 09 23:23:35 CEST 2025","passed","Tue Sep 09 23:23:44 CEST 2025","","tests\example.spec.ts","",""
