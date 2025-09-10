@@ -73,17 +73,17 @@ pipeline {
       allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-      // Zipaj Allure report i preimenuj ekstenziju da prođe kroz SMTP filtere
-      bat 'powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.allurezip -Force'
-      archiveArtifacts artifacts: 'allure-report.allurezip', allowEmptyArchive: false
+      // Pretvori Allure report u jedan HTML fajl
+      bat 'cmd /c node scripts/allure-single-html.js'
+      archiveArtifacts artifacts: 'allure-report-single.html', allowEmptyArchive: false
 
-      // Pošalji email s HTML summaryjem i .allurezip attachmentom
+      // Pošalji email s HTML summaryjem i single-file Allure reportom
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
         to: 'ammar.micko@gmail.com',
         mimeType: 'text/html; charset=UTF-8',
-        attachmentsPattern: 'allure-report.allurezip',
+        attachmentsPattern: 'allure-report-single.html',
         body: """
           <html>
             <body style="font-family:Arial, sans-serif; font-size:14px; color:#333; background-color:#f9f9f9; padding:20px;">
@@ -105,7 +105,7 @@ pipeline {
               
               ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
               
-              <p style="margin-top:20px;">📎 Full Allure report is attached as <strong>allure-report.allurezip</strong> (rename to .zip to open)</p>
+              <p style="margin-top:20px;">📎 Full Allure report is attached as <strong>allure-report-single.html</strong> (open directly in browser)</p>
               
               <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
               
