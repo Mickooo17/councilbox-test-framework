@@ -54,8 +54,20 @@ pipeline {
 
   post {
     always {
-    allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
-    archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-  }
+      // Allure report
+      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
+      archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+
+      // Email notification
+      emailext(
+        subject: "Councilbox QA Report - Build ${env.BUILD_NUMBER}",
+        body: """
+          <p>Build <b>#${env.BUILD_NUMBER}</b> je završen sa statusom: <b>${currentBuild.currentResult}</b></p>
+          <p><a href="${env.BUILD_URL}allure">Klikni ovdje da pogledaš Allure report</a></p>
+        """,
+        mimeType: 'text/html',
+        to: 'ammar@example.com'
+      )
+    }
   }
 }
