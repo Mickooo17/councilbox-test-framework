@@ -16,11 +16,7 @@ export default defineConfig({
     },
     {
       name: 'Edge',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    },
-    {
-      name: 'Opera',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      use: { ...devices['Desktop Edge'], channel: 'chromium' },
     },
   ],
   reporter: [
