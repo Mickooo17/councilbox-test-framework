@@ -47,18 +47,19 @@ pipeline {
     stage('Generate Allure report') {
       steps {
         // Ovo pokreće tvoj lokalni način generiranja reporta
-        bat 'cmd /c npm run report'
+        bat 'cmd /c npm run report:ci
       }
     }
   }
 
   post {
-    always {
-      // Allure plugin sada samo čita već generisani report
-      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
-    }
-    cleanup {
-      cleanWs()
-    }
+  always {
+    // Allure plugin čita raw rezultate
+    allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
+    // Arhiviraj HTML report da ga možeš skinuti
+    archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+  }
+  cleanup {
+    cleanWs()
   }
 }
