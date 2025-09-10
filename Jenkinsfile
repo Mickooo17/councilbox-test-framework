@@ -54,9 +54,8 @@ pipeline {
 
   post {
     always {
-      // Samo Jenkins plugin generira report
-      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']], installationName: 'allure'
-      archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-    }
+    allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
+    archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+  }
   }
 }
