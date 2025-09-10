@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-import path from 'path';
 
 export default defineConfig({
   projects: [
@@ -27,7 +26,7 @@ export default defineConfig({
   reporter: [
     ['line'],
     ['junit', { outputFile: 'junit-results/results.xml' }],
-    ['allure-playwright', { outputFolder: path.join(__dirname, 'allure-results') }]
+    ['allure-playwright']
   ],
   use: {
     trace: 'on',
