@@ -66,7 +66,7 @@ pipeline {
           <p><a href="${env.BUILD_URL}allure">Klikni ovdje da pogledaš Allure report</a></p>
         """,
         mimeType: 'text/html',
-        to: 'ammar@example.com'
+        to: 'ammar.micko@gmail.com'
       )
     }
   }
