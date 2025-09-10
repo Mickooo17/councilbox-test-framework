@@ -11,7 +11,7 @@ pipeline {
 
   options {
     timestamps()
-    ansiColor('xterm')
+    ansiColor('xterm') // sada radi jer je plugin ažuriran
     buildDiscarder(logRotator(numToKeepStr: '20'))
     timeout(time: 30, unit: 'MINUTES')
   }
@@ -48,7 +48,7 @@ pipeline {
 
   post {
     always {
-      allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
     }
     cleanup {
       cleanWs()
