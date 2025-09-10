@@ -65,22 +65,19 @@ pipeline {
         }
       }
     }
-
-    stage('Zip Allure Report') {
-      steps {
-        bat 'powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force'
-        archiveArtifacts artifacts: 'allure-report.zip', allowEmptyArchive: false
-      }
-    }
   }
 
   post {
     always {
-      // Allure report za Jenkins
+      // Generiraj Allure report unutar Jenkinsa
       allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-      // Email notification sa attachmentom
+      // Zipaj Allure report sada kad sigurno postoji
+      bat 'powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force'
+      archiveArtifacts artifacts: 'allure-report.zip', allowEmptyArchive: false
+
+      // Pošalji email s HTML summaryjem i zipom u attachmentu
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
