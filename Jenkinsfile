@@ -41,8 +41,10 @@ pipeline {
 
     stage('Run tests') {
       steps {
-        // Dodaj allure-playwright reporter
-        bat 'cmd /c npx playwright test --reporter=line,allure-playwright || exit 0'
+        bat '''
+          chcp 65001 >NUL
+          npx playwright test --reporter=line,allure-playwright || exit 0
+        '''
       }
       post {
         always {
@@ -63,20 +65,28 @@ pipeline {
         }
       }
     }
+
+    stage('Zip Allure Report') {
+      steps {
+        bat 'powershell Compress-Archive -Path allure-report\\* -DestinationPath allure-report.zip -Force'
+        archiveArtifacts artifacts: 'allure-report.zip', allowEmptyArchive: false
+      }
+    }
   }
 
   post {
     always {
-      // Allure report
+      // Allure report za Jenkins
       allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-      // Email notification
+      // Email notification sa attachmentom
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, almir.demirovic@councilbox.com, muhamed.adzamija@councilbox.com',
+        to: 'ammar.micko@gmail.com',
         mimeType: 'text/html; charset=UTF-8',
+        attachmentsPattern: 'allure-report.zip',
         body: """
           <html>
             <body style="font-family:Arial, sans-serif; font-size:14px; color:#333; background-color:#f9f9f9; padding:20px;">
@@ -94,13 +104,11 @@ pipeline {
                 <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
               </table>
               
-              <div style="margin-top:20px;">
-                <a href="${env.BUILD_URL}allure" style="background-color:#1a73e8; color:#fff; padding:10px 15px; text-decoration:none; border-radius:4px;">View Allure Report</a>
-              </div>
-              
               ${currentBuild.currentResult == 'FAILURE' ? '<div style="margin-top:20px; background:#fff; padding:15px; border:1px solid #ddd;"><h3 style="color:#d93025; margin-top:0;">Failed Tests:</h3>' + env.FAILED_TESTS_HTML + '</div>' : ''}
               
               ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
+              
+              <p style="margin-top:20px;">📎 Full Allure report is attached as <strong>allure-report.zip</strong></p>
               
               <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
               
