@@ -47,7 +47,7 @@ pipeline {
     stage('Generate Allure report') {
       steps {
         // Ovo pokreće tvoj lokalni način generiranja reporta
-        bat 'cmd /c npm run report:ci
+        bat 'cmd /c npm run report:ci'
       }
     }
   }
@@ -62,4 +62,5 @@ pipeline {
   cleanup {
     cleanWs()
   }
+}
 }
