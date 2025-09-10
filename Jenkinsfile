@@ -41,7 +41,8 @@ pipeline {
 
     stage('Run tests') {
       steps {
-        bat 'cmd /c npx playwright test --reporter=line || exit 0'
+        // Dodaj allure-playwright reporter
+        bat 'cmd /c npx playwright test --reporter=line,allure-playwright || exit 0'
       }
       post {
         always {
@@ -49,17 +50,12 @@ pipeline {
         }
       }
     }
-
-    stage('Generate Allure report') {
-      steps {
-        bat 'cmd /c npm run report:ci'
-      }
-    }
   }
 
   post {
     always {
-      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
+      // Samo Jenkins plugin generira report
+      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']], installationName: 'allure'
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
     }
   }
