@@ -24,6 +24,8 @@ export default defineConfig({
     },
   ],
   reporter: [
+    ['line'],
+    ['junit', { outputFile: 'junit-results/results.xml' }],
     ['allure-playwright']
   ],
   use: {

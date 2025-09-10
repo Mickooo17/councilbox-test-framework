@@ -11,10 +11,6 @@ export class LoginPage {
     this.submitButton = page.locator('button[id="restore-password-button"]');
   }
 
-  async goto() {
-    await this.page.goto('https://qa.ovac.dev.councilbox.com/admin', { waitUntil: 'networkidle' });
-  }
-
   async login(username: string, password: string) {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);

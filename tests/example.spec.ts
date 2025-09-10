@@ -1,18 +1,6 @@
-import { test } from '@playwright/test';
-import { HomePage } from '../pages/HomePage';
-import { LoginPage } from '../pages/LoginPage';
-import { loginData } from './fixtures';
+import * as f from './fixtures';
 
-let loginPage: LoginPage;
-let homePage: HomePage;
-
-test.beforeEach(async ({ page }) => {
-  loginPage = new LoginPage(page);
-  homePage = new HomePage(page);
-});
-
-test('Verify user is able to login to the page @smoke @regression', async ({ page }) => {
-  await loginPage.goto();
-  await loginPage.login(loginData.adminProfessional.username, loginData.adminProfessional.password);
+f.test('Verify user is able to login to the page @smoke @regression', async ({ loginPage, homePage }) => {
+  await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
   await homePage.validateHomePageIsOpened();
 });
