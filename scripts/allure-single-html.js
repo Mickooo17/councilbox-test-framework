@@ -40,10 +40,13 @@ if (fs.existsSync(dataDir)) {
   const dataFiles = fs.readdirSync(dataDir);
   let dataScript = '<script>window.__ALLURE_DATA__ = {};';
   dataFiles.forEach(file => {
-    const filePath = path.join(dataDir, file);
+  const filePath = path.join(dataDir, file);
+  const stat = fs.statSync(filePath);
+  if (stat.isFile()) {
     const content = fs.readFileSync(filePath, 'utf8');
     dataScript += `window.__ALLURE_DATA__["${file}"] = ${content};`;
-  });
+  }
+});
   dataScript += '</script>';
   $('body').append(dataScript);
 }
