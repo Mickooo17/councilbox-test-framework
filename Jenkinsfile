@@ -44,6 +44,13 @@ pipeline {
       }
     }
 
+    stage('Debug allure-results') {
+  steps {
+    bat 'cmd /c dir /s /b allure-results'
+    bat 'cmd /c dir /s /b tests\\allure-results'
+  }
+}
+
     stage('Generate Allure report') {
       steps {
         // Ovo pokreće tvoj lokalni način generiranja reporta

@@ -11,7 +11,7 @@
     "regression": "npx playwright test --grep \"@regression\"",
     "report": "node generate-allure-meta.js && allure generate allure-results --clean -o allure-report && npx allure open allure-report",
     "clean": "node clean-folders.js",
-    "report:ci": "node generate-allure-meta.js && allure generate allure-results --clean -o allure-report"
+    "report:ci": "node generate-allure-meta.js && allure generate allure-results -o allure-report"
   },
   "keywords": [],
   "author": "",
