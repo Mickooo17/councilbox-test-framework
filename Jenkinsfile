@@ -60,7 +60,7 @@ pipeline {
 
       // Email notification
       emailext(
-  subject: "Councilbox QA Report ▸ Build #${env.BUILD_NUMBER} ▸ ${currentBuild.currentResult}",
+  subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report ▸ Build #' + env.BUILD_NUMBER + ' ▸ SUCCESS' : '❌ Councilbox QA Failure ▸ Build #' + env.BUILD_NUMBER}",
   from: 'Councilbox Automation <councilboxautotest@gmail.com>',
   to: 'ammar.micko@gmail.com',
   mimeType: 'text/html; charset=UTF-8',
