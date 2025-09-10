@@ -78,7 +78,7 @@ pipeline {
           &#128202; <a href="${env.BUILD_URL}allure" style="color:#1a73e8; text-decoration:none;">View Allure Report</a>
         </p>
         <br/>
-        <p>Best regards,<br/>Councilbox QA Automation</p>
+        <p>Best regards,<br/>Councilbox QA Automation Team</p>
       </body>
     </html>
   """
