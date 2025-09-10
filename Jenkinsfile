@@ -50,20 +50,20 @@ pipeline {
         }
       }
     }
-  }
 
-stage('Extract Allure Summary') {
-  steps {
-    bat 'cmd /c node scripts/extract-allure-summary.js'
-    script {
-      env.TOTAL_TESTS = readFile('total-tests.txt').trim()
-      env.PASSED_TESTS = readFile('passed-tests.txt').trim()
-      env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
-      env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
-      env.FAILED_TESTS_HTML = readFile('failed-tests.html')
+    stage('Extract Allure Summary') {
+      steps {
+        bat 'cmd /c node scripts/extract-allure-summary.js'
+        script {
+          env.TOTAL_TESTS = readFile('total-tests.txt').trim()
+          env.PASSED_TESTS = readFile('passed-tests.txt').trim()
+          env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
+          env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
+          env.FAILED_TESTS_HTML = readFile('failed-tests.html')
+        }
+      }
     }
   }
-}
 
   post {
     always {
@@ -73,42 +73,41 @@ stage('Extract Allure Summary') {
 
       // Email notification
       emailext(
-  subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
-  from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-  to: 'ammar.micko@gmail.com',
-  mimeType: 'text/html; charset=UTF-8',
-  body: """
-    <html>
-      <body style="font-family:Arial, sans-serif; font-size:14px; color:#333; background-color:#f9f9f9; padding:20px;">
-        
-        <h2 style="color:#1a73e8; margin-bottom:5px;">Councilbox QA Pipeline Report</h2>
-        <p style="margin-top:0; font-size:13px; color:#666;">Automated test execution summary</p>
-        
-        <table style="border-collapse:collapse; background:#fff; padding:10px; border:1px solid #ddd; width:100%; max-width:600px;">
-          <tr><td><strong>Build Number:</strong></td><td>${env.BUILD_NUMBER}</td></tr>
-          <tr><td><strong>Status:</strong></td><td style="color:${currentBuild.currentResult == 'SUCCESS' ? '#28a745' : '#d93025'}; font-weight:bold;">${currentBuild.currentResult}</td></tr>
-          <tr><td><strong>Timestamp:</strong></td><td>${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('CET'))}</td></tr>
-          <tr><td><strong>Total Tests:</strong></td><td>${env.TOTAL_TESTS}</td></tr>
-          <tr><td><strong>Passed:</strong></td><td style="color:#28a745;">${env.PASSED_TESTS}</td></tr>
-          <tr><td><strong>Failed:</strong></td><td style="color:#d93025;">${env.FAILED_TESTS_COUNT}</td></tr>
-          <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
-        </table>
-        
-        <div style="margin-top:20px;">
-          <a href="${env.BUILD_URL}allure" style="background-color:#1a73e8; color:#fff; padding:10px 15px; text-decoration:none; border-radius:4px;">View Allure Report</a>
-        </div>
-        
-        ${currentBuild.currentResult == 'FAILURE' ? '<div style="margin-top:20px; background:#fff; padding:15px; border:1px solid #ddd;"><h3 style="color:#d93025; margin-top:0;">Failed Tests:</h3>' + env.FAILED_TESTS_HTML + '</div>' : ''}
-        
-        ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
-        
-        <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
-        
-      </body>
-    </html>
-  """
-)
-
+        subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
+        from: 'Councilbox Automation <councilboxautotest@gmail.com>',
+        to: 'ammar.micko@gmail.com',
+        mimeType: 'text/html; charset=UTF-8',
+        body: """
+          <html>
+            <body style="font-family:Arial, sans-serif; font-size:14px; color:#333; background-color:#f9f9f9; padding:20px;">
+              
+              <h2 style="color:#1a73e8; margin-bottom:5px;">Councilbox QA Pipeline Report</h2>
+              <p style="margin-top:0; font-size:13px; color:#666;">Automated test execution summary</p>
+              
+              <table style="border-collapse:collapse; background:#fff; padding:10px; border:1px solid #ddd; width:100%; max-width:600px;">
+                <tr><td><strong>Build Number:</strong></td><td>${env.BUILD_NUMBER}</td></tr>
+                <tr><td><strong>Status:</strong></td><td style="color:${currentBuild.currentResult == 'SUCCESS' ? '#28a745' : '#d93025'}; font-weight:bold;">${currentBuild.currentResult}</td></tr>
+                <tr><td><strong>Timestamp:</strong></td><td>${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('CET'))}</td></tr>
+                <tr><td><strong>Total Tests:</strong></td><td>${env.TOTAL_TESTS}</td></tr>
+                <tr><td><strong>Passed:</strong></td><td style="color:#28a745;">${env.PASSED_TESTS}</td></tr>
+                <tr><td><strong>Failed:</strong></td><td style="color:#d93025;">${env.FAILED_TESTS_COUNT}</td></tr>
+                <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
+              </table>
+              
+              <div style="margin-top:20px;">
+                <a href="${env.BUILD_URL}allure" style="background-color:#1a73e8; color:#fff; padding:10px 15px; text-decoration:none; border-radius:4px;">View Allure Report</a>
+              </div>
+              
+              ${currentBuild.currentResult == 'FAILURE' ? '<div style="margin-top:20px; background:#fff; padding:15px; border:1px solid #ddd;"><h3 style="color:#d93025; margin-top:0;">Failed Tests:</h3>' + env.FAILED_TESTS_HTML + '</div>' : ''}
+              
+              ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
+              
+              <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
+              
+            </body>
+          </html>
+        """
+      )
     }
   }
 }
