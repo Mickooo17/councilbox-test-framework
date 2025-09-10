@@ -60,8 +60,8 @@ pipeline {
 
       // Email notification
       emailext(
-  subject: "Councilbox QA Report – Build #${env.BUILD_NUMBER} – ${currentBuild.currentResult}",
-  from: 'councilboxautotest@gmail.com',
+  subject: "Councilbox QA Report ▸ Build #${env.BUILD_NUMBER} ▸ ${currentBuild.currentResult}",
+  from: 'Councilbox Automation <councilboxautotest@gmail.com>',
   to: 'ammar.micko@gmail.com',
   mimeType: 'text/html; charset=UTF-8',
   body: """
