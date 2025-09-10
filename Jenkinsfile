@@ -11,7 +11,7 @@ pipeline {
 
   options {
     timestamps()
-    ansiColor('xterm') // sada radi jer je plugin ažuriran
+    ansiColor('xterm')
     buildDiscarder(logRotator(numToKeepStr: '20'))
     timeout(time: 30, unit: 'MINUTES')
   }
@@ -40,14 +40,21 @@ pipeline {
       post {
         always {
           junit allowEmptyResults: true, testResults: '**/junit-results/*.xml'
-          archiveArtifacts artifacts: '**/allure-results/**', allowEmptyArchive: true
         }
+      }
+    }
+
+    stage('Generate Allure report') {
+      steps {
+        // Ovo pokreće tvoj lokalni način generiranja reporta
+        bat 'cmd /c npm run report'
       }
     }
   }
 
   post {
     always {
+      // Allure plugin sada samo čita već generisani report
       allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
     }
     cleanup {
