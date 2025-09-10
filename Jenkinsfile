@@ -17,6 +17,12 @@ pipeline {
   }
 
   stages {
+    stage('Clean workspace') {
+      steps {
+        cleanWs()
+      }
+    }
+
     stage('Checkout') {
       steps { checkout scm }
     }
@@ -44,30 +50,17 @@ pipeline {
       }
     }
 
-    stage('Debug allure-results') {
-  steps {
-    bat 'cmd /c dir /s /b allure-results'
-    bat 'cmd /c dir /s /b tests\\allure-results'
-  }
-}
-
     stage('Generate Allure report') {
       steps {
-        // Ovo pokreće tvoj lokalni način generiranja reporta
         bat 'cmd /c npm run report:ci'
       }
     }
   }
 
   post {
-  always {
-    // Allure plugin čita raw rezultate
-    allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
-    // Arhiviraj HTML report da ga možeš skinuti
-    archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+    always {
+      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
+      archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+    }
   }
-  cleanup {
-    cleanWs()
-  }
-}
 }
