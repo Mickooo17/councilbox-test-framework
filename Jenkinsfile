@@ -88,10 +88,10 @@ pipeline {
             // Očisti ANSI boje i nepotrebne znakove
             deployOutput = deployOutput.replaceAll("\\u001B\\[[;\\d]*m", "")
 
-            // Pojednostavljeni regex
-            def match = (deployOutput =~ /Website URL:\s+(https?:\/\/\S+)/)
-            if (match && match[0].size() > 1) {
-              env.NETLIFY_URL = match[0][1]
+            // Regex koji hvata oba formata
+            def match = (deployOutput =~ /(Website URL|Deployed to production URL):\s+(https?:\/\/\S+)/)
+            if (match && match[0].size() > 2) {
+              env.NETLIFY_URL = match[0][2]
               echo "✅ Netlify report URL: ${env.NETLIFY_URL}"
             } else {
               env.NETLIFY_URL = "N/A"
