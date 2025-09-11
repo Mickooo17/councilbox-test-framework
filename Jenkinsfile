@@ -135,11 +135,9 @@ pipeline {
               ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
               
               <p style="margin-top:20px;">
-                🌐 Public Allure report: ${
-                  env.NETLIFY_URL != "N/A"
-                    ? "<a href='${env.NETLIFY_URL}' target='_blank'>${env.NETLIFY_URL}</a>"
-                    : "Deploy nije uspio — provjerite Jenkins log"
-                }
+                ${env.NETLIFY_URL != "N/A"
+                  ? "<a href='${env.NETLIFY_URL}' target='_blank' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>Open Full Allure Report</a>"
+                  : "Deploy nije uspio — provjerite Jenkins log"}
               </p>
               
               <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
