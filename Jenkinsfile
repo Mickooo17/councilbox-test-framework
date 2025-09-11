@@ -85,13 +85,18 @@ pipeline {
               returnStdout: true
             ).trim()
 
-            def match = (deployOutput =~ /Website URL:\\s+(https?:\\/\\/\\S+)/)
-            if (match) {
+            // Očisti ANSI boje i nepotrebne znakove
+            deployOutput = deployOutput.replaceAll("\\u001B\\[[;\\d]*m", "")
+
+            // Pojednostavljeni regex
+            def match = (deployOutput =~ /Website URL:\s+(https?:\/\/\S+)/)
+            if (match && match[0].size() > 1) {
               env.NETLIFY_URL = match[0][1]
               echo "✅ Netlify report URL: ${env.NETLIFY_URL}"
             } else {
               env.NETLIFY_URL = "N/A"
               echo "⚠️ Nije pronađen Netlify URL u outputu!"
+              echo "Netlify output:\n${deployOutput}"
             }
           }
         }
@@ -129,7 +134,13 @@ pipeline {
               
               ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
               
-              <p style="margin-top:20px;">🌐 Public Allure report: <a href="${env.NETLIFY_URL}" target="_blank">${env.NETLIFY_URL}</a></p>
+              <p style="margin-top:20px;">
+                🌐 Public Allure report: ${
+                  env.NETLIFY_URL != "N/A"
+                    ? "<a href='${env.NETLIFY_URL}' target='_blank'>${env.NETLIFY_URL}</a>"
+                    : "Deploy nije uspio — provjerite Jenkins log"
+                }
+              </p>
               
               <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
               
