@@ -69,13 +69,31 @@ pipeline {
     stage('Deploy Allure to Netlify') {
       steps {
         withCredentials([string(credentialsId: 'netlify-token', variable: 'NETLIFY_AUTH_TOKEN')]) {
-          bat """
-            npx netlify deploy ^
-              --auth %NETLIFY_AUTH_TOKEN% ^
-              --dir=allure-report ^
-              --prod ^
-              --site=c3ab54ef-3093-46fd-ada4-5d6ca4f18b6e
-          """
+          script {
+            // Generiši Allure HTML report
+            bat 'npx allure generate allure-results --clean -o allure-report'
+
+            // Deploy i hvatanje URL-a
+            def deployOutput = bat(
+              script: """
+                npx netlify deploy ^
+                  --auth %NETLIFY_AUTH_TOKEN% ^
+                  --dir=allure-report ^
+                  --prod ^
+                  --site=c3ab54ef-3093-46fd-ada4-5d6ca4f18b6e
+              """,
+              returnStdout: true
+            ).trim()
+
+            def match = (deployOutput =~ /Website URL:\\s+(https?:\\/\\/\\S+)/)
+            if (match) {
+              env.NETLIFY_URL = match[0][1]
+              echo "✅ Netlify report URL: ${env.NETLIFY_URL}"
+            } else {
+              env.NETLIFY_URL = "N/A"
+              echo "⚠️ Nije pronađen Netlify URL u outputu!"
+            }
+          }
         }
       }
     }
@@ -83,11 +101,8 @@ pipeline {
 
   post {
     always {
-      // Generiraj Allure report unutar Jenkinsa
-      allure includeProperties: false, jdk: '', results: [[path: '**/allure-results']]
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-      // Pošalji email s HTML summaryjem
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
@@ -114,7 +129,7 @@ pipeline {
               
               ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
               
-              <p style="margin-top:20px;">🌐 Public Allure report: <a href="https://ime-tvog-sajta.netlify.app" target="_blank">Open here</a></p>
+              <p style="margin-top:20px;">🌐 Public Allure report: <a href="${env.NETLIFY_URL}" target="_blank">${env.NETLIFY_URL}</a></p>
               
               <p style="margin-top:30px; font-size:12px; color:#999;">This is an automated message from the Councilbox QA Automation pipeline.</p>
               
