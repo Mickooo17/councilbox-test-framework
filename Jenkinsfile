@@ -12,7 +12,7 @@ pipeline {
   options {
     timestamps()
     ansiColor('xterm')
-    buildDiscarder(logRotator(numToKeepStr: '20'))
+    buildDiscarder(logRotator(numToKeepStr: '50')) // čuvamo više buildova radi historije
     timeout(time: 30, unit: 'MINUTES')
   }
 
@@ -66,11 +66,27 @@ pipeline {
       }
     }
 
+    stage('Restore Allure history') {
+      steps {
+        script {
+          // Pokušaj preuzeti history iz prethodnog builda
+          copyArtifacts(
+            projectName: env.JOB_NAME,
+            selector: specific("${env.BUILD_NUMBER.toInteger() - 1}"),
+            filter: 'allure-report/history/**',
+            optional: true
+          )
+          // Kopiraj history u allure-results
+          bat 'if exist allure-report\\history xcopy /E /I /Y allure-report\\history allure-results\\history'
+        }
+      }
+    }
+
     stage('Deploy Allure to Netlify') {
       steps {
         withCredentials([string(credentialsId: 'netlify-token', variable: 'NETLIFY_AUTH_TOKEN')]) {
           script {
-            // Generiši Allure HTML report
+            // Generiši Allure HTML report sa historijom
             bat 'npx allure generate allure-results --clean -o allure-report'
 
             // Deploy i hvatanje URL-a
@@ -85,17 +101,17 @@ pipeline {
               returnStdout: true
             ).trim()
 
-            // Očisti ANSI boje i nepotrebne znakove
+            // Očisti ANSI boje
             deployOutput = deployOutput.replaceAll("\\u001B\\[[;\\d]*m", "")
 
-            // Regex koji hvata oba formata
+            // Regex za hvatanje production URL-a
             def match = (deployOutput =~ /(Website URL|Deployed to production URL):\s+(https?:\/\/\S+)/)
             if (match && match[0].size() > 2) {
               env.NETLIFY_URL = match[0][2]
               echo "✅ Netlify report URL: ${env.NETLIFY_URL}"
             } else {
               env.NETLIFY_URL = "N/A"
-              echo "⚠️ Nije pronađen Netlify URL u outputu!"
+              echo "⚠️ Nije pronađen Netlify URL!"
               echo "Netlify output:\n${deployOutput}"
             }
           }
@@ -111,7 +127,7 @@ pipeline {
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com',
+        to: 'ammar.micko@gmail.com',
         mimeType: 'text/html; charset=UTF-8',
         body: """
           <html>
@@ -131,8 +147,6 @@ pipeline {
               </table>
               
               ${currentBuild.currentResult == 'FAILURE' ? '<div style="margin-top:20px; background:#fff; padding:15px; border:1px solid #ddd;"><h3 style="color:#d93025; margin-top:0;">Failed Tests:</h3>' + env.FAILED_TESTS_HTML + '</div>' : ''}
-              
-              ${currentBuild.currentResult == 'FAILURE' ? '<p style="color:#d93025; margin-top:15px;"><strong>Attention:</strong> Please review the failed tests and logs for details.</p>' : ''}
               
               <p style="margin-top:20px;">
                 ${env.NETLIFY_URL != "N/A"
