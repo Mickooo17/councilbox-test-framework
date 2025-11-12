@@ -1,0 +1,26 @@
+<testsuites id="" name="" tests="8" failures="0" skipped="0" errors="0" time="15.315925000000002">
+<testsuite name="tests\example.spec.ts" timestamp="2025-11-12T00:43:28.606Z" hostname="Chromium" tests="2" failures="0" skipped="0" time="10.073" errors="0">
+<testcase name="Verify user is able to login to the page @smoke @regression" classname="tests\example.spec.ts" time="5.832">
+</testcase>
+<testcase name="Verify user is not able to login with invalid credentials @regression" classname="tests\example.spec.ts" time="4.241">
+</testcase>
+</testsuite>
+<testsuite name="tests\example.spec.ts" timestamp="2025-11-12T00:43:28.606Z" hostname="Firefox" tests="2" failures="0" skipped="0" time="11.689" errors="0">
+<testcase name="Verify user is able to login to the page @smoke @regression" classname="tests\example.spec.ts" time="7.984">
+</testcase>
+<testcase name="Verify user is not able to login with invalid credentials @regression" classname="tests\example.spec.ts" time="3.705">
+</testcase>
+</testsuite>
+<testsuite name="tests\example.spec.ts" timestamp="2025-11-12T00:43:28.606Z" hostname="WebKit" tests="2" failures="0" skipped="0" time="13.967" errors="0">
+<testcase name="Verify user is able to login to the page @smoke @regression" classname="tests\example.spec.ts" time="9.339">
+</testcase>
+<testcase name="Verify user is not able to login with invalid credentials @regression" classname="tests\example.spec.ts" time="4.628">
+</testcase>
+</testsuite>
+<testsuite name="tests\example.spec.ts" timestamp="2025-11-12T00:43:28.606Z" hostname="Edge" tests="2" failures="0" skipped="0" time="9.691" errors="0">
+<testcase name="Verify user is able to login to the page @smoke @regression" classname="tests\example.spec.ts" time="6.332">
+</testcase>
+<testcase name="Verify user is not able to login with invalid credentials @regression" classname="tests\example.spec.ts" time="3.359">
+</testcase>
+</testsuite>
+</testsuites>
