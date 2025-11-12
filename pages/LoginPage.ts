@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 
 export class LoginPage {
   readonly usernameInput: Locator;
@@ -17,16 +17,19 @@ export class LoginPage {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.submitButton.click();
+    await this.page.waitForLoadState('networkidle');
   }
 
-    async validateErrorMessage() {
+  async validateErrorMessage(expectedMessage = 'This field is required.') {
+    const errorCount = await this.loginErrorMessage.count();
+    expect(errorCount, 'Expected at least one validation error to be shown').toBeGreaterThan(0);
 
-  const count = await this.loginErrorMessage.count();
-  if (count === 0) {
-    throw new Error('There are no error messages displayed.');
-  }
-  for (let i = 0; i < count; i++) {
-    await this.loginErrorMessage.nth(i).waitFor({ state: 'visible', timeout: 5000 });
+    for (let i = 0; i < errorCount; i += 1) {
+      const errorLocator = this.loginErrorMessage.nth(i);
+      await expect(errorLocator).toBeVisible();
+      if (expectedMessage) {
+        await expect(errorLocator).toContainText(expectedMessage);
+      }
     }
   }
 }

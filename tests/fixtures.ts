@@ -1,14 +1,38 @@
 import { test as base, expect, Page } from '@playwright/test';
+import fs from 'fs';
 import envConfig from '../global-env';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
-import fs from 'fs';
 
 export const adminUser = envConfig.users.admin;
 export const adminProfessionalUser = envConfig.users.adminProfessional;
 export const superadminUser = envConfig.users.superadmin;
 
 export const testUser = adminUser;
+
+const resolveLoginUrl = (): string => {
+  const baseUrl = envConfig.baseUrl?.trim();
+  if (!baseUrl) {
+    throw new Error('Missing "baseUrl" for the selected environment in Application.json');
+  }
+
+  const url = new URL(baseUrl);
+  const hasAdminSegment = url.pathname
+    .split('/')
+    .filter(Boolean)
+    .includes('admin');
+
+  if (!hasAdminSegment) {
+    const cleanedPath = url.pathname.replace(/\/+$/, '');
+    const normalizedPath = cleanedPath === '' || cleanedPath === '/' ? '' : cleanedPath;
+    const adminPath = `${normalizedPath}/admin`.replace(/\/{2,}/g, '/');
+    url.pathname = adminPath.startsWith('/') ? adminPath : `/${adminPath}`;
+  }
+
+  return url.toString();
+};
+
+const loginUrl = resolveLoginUrl();
 
 // Custom fixture always open the login page before each test
 export const test = base.extend<{
@@ -23,7 +47,7 @@ export const test = base.extend<{
     await use(new HomePage(page));
   },
   page: async ({ page }, use) => {
-    await page.goto(`${envConfig.baseUrl}/admin`, { waitUntil: 'networkidle' });
+    await page.goto(loginUrl, { waitUntil: 'networkidle' });
     await use(page);
   },
 });
