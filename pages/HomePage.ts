@@ -7,12 +7,13 @@ export class HomePage {
     this.profileIcon = page.locator('#cbx-header-third-dropdown-user');
   }
 
-  async verifyProfileIconIsVisible() {
-    await expect(this.profileIcon).toBeVisible();
-  }
+  async verifyProfileIconIsAccessible() {
+  await expect(this.profileIcon).toBeVisible();
+  await expect(this.profileIcon).toBeEnabled();
+}
 
   async validateHomePageIsOpened() {
     await expect(this.page).toHaveURL(/\/company\b/i);
-    await this.verifyProfileIconIsVisible();
+    await this.verifyProfileIconIsAccessible();
   }
 }
