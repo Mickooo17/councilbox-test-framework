@@ -5,12 +5,14 @@ export class LoginPage {
   readonly passwordInput: Locator;
   readonly submitButton: Locator;
   readonly loginErrorMessage: Locator;
+  readonly loginErrorMessageInvalid: Locator;
 
   constructor(private page: Page) {
     this.usernameInput = page.locator('#username');
     this.passwordInput = page.locator('#password');
     this.submitButton = page.locator('button[id="restore-password-button"]');
     this.loginErrorMessage = page.getByText('This field is required.');
+    this.loginErrorMessageInvalid = page.getByText('Username or password incorrect. You have 10 attempts remaining.');
   }
 
   async login(username: string, password: string) {
@@ -31,5 +33,10 @@ export class LoginPage {
         await expect(errorLocator).toContainText(expectedMessage);
       }
     }
+  }
+
+  async validateErrorMessageForInvalidCredentials(expectedMessage = 'Username or password incorrect.') {
+    await expect(this.loginErrorMessageInvalid).toBeVisible();
+    await expect(this.loginErrorMessageInvalid).toContainText(expectedMessage);
   }
 }

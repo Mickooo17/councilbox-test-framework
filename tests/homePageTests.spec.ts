@@ -26,7 +26,7 @@ f.test.describe('HomePage - Navigation Tests', () => {
 f.test.describe('HomePage - User Profile Tests', () => {
   f.test.beforeEach(async ({ loginPage, homePage }) => {
     // Login before each test in this suite
-    await loginPage.login(f.adminUser.username, f.adminUser.password);
+    await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
     await homePage.validateHomePageIsOpened();
   });
 

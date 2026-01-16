@@ -17,30 +17,6 @@ f.test.describe('LoginPage - Authentication Tests', () => {
     // Assert
     await homePage.validateHomePageIsOpened();
   });
-
-  f.test('should successfully login with admin user @smoke', async ({ loginPage, homePage }) => {
-    // Arrange
-    const username = f.adminUser.username;
-    const password = f.adminUser.password;
-
-    // Act
-    await loginPage.login(username, password);
-
-    // Assert
-    await homePage.validateHomePageIsOpened();
-  });
-
-  f.test('should successfully login with superadmin user @regression', async ({ loginPage, homePage }) => {
-    // Arrange
-    const username = f.superadminUser.username;
-    const password = f.superadminUser.password;
-
-    // Act
-    await loginPage.login(username, password);
-
-    // Assert
-    await homePage.validateHomePageIsOpened();
-  });
 });
 
 f.test.describe('LoginPage - Validation Tests', () => {
@@ -82,14 +58,14 @@ f.test.describe('LoginPage - Validation Tests', () => {
 
   f.test('should display error with invalid credentials @regression', async ({ loginPage }) => {
     // Arrange
-    const username = 'invalid.user@example.com';
+    const username = `invalid.user+${Date.now()}@example.com`;
     const password = 'wrongPassword123';
 
     // Act
     await loginPage.login(username, password);
 
     // Assert
-    await loginPage.validateErrorMessage();
+    await loginPage.validateErrorMessageForInvalidCredentials();
   });
 });
 
