@@ -114,7 +114,7 @@ allure([
 
       
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-/*
+      
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
@@ -153,7 +153,6 @@ allure([
           </html>
         """
       )
-      */
 
       bat """
         curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
