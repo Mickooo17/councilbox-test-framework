@@ -158,17 +158,8 @@ allure([
       bat """
         curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
         -H "Content-Type: application/json" ^
-        -d "{ 
-          \\"status\\": \\"${currentBuild.currentResult}\\",
-          \\"env\\": \\"staging\\",
-          \\"build\\": \\"${env.BUILD_NUMBER}\\",
-          \\"total\\": \\"${env.TOTAL_TESTS}\\",
-          \\"passed\\": \\"${env.PASSED_TESTS}\\",
-          \\"failed\\": \\"${env.FAILED_TESTS_COUNT}\\",
-          \\"reportUrl\\": \\"${env.NETLIFY_URL}\\"
-        }"
+        -d "{\\"status\\":\\"${currentBuild.currentResult}\\",\\"env\\":\\"staging\\",\\"build\\":\\"${env.BUILD_NUMBER}\\",\\"total\\":\\"${env.TOTAL_TESTS}\\",\\"passed\\":\\"${env.PASSED_TESTS}\\",\\"failed\\":\\"${env.FAILED_TESTS_COUNT}\\",\\"reportUrl\\":\\"${env.NETLIFY_URL}\\"}"
       """
-
     }
   }
 }
