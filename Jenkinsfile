@@ -153,6 +153,30 @@ allure([
           </html>
         """
       )
+
+            bat '''
+        powershell -NoProfile -Command ^
+        "Invoke-RestMethod `
+          -Uri 'http://localhost:5678/webhook/playwright-results' `
+          -Method Post `
+          -ContentType 'application/json' `
+          -Body ('{{
+            \"status\": \"{0}\",
+            \"env\": \"staging\",
+            \"build\": \"{1}\",
+            \"total\": \"{2}\",
+            \"passed\": \"{3}\",
+            \"failed\": \"{4}\",
+            \"reportUrl\": \"{5}\"
+          }}' -f `
+            \"''' + currentBuild.currentResult + '''\",
+            \"''' + env.BUILD_NUMBER + '''\",
+            \"''' + env.TOTAL_TESTS + '''\",
+            \"''' + env.PASSED_TESTS + '''\",
+            \"''' + env.FAILED_TESTS_COUNT + '''\",
+            \"''' + env.NETLIFY_URL + '''\"
+          )"
+      '''
     }
   }
 }
