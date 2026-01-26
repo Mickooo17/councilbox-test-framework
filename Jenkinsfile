@@ -114,7 +114,7 @@ allure([
 
       
       archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-
+/*
       emailext(
         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
@@ -153,30 +153,22 @@ allure([
           </html>
         """
       )
+      */
 
-            bat '''
-        powershell -NoProfile -Command ^
-        "Invoke-RestMethod `
-          -Uri 'http://localhost:5678/webhook/playwright-results' `
-          -Method Post `
-          -ContentType 'application/json' `
-          -Body ('{{
-            \"status\": \"{0}\",
-            \"env\": \"staging\",
-            \"build\": \"{1}\",
-            \"total\": \"{2}\",
-            \"passed\": \"{3}\",
-            \"failed\": \"{4}\",
-            \"reportUrl\": \"{5}\"
-          }}' -f `
-            \"''' + currentBuild.currentResult + '''\",
-            \"''' + env.BUILD_NUMBER + '''\",
-            \"''' + env.TOTAL_TESTS + '''\",
-            \"''' + env.PASSED_TESTS + '''\",
-            \"''' + env.FAILED_TESTS_COUNT + '''\",
-            \"''' + env.NETLIFY_URL + '''\"
-          )"
-      '''
+      bat """
+        curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
+        -H "Content-Type: application/json" ^
+        -d "{ 
+          \\"status\\": \\"${currentBuild.currentResult}\\",
+          \\"env\\": \\"staging\\",
+          \\"build\\": \\"${env.BUILD_NUMBER}\\",
+          \\"total\\": \\"${env.TOTAL_TESTS}\\",
+          \\"passed\\": \\"${env.PASSED_TESTS}\\",
+          \\"failed\\": \\"${env.FAILED_TESTS_COUNT}\\",
+          \\"reportUrl\\": \\"${env.NETLIFY_URL}\\"
+        }"
+      """
+
     }
   }
 }
