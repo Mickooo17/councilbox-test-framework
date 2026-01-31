@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+
+    parameters {
+        // Ovdje kucaš samo dio imena fajla (npr. login) i on će ga naći
+        string(name: 'TEST_FILE', defaultValue: '', description: 'Enter part of the filename (e.g., loginTests)')
+        string(name: 'TEST_TITLE', defaultValue: '', description: 'Enter test title or keyword (optional grep)')
+    }
+
+    tools {
+        nodejs 'node20'
+    }
+
+    options {
+        timestamps()
+        ansiColor('xterm')
+        // Čuva samo zadnjih 10 brzih provjera da ne guši disk
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install') {
+            steps {
+                bat 'npm ci'
+            }
+        }
+
+        stage('Run Targeted Test') {
+            steps {
+                script {
+                    if (params.TEST_FILE == '') {
+                        error "You must provide at least a part of the TEST_FILE name!"
+                    }
+                    
+                    def grepFlag = params.TEST_TITLE ? "-g \"${params.TEST_TITLE}\"" : ""
+                    echo "🔍 Searching and running tests for: ${params.TEST_FILE} ${grepFlag}"
+                    
+                    // Pokrećemo test. || exit 0 osigurava da Allure report bude generisan i ako test padne
+                    bat "npx playwright test ${params.TEST_FILE} ${grepFlag} --reporter=line,allure-playwright || exit 0"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Generisanje Allure reporta lokalno u Jenkinsu
+            allure([
+                includeProperties: false,
+                jdk: '',
+                results: [[path: 'allure-results']]
+            ])
+            // Čistimo workspace jer je ovo privremeni job
+            cleanWs()
+        }
+    }
+}
