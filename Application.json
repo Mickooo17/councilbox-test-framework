@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "baseUrl": "https://qa.ovac.dev.councilbox.com/admin",
+    "users": {
+      "admin": { "username": "admin_dev", "password": "pass_dev" },
+      "adminProfessional": { "username": "ammar.micijevic@councilbox.com", "password": "ammarAmmarTest123!1" },
+      "superadmin": { "username": "superadmin_dev", "password": "pass_dev" }
+    }
+  },
+  "staging": {
+    "baseUrl": "https://qa.ovac.pre.councilbox.com/admin",
+    "users": {
+      "admin": { "username": "admin_staging", "password": "pass_staging" },
+      "adminProfessional": { "username": "ammar.micijevic@councilbox.com", "password": "ammarAmmarTest123!1" },
+      "superadmin": { "username": "superadmin_staging", "password": "pass_staging" }
+    }
+  },
+  "prod": {
+    "baseUrl": "hhttps://qa.ovac.councilbox.com/admin",
+    "users": {
+      "admin": { "username": "admin_prod", "password": "pass_prod" },
+      "adminProfessional": { "username": "prof_prod", "password": "pass_prod" },
+      "superadmin": { "username": "superadmin_prod", "password": "pass_prod" }
+    }
+  }
+}
