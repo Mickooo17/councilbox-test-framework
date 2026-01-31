@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Štikliraj ako želiš da Jenkins pošalje email nakon builda')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
     }
 
     tools {
@@ -24,7 +24,7 @@ pipeline {
     }
 
     stages {
-        stage('Clean workspace') {
+        stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
@@ -34,21 +34,22 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('Install dependencies') {
+        stage('Install Dependencies') {
             steps {
                 bat 'cmd /c npm ci'
             }
         }
 
-        stage('Install Playwright browsers') {
+        stage('Install Playwright Browsers') {
             steps {
                 bat 'cmd /c npx playwright install --with-deps'
             }
         }
 
-        stage('Run tests') {
+        stage('Run Tests') {
             steps {
                 bat '''
+                  @echo off
                   chcp 65001 >NUL
                   npx playwright test --reporter=line,allure-playwright || exit 0
                 '''
@@ -76,35 +77,48 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        // Generisanje Allure Reporta lokalno
-                        bat 'npx allure generate allure-results --clean -o allure-report'
-                        
                         def reportPath = "builds/${env.BUILD_NUMBER}"
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
 
-                        // Koristimo 'string' jer je tvoj 'github-token' tipa 'Secret text'
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                             bat """
                                 @echo off
                                 if exist gh-pages-temp rmdir /s /q gh-pages-temp
                                 
-                                echo Kloniranje gh-pages brancha...
-                                git clone --branch gh-pages https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
+                                echo Cloning gh-pages branch...
+                                git clone --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
                                 
-                                echo Kopiranje izvjestaja u folder %reportPath%...
-                                xcopy /s /e /i allure-report gh-pages-temp\\${reportPath}
+                                :: --- TREND HISTORY LOGIC ---
+                                set /a PREV_BUILD=%BUILD_NUMBER%-1
+                                if exist gh-pages-temp\\builds\\%PREV_BUILD%\\history (
+                                    echo Previous history found in build %PREV_BUILD%. Copying to results...
+                                    if not exist allure-results\\history mkdir allure-results\\history
+                                    xcopy /s /e /y gh-pages-temp\\builds\\%PREV_BUILD%\\history allure-results\\history\\
+                                ) else (
+                                    echo No previous history found for trend charts.
+                                )
+
+                                echo Generating Allure report...
+                                call npx allure generate allure-results --clean -o allure-report
+                                
+                                echo Preparing deployment folder for build %BUILD_NUMBER%...
+                                if not exist gh-pages-temp\\builds mkdir gh-pages-temp\\builds
+                                mkdir gh-pages-temp\\builds\\%BUILD_NUMBER%
+                                
+                                echo Copying report files...
+                                xcopy /s /e /y allure-report gh-pages-temp\\builds\\%BUILD_NUMBER%\\
                                 
                                 cd gh-pages-temp
                                 git config user.name "Jenkins Automation"
                                 git config user.email "jenkins@councilbox.com"
-                                git add .
-                                git commit -m "Add report for build ${env.BUILD_NUMBER}"
                                 
-                                echo Push na GitHub Pages...
+                                echo Committing and pushing to GitHub Pages...
+                                git add builds/
+                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER} with history trend"
                                 git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
                             """
                         }
-                        echo "✅ Report uspjesno objavljen na: ${env.FINAL_REPORT_URL}"
+                        echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
@@ -124,9 +138,9 @@ pipeline {
 
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-                // --- EMAIL SEKCIJA SA CHECKBOXOM ---
+                // --- EMAIL NOTIFICATION ---
                 if (params.SEND_EMAIL) {
-                    echo "📧 Saljem email obavjestenje..."
+                    echo "📧 Sending email notification..."
                     emailext(
                         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
@@ -152,11 +166,9 @@ pipeline {
                             </html>
                         """
                     )
-                } else {
-                    echo "🚫 Email je iskljucen (SEND_EMAIL = false). Preskacem slanje."
                 }
 
-                // --- n8n WEBHOOK (Uvijek se izvrsava radi tabele) ---
+                // --- n8n WEBHOOK ---
                 bat """
                   curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
                   -H "Content-Type: application/json" ^
