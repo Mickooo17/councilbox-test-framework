@@ -7,6 +7,10 @@ pipeline {
 
     environment {
         CI = 'true'
+        // Promijeni ovo na tvoj GitHub profil i repo
+        GITHUB_USER = 'Mickooo17'
+        GITHUB_REPO = 'councilbox-test-framework'
+        PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
     }
 
     options {
@@ -61,41 +65,39 @@ pipeline {
                     env.PASSED_TESTS = readFile('passed-tests.txt').trim()
                     env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
                     env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
-                    env.FAILED_TESTS_HTML = readFile('failed-tests.html')
+                    // env.FAILED_TESTS_HTML = readFile('failed-tests.html') // Opciono ako ti treba za email
                 }
             }
         }
 
-        stage('Deploy Allure to Netlify') {
+        stage('Deploy to GitHub Pages') {
             steps {
                 script {
-                    // catchError ensures the pipeline continues even if Netlify upload fails
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        withCredentials([string(credentialsId: 'netlify-token', variable: 'NETLIFY_AUTH_TOKEN')]) {
-                            bat 'npx allure generate allure-results --clean -o allure-report'
+                        // Generisanje Allure Reporta lokalno
+                        bat 'npx allure generate allure-results --clean -o allure-report'
+                        
+                        // Definisanje putanje: builds/203
+                        def reportPath = "builds/${env.BUILD_NUMBER}"
+                        env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
 
-                            def deployOutput = bat(
-                                script: """
-                                    npx netlify deploy ^
-                                      --auth %NETLIFY_AUTH_TOKEN% ^
-                                      --dir=allure-report ^
-                                      --prod ^
-                                      --site=c3ab54ef-3093-46fd-ada4-5d6ca4f18b6e
-                                """,
-                                returnStdout: true
-                            ).trim()
-
-                            deployOutput = deployOutput.replaceAll("\\u001B\\[[;\\d]*m", "")
-
-                            def match = (deployOutput =~ /(Website URL|Deployed to production URL):\s+(https?:\/\/\S+)/)
-                            if (match && match[0].size() > 2) {
-                                env.NETLIFY_URL = match[0][2]
-                                echo "✅ Netlify report URL: ${env.NETLIFY_URL}"
-                            } else {
-                                env.NETLIFY_URL = "N/A"
-                                echo "⚠️ Netlify URL not found in output!"
-                            }
+                        withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                            bat """
+                                @echo off
+                                if exist gh-pages-temp rmdir /s /q gh-pages-temp
+                                git clone --branch gh-pages https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
+                                
+                                xcopy /s /e /i allure-report gh-pages-temp\\${reportPath}
+                                
+                                cd gh-pages-temp
+                                git config user.name "Jenkins Automation"
+                                git config user.email "jenkins@councilbox.com"
+                                git add .
+                                git commit -m "Add report for build ${env.BUILD_NUMBER}"
+                                git push https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
+                            """
                         }
+                        echo "✅ Report deployed to: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
@@ -105,7 +107,8 @@ pipeline {
     post {
         always {
             script {
-                if (env.NETLIFY_URL == null) { env.NETLIFY_URL = "N/A" }
+                // Ako deploy nije uspio, stavljamo N/A za n8n i email
+                if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
                 
                 allure([
                     includeProperties: false,
@@ -115,7 +118,7 @@ pipeline {
 
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-                // Email notification with English labels and logic for Netlify limit
+                // Email notification
                 emailext(
                     subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
                     from: 'Councilbox Automation <councilboxautotest@gmail.com>',
@@ -135,9 +138,9 @@ pipeline {
                               <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
                             </table>
                             <p style="margin-top:20px;">
-                                ${env.NETLIFY_URL != "N/A" 
-                                    ? "<a href='${env.NETLIFY_URL}' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>Open Full Allure Report</a>" 
-                                    : "<b style='color:#d93025;'>Report unavailable (Netlify free tier limit reached or upload failed)</b>"}
+                                ${env.FINAL_REPORT_URL != "N/A" 
+                                    ? "<a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>Open Full Allure Report (GitHub Pages)</a>" 
+                                    : "<b style='color:#d93025;'>Report upload failed</b>"}
                             </p>
                             <p style="font-size:12px; color:#999; margin-top:30px;">This is an automated message from the Councilbox QA Automation pipeline.</p>
                           </body>
@@ -145,11 +148,12 @@ pipeline {
                     """
                 )
 
-                // Sending real data to n8n Webhook for Google Sheets
+                // Slanje na n8n Webhook sa NOVIM URL-om
                 bat """
                   curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
                   -H "Content-Type: application/json" ^
-                  -d "{\\"status\\":\\"${currentBuild.currentResult}\\",\\"env\\":\\"staging\\",\\"build\\":\\"${env.BUILD_NUMBER}\\",\\"duration\\":\\"${currentBuild.durationString}\\",\\"total\\":\\"${env.TOTAL_TESTS}\\",\\"passed\\":\\"${env.PASSED_TESTS}\\",\\"failed\\":\\"${env.FAILED_TESTS_COUNT}\\",\\"skipped\\":\\"${env.SKIPPED_TESTS}\\",\\"reportUrl\\":\\"${env.NETLIFY_URL}\\"}"
+                  -H "Accept: application/json" ^
+                  -d "{\\"status\\":\\"${currentBuild.currentResult}\\",\\"env\\":\\"staging\\",\\"build\\":\\"${env.BUILD_NUMBER}\\",\\"duration\\":\\"${currentBuild.durationString}\\",\\"total\\":\\"${env.TOTAL_TESTS}\\",\\"passed\\":\\"${env.PASSED_TESTS}\\",\\"failed\\":\\"${env.FAILED_TESTS_COUNT}\\",\\"skipped\\":\\"${env.SKIPPED_TESTS}\\",\\"reportUrl\\":\\"${env.FINAL_REPORT_URL}\\"}"
                 """
             }
         }
