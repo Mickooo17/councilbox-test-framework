@@ -2,9 +2,14 @@ pipeline {
     agent any
 
     parameters {
-        // Ovdje kucaš samo dio imena fajla (npr. login) i on će ga naći
+        // Parameter for the Git branch you want to test
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Enter the branch name to test (e.g., feature/login-fix)')
+        
+        // Parameter for the test file name
         string(name: 'TEST_FILE', defaultValue: '', description: 'Enter part of the filename (e.g., loginTests)')
-        string(name: 'TEST_TITLE', defaultValue: '', description: 'Enter test title or keyword (optional grep)')
+        
+        // Parameter for the specific test title (grep)
+        string(name: 'TEST_TITLE', defaultValue: '', description: 'Enter specific test title or keyword (optional)')
     }
 
     tools {
@@ -14,19 +19,30 @@ pipeline {
     options {
         timestamps()
         ansiColor('xterm')
-        // Čuva samo zadnjih 10 brzih provjera da ne guši disk
+        // Keeps only the last 10 builds to save disk space
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                script {
+                    echo "Checking out branch: ${params.BRANCH_NAME}"
+                    // Dynamically checkout the branch provided in parameters
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: "*/${params.BRANCH_NAME}"]], 
+                        doGenerateSubmoduleConfigurations: false, 
+                        extensions: [], 
+                        submoduleCfg: [], 
+                        userRemoteConfigs: [[url: 'https://github.com/Mickooo17/councilbox-test-framework.git']]
+                    ])
+                }
             }
         }
 
-        stage('Install') {
+        stage('Install Dependencies') {
             steps {
+                echo "Installing npm packages..."
                 bat 'npm ci'
             }
         }
@@ -34,14 +50,15 @@ pipeline {
         stage('Run Targeted Test') {
             steps {
                 script {
+                    // Validation: Ensure at least a filename is provided
                     if (params.TEST_FILE == '') {
-                        error "You must provide at least a part of the TEST_FILE name!"
+                        error "Error: You must provide a TEST_FILE name to run this job!"
                     }
                     
                     def grepFlag = params.TEST_TITLE ? "-g \"${params.TEST_TITLE}\"" : ""
-                    echo "🔍 Searching and running tests for: ${params.TEST_FILE} ${grepFlag}"
+                    echo "Running: npx playwright test ${params.TEST_FILE} ${grepFlag}"
                     
-                    // Pokrećemo test. || exit 0 osigurava da Allure report bude generisan i ako test padne
+                    // Run playwright. || exit 0 ensures Allure report is generated even on failure
                     bat "npx playwright test ${params.TEST_FILE} ${grepFlag} --reporter=line,allure-playwright || exit 0"
                 }
             }
@@ -50,13 +67,16 @@ pipeline {
 
     post {
         always {
-            // Generisanje Allure reporta lokalno u Jenkinsu
+            echo "Generating Allure Report..."
+            // Generate Allure report locally in Jenkins for quick inspection
             allure([
                 includeProperties: false,
                 jdk: '',
                 results: [[path: 'allure-results']]
             ])
-            // Čistimo workspace jer je ovo privremeni job
+            
+            echo "Cleaning up workspace..."
+            // Cleanup to keep the Jenkins server light
             cleanWs()
         }
     }
