@@ -25,7 +25,9 @@ pipeline {
 
     stages {
         stage('Clean Workspace') {
-            steps { cleanWs() }
+            steps {
+                cleanWs()
+            }
         }
 
         stage('Checkout') {
@@ -33,11 +35,15 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps { bat 'cmd /c npm ci' }
+            steps {
+                bat 'cmd /c npm ci'
+            }
         }
 
         stage('Install Playwright Browsers') {
-            steps { bat 'cmd /c npx playwright install --with-deps' }
+            steps {
+                bat 'cmd /c npx playwright install --with-deps'
+            }
         }
 
         stage('Run Tests') {
@@ -73,10 +79,12 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         def reportPath = "builds/${env.BUILD_NUMBER}"
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
+
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                             bat """
                                 @echo off
                                 if exist gh-pages-temp rmdir /s /q gh-pages-temp
+                                echo Cloning gh-pages branch...
                                 git clone --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
                                 
                                 set /a PREV_BUILD=%BUILD_NUMBER%-1
@@ -94,10 +102,11 @@ pipeline {
                                 git config user.name "Jenkins Automation"
                                 git config user.email "jenkins@councilbox.com"
                                 git add builds/
-                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER}"
+                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER} with history trend"
                                 git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
                             """
                         }
+                        echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
@@ -108,39 +117,53 @@ pipeline {
         always {
             script {
                 if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
+                
+                // --- NOVI DIO: DINAMIČKO IZVLAČENJE GREŠKE ZA AI ---
+                def failedStep = "N/A"
+                def errorReason = "No failure detected"
+                def stepsToReproduce = "N/A"
 
-                // --- DINAMIČKO IZVLAČENJE GREŠKE (BEZ HARDKODIRANJA) ---
                 try {
-                    // Tražimo JSON koji sadrži rezultate testa
-                    def resultFiles = findFiles(glob: 'allure-results/*-result.json')
-                    if (resultFiles.length > 0) {
-                        def lastResult = readJSON file: resultFiles[0].path
-                        // Izvlačimo poruku o grešci (npr. Timeout error)
-                        env.ERROR_MESSAGE = lastResult.statusDetails?.message?.split('\n')?.getAt(0) ?: "Nema poruke o grešci"
-                        // Izvlačimo naziv koraka koji je pao
-                        def failedStepObj = lastResult.steps.find { it.status == 'failed' || it.status == 'broken' }
-                        env.FAILED_STEP = failedStepObj ? failedStepObj.name : "Nepoznat korak"
-                        
-                        // Skupljamo sve prethodne korake u jedan niz (Steps to Reproduce)
-                        env.ALL_STEPS = lastResult.steps.collect { it.name }.join(" -> ")
-                    } else {
-                        env.ERROR_MESSAGE = "Nisu pronađeni Allure rezultati"
-                        env.FAILED_STEP = "N/A"
-                        env.ALL_STEPS = "N/A"
+                    // Tražimo prvi JSON koji ima "fail" status u allure-results
+                    def files = findFiles(glob: 'allure-results/*-result.json')
+                    for (file in files) {
+                        def json = readJSON file: file.path
+                        if (json.status == 'failed' || json.status == 'broken') {
+                            errorReason = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Unknown error"
+                            // Hvata korak na kojem je puklo
+                            def failedStepObj = json.steps.find { it.status == 'failed' || it.status == 'broken' }
+                            failedStep = failedStepObj ? failedStepObj.name : "Unknown step"
+                            // Spaja sve korake do pada u jedan niz
+                            stepsToReproduce = json.steps.collect { it.name }.join(" -> ")
+                            break
+                        }
                     }
                 } catch (Exception e) {
-                    env.ERROR_MESSAGE = "Greška pri čitanju JSON-a: ${e.message}"
-                    env.FAILED_STEP = "Error"
-                    env.ALL_STEPS = "Error"
+                    echo "Could not extract detailed error: ${e.message}"
                 }
 
-                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
+                allure([
+                    includeProperties: false,
+                    jdk: '',
+                    results: [[path: 'allure-results']]
+                ])
+
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-                // --- n8n WEBHOOK SA DINAMIČKIM PODACIMA ---
-                // Čistimo navodnike i nove redove za siguran curl prenos
-                def safeError = env.ERROR_MESSAGE.replace('"', '\\"').replace('\n', ' ')
-                def safeSteps = env.ALL_STEPS.replace('"', '\\"').replace('\n', ' ')
+                if (params.SEND_EMAIL) {
+                    emailext(
+                        subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
+                        from: 'Councilbox Automation <councilboxautotest@gmail.com>',
+                        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
+                        mimeType: 'text/html; charset=UTF-8',
+                        body: """<html>... (tvoj originalni email body) ...</html>"""
+                    )
+                }
+
+                // --- n8n WEBHOOK SA DODANIM KORACIMA ---
+                // Čistimo tekst za curl (izbacujemo navodnike koji kvare JSON)
+                def cleanError = errorReason.replace('"', '\\"').replace('\n', ' ')
+                def cleanSteps = stepsToReproduce.replace('"', '\\"').replace('\n', ' ')
 
                 bat """
                   curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
@@ -148,9 +171,9 @@ pipeline {
                   -d "{\\"status\\":\\"${currentBuild.currentResult}\\", ^
                       \\"env\\":\\"staging\\", ^
                       \\"build\\":\\"${env.BUILD_NUMBER}\\", ^
-                      \\"failed_step\\":\\"${env.FAILED_STEP}\\", ^
-                      \\"error_reason\\":\\"${safeError}\\", ^
-                      \\"steps_to_reproduce\\":\\"${safeSteps}\\", ^
+                      \\"failed_step\\":\\"${failedStep}\\", ^
+                      \\"error_reason\\":\\"${cleanError}\\", ^
+                      \\"steps_to_reproduce\\":\\"${cleanSteps}\\", ^
                       \\"reportUrl\\":\\"${env.FINAL_REPORT_URL}\\"}"
                 """
             }
