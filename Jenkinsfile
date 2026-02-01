@@ -151,22 +151,40 @@ pipeline {
                             def errorMessage = json.statusDetails?.message
                                     ?.split('\n')?.getAt(0) ?: "Unknown error"
 
+                            def fullErrorDetails = json.statusDetails?.message ?: "Unknown error"
+
                             def failedStepObj = json.steps?.find {
                                 it.status == 'failed' || it.status == 'broken'
                             }
 
                             def failedStep = failedStepObj?.name ?: "Unknown step"
+                            def failedStepError = failedStepObj?.statusDetails?.message ?: ""
 
                             def stepFlow = json.steps
                                     ?.collect { it.name }
                                     ?.join(" -> ") ?: "No steps recorded"
 
+                            def stepDetails = json.steps?.collect { step ->
+                                [
+                                    name: step.name,
+                                    status: step.status,
+                                    duration: step.stop - step.start
+                                ]
+                            } ?: []
+
                             failedTestsDetails << [
                                 test_name           : testName,
+                                test_id             : json.uuid ?: "N/A",
                                 status              : json.status,
                                 error_message       : errorMessage,
+                                full_error_details  : fullErrorDetails,
                                 failed_step         : failedStep,
-                                steps_to_reproduce  : stepFlow
+                                failed_step_error   : failedStepError,
+                                steps_to_reproduce  : stepFlow,
+                                all_steps           : stepDetails,
+                                duration            : json.stop - json.start,
+                                severity            : json.severity ?: "normal",
+                                timestamp           : json.start ?: "N/A"
                             ]
                         }
                     }
