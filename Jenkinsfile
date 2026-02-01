@@ -114,54 +114,61 @@ pipeline {
     post {
         always {
             script {
+                // 1. Prvo generišemo Allure i čekamo da se fajlovi smire na disku
+                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
+                archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+                sleep time: 5, unit: 'SECONDS' 
+
                 if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
                 
-                def fName = "All tests passed"
-                def fError = "No failure detected"
+                def fName = "Test build"
+                def fError = "Check report for details"
                 def fStep = "N/A"
                 def fPath = "N/A"
 
                 try {
+                    // 2. Tražimo Allure JSON rezultate
                     def files = findFiles(glob: 'allure-results/*-result.json')
+                    echo "Pronađeno Allure fajlova za analizu: ${files.length}"
+                    
                     for (file in files) {
                         def json = readJSON file: file.path
+                        // Tražimo prvi fajl koji ima status failed ili broken
                         if (json.status == 'failed' || json.status == 'broken') {
                             fName = json.name ?: "Test Failed"
-                            fError = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Check Report"
+                            fError = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Error detected"
                             
                             def stepObj = json.steps.find { it.status == 'failed' || it.status == 'broken' }
-                            fStep = stepObj ? stepObj.name : "Assertion Failure"
+                            fStep = stepObj ? stepObj.name : "Assertion"
                             
-                            // Uzimamo samo zadnjih 5 koraka radi dužine
                             def stepsList = json.steps.collect { it.name }
                             fPath = stepsList.size() > 5 ? stepsList.take(5).join(" -> ") + "..." : stepsList.join(" -> ")
-                            break
+                            break 
                         }
                     }
-                } catch (e) { echo "Allure JSON error: ${e.message}" }
+                } catch (e) { 
+                    echo "Greška prilikom čitanja Allure JSON-a: ${e.message}" 
+                }
 
-                // --- ČIŠĆENJE ZA WINDOWS (Uklanja sve specijalne karaktere) ---
+                // 3. Čišćenje podataka za Windows curl (brisanje problematičnih karaktera)
                 fName = fName.replaceAll(/[^a-zA-Z0-9 ]/, "")
                 fError = fError.replaceAll(/[^a-zA-Z0-9 ]/, "")
                 fStep = fStep.replaceAll(/[^a-zA-Z0-9 ]/, "")
                 fPath = fPath.replaceAll(/[^a-zA-Z0-9 >]/, "")
 
-                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
-                archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-
-                // EMAIL
+                // 4. Slanje emaila ako je parametar uključen
                 if (params.SEND_EMAIL) {
                     emailext(
                         subject: "QA Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
                         to: 'ammar.micijevic@councilbox.com',
                         mimeType: 'text/html',
-                        body: "Status: ${currentBuild.currentResult}<br>Report: <a href='${env.FINAL_REPORT_URL}'>Link</a>"
+                        body: "Status: ${currentBuild.currentResult}<br>Test: ${fName}<br>Error: ${fError}<br><a href='${env.FINAL_REPORT_URL}'>Full Report</a>"
                     )
                 }
 
-                // n8n WEBHOOK - Sada ponovo šalje čista polja
-                echo "Triggering n8n with cleaned data..."
+                // 5. Trigerovanje n8n Webhook-a
+                echo "Slanje očišćenih podataka na n8n Webhook..."
                 bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"test_name\\\":\\\"${fName}\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"failed_step\\\":\\\"${fStep}\\\",\\\"error_reason\\\":\\\"${fError}\\\",\\\"steps_to_reproduce\\\":\\\"${fPath}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
             }
         }
