@@ -148,10 +148,15 @@ pipeline {
 
                             def testName = json.name ?: "Unknown test"
 
-                            def errorMessage = json.statusDetails?.message
-                                    ?.split('\n')?.getAt(0) ?: "Unknown error"
-
                             def fullErrorDetails = json.statusDetails?.message ?: "Unknown error"
+                            
+                            def errorMessage = "Unknown error"
+                            if (fullErrorDetails && fullErrorDetails != "Unknown error") {
+                                def lines = fullErrorDetails.split('\n')
+                                if (lines && lines.length > 0) {
+                                    errorMessage = lines[0]
+                                }
+                            }
 
                             def failedStepObj = json.steps?.find {
                                 it.status == 'failed' || it.status == 'broken'
@@ -192,8 +197,36 @@ pipeline {
                     echo "Allure failure extraction failed: ${e.message}"
                 }
 
-                def failuresJson =
-                        groovy.json.JsonOutput.toJson(failedTestsDetails)
+                // Convert failedTestsDetails to JSON string manually (Jenkins sandbox safe)
+                def failuresJson = "[]"
+                if (failedTestsDetails && failedTestsDetails.size() > 0) {
+                    def jsonParts = []
+                    for (failure in failedTestsDetails) {
+                        def stepDetailsParts = []
+                        if (failure.all_steps) {
+                            for (step in failure.all_steps) {
+                                stepDetailsParts << """{"name":"${step.name?.replaceAll('"', '\\\\"')}","status":"${step.status}","duration":${step.duration ?: 0}}"""
+                            }
+                        }
+                        def stepsJson = "[${stepDetailsParts.join(', ')}]"
+                        
+                        jsonParts << """{
+                            "test_name":"${failure.test_name?.replaceAll('"', '\\\\"')}",
+                            "test_id":"${failure.test_id}",
+                            "status":"${failure.status}",
+                            "error_message":"${failure.error_message?.replaceAll('"', '\\\\"')}",
+                            "full_error_details":"${failure.full_error_details?.replaceAll('"', '\\\\"')}",
+                            "failed_step":"${failure.failed_step?.replaceAll('"', '\\\\"')}",
+                            "failed_step_error":"${failure.failed_step_error?.replaceAll('"', '\\\\"')}",
+                            "steps_to_reproduce":"${failure.steps_to_reproduce?.replaceAll('"', '\\\\"')}",
+                            "all_steps":${stepsJson},
+                            "duration":${failure.duration ?: 0},
+                            "severity":"${failure.severity}",
+                            "timestamp":"${failure.timestamp}"
+                        }"""
+                    }
+                    failuresJson = "[${jsonParts.join(', ')}]"
+                }
 
                 // --------------------------------------
                 // EMAIL (SUMMARY ONLY)
