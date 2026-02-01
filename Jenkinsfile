@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
+        booleanParam(
+            name: 'SEND_EMAIL',
+            defaultValue: true,
+            description: 'Send email notification after build'
+        )
     }
 
     tools {
@@ -24,6 +28,7 @@ pipeline {
     }
 
     stages {
+
         stage('Clean Workspace') {
             steps {
                 cleanWs()
@@ -31,7 +36,9 @@ pipeline {
         }
 
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                checkout scm
+            }
         }
 
         stage('Install Dependencies') {
@@ -54,21 +61,21 @@ pipeline {
                   npx playwright test --reporter=line,allure-playwright || exit 0
                 '''
             }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/junit-results/*.xml'
+                }
+            }
         }
 
         stage('Extract Allure Summary') {
             steps {
+                bat 'cmd /c node scripts/extract-allure-summary.js'
                 script {
-                    try {
-                        bat 'cmd /c node scripts/extract-allure-summary.js'
-                        env.TOTAL_TESTS = readFile('total-tests.txt').trim()
-                        env.PASSED_TESTS = readFile('passed-tests.txt').trim()
-                        env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
-                        env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
-                    } catch (e) {
-                        echo "Summary extraction failed"
-                        env.TOTAL_TESTS = "0"; env.PASSED_TESTS = "0"; env.FAILED_TESTS_COUNT = "0"
-                    }
+                    env.TOTAL_TESTS = readFile('total-tests.txt').trim()
+                    env.PASSED_TESTS = readFile('passed-tests.txt').trim()
+                    env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
+                    env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
                 }
             }
         }
@@ -77,15 +84,19 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+
                         def reportPath = "builds/${env.BUILD_NUMBER}"
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
 
-                        withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                        withCredentials([
+                            string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')
+                        ]) {
                             bat """
                                 @echo off
                                 if exist gh-pages-temp rmdir /s /q gh-pages-temp
+
                                 git clone --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
-                                
+
                                 set /a PREV_BUILD=%BUILD_NUMBER%-1
                                 if exist gh-pages-temp\\builds\\%PREV_BUILD%\\history (
                                     if not exist allure-results\\history mkdir allure-results\\history
@@ -93,10 +104,11 @@ pipeline {
                                 )
 
                                 call npx allure generate allure-results --clean -o allure-report
+
                                 if not exist gh-pages-temp\\builds mkdir gh-pages-temp\\builds
                                 mkdir gh-pages-temp\\builds\\%BUILD_NUMBER%
                                 xcopy /s /e /y allure-report gh-pages-temp\\builds\\%BUILD_NUMBER%\\
-                                
+
                                 cd gh-pages-temp
                                 git config user.name "Jenkins Automation"
                                 git config user.email "jenkins@councilbox.com"
@@ -105,6 +117,8 @@ pipeline {
                                 git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
                             """
                         }
+
+                        echo "Report deployed to: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
@@ -114,72 +128,95 @@ pipeline {
     post {
         always {
             script {
-                // 1. Inicijalizacija Allure-a i pauza
-                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
-                archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-                sleep time: 5, unit: 'SECONDS' 
 
-                if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
-                
-                def fName = "Test build"
-                def fError = "Check report for details"
-                def fStep = "N/A"
-                def fPath = "N/A"
-
-                try {
-                    // DEBUG: Izlistaj fajlove da vidimo putanju u logu
-                    echo "--- DEBUG: Lista fajlova u allure-results ---"
-                    bat 'dir allure-results'
-                    
-                    // 2. Duboka pretraga za JSON rezultatima
-                    def files = findFiles(glob: '**/allure-results/*-result.json')
-                    echo "Pronađeno Allure fajlova: ${files.length}"
-                    
-                    // Ako gore ne nađe ništa, probaj širu pretragu
-                    if (files.length == 0) {
-                        files = findFiles(glob: '**/*-result.json')
-                        echo "Pronađeno JSON fajlova bilo gdje: ${files.length}"
-                    }
-                    
-                    for (file in files) {
-                        def json = readJSON file: file.path
-                        if (json.status == 'failed' || json.status == 'broken') {
-                            echo "Obrađujem grešku iz fajla: ${file.path}"
-                            fName = json.name ?: "Test Failed"
-                            fError = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Error detected"
-                            
-                            def stepObj = json.steps.find { it.status == 'failed' || it.status == 'broken' }
-                            fStep = stepObj ? stepObj.name : "Assertion"
-                            
-                            def stepsList = json.steps.collect { it.name }
-                            fPath = stepsList.size() > 5 ? stepsList.take(5).join(" -> ") + "..." : stepsList.join(" -> ")
-                            break 
-                        }
-                    }
-                } catch (e) { 
-                    echo "Greška u skripti: ${e.message}"
+                if (env.FINAL_REPORT_URL == null) {
+                    env.FINAL_REPORT_URL = "N/A"
                 }
 
-                // 3. Agresivno čišćenje za Windows CMD
-                fName = fName.replaceAll(/[^a-zA-Z0-9 ]/, "")
-                fError = fError.replaceAll(/[^a-zA-Z0-9 ]/, "")
-                fStep = fStep.replaceAll(/[^a-zA-Z0-9 ]/, "")
-                fPath = fPath.replaceAll(/[^a-zA-Z0-9 >]/, "")
+                // --------------------------------------
+                // ALLURE FAILURE EXTRACTION (FOR N8N)
+                // --------------------------------------
+                def failedTestsDetails = []
 
-                // 4. Email notifikacija
+                try {
+                    def files = findFiles(glob: 'allure-results/*-result.json')
+
+                    for (file in files) {
+                        def json = readJSON file: file.path
+
+                        if (json.status == 'failed' || json.status == 'broken') {
+
+                            def testName = json.name ?: "Unknown test"
+
+                            def errorMessage = json.statusDetails?.message
+                                    ?.split('\n')?.getAt(0) ?: "Unknown error"
+
+                            def failedStepObj = json.steps?.find {
+                                it.status == 'failed' || it.status == 'broken'
+                            }
+
+                            def failedStep = failedStepObj?.name ?: "Unknown step"
+
+                            def stepFlow = json.steps
+                                    ?.collect { it.name }
+                                    ?.join(" -> ") ?: "No steps recorded"
+
+                            failedTestsDetails << [
+                                test_name           : testName,
+                                status              : json.status,
+                                error_message       : errorMessage,
+                                failed_step         : failedStep,
+                                steps_to_reproduce  : stepFlow
+                            ]
+                        }
+                    }
+                } catch (Exception e) {
+                    echo "Allure failure extraction failed: ${e.message}"
+                }
+
+                def failuresJson =
+                        groovy.json.JsonOutput.toJson(failedTestsDetails)
+
+                // --------------------------------------
+                // EMAIL (SUMMARY ONLY)
+                // --------------------------------------
                 if (params.SEND_EMAIL) {
                     emailext(
-                        subject: "QA Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                        subject: currentBuild.currentResult == 'SUCCESS'
+                            ? "Councilbox QA Report - Build #${env.BUILD_NUMBER} - SUCCESS"
+                            : "Councilbox QA Failure - Build #${env.BUILD_NUMBER}",
+
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-                        to: 'ammar.micijevic@councilbox.com',
-                        mimeType: 'text/html',
-                        body: "Status: ${currentBuild.currentResult}<br>Test: ${fName}<br>Error: ${fError}<br><a href='${env.FINAL_REPORT_URL}'>Full Report</a>"
+                        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
+                        mimeType: 'text/html; charset=UTF-8',
+
+                        body: """
+                            <html>
+                              <body style="font-family:Arial, sans-serif;">
+                                <h2>Councilbox QA Report - Build #${env.BUILD_NUMBER}</h2>
+                                <p><strong>Status:</strong> ${currentBuild.currentResult}</p>
+                                <p>
+                                  <strong>Tests:</strong>
+                                  Passed: ${env.PASSED_TESTS} /
+                                  Failed: ${env.FAILED_TESTS_COUNT}
+                                </p>
+                                <p>
+                                  <a href="${env.FINAL_REPORT_URL}">
+                                    View Full Allure Report
+                                  </a>
+                                </p>
+                              </body>
+                            </html>
+                        """
                     )
                 }
 
-                // 5. n8n Webhook poziv
-                echo "Slanje na n8n: Name=${fName}, Error=${fError}"
-                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"test_name\\\":\\\"${fName}\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"failed_step\\\":\\\"${fStep}\\\",\\\"error_reason\\\":\\\"${fError}\\\",\\\"steps_to_reproduce\\\":\\\"${fPath}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
+                // --------------------------------------
+                // N8N WEBHOOK (ONE-LINE CURL, WINDOWS SAFE)
+                // --------------------------------------
+                echo "Triggering n8n webhook..."
+
+                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"report_url\\\":\\\"${env.FINAL_REPORT_URL}\\\",\\\"failures\\\":${failuresJson}}\""
             }
         }
     }
