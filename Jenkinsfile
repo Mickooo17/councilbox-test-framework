@@ -114,7 +114,7 @@ pipeline {
     post {
         always {
             script {
-                // 1. Prvo generišemo Allure i čekamo da se fajlovi smire na disku
+                // 1. Inicijalizacija Allure-a i pauza
                 allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
                 sleep time: 5, unit: 'SECONDS' 
@@ -127,14 +127,24 @@ pipeline {
                 def fPath = "N/A"
 
                 try {
-                    // 2. Tražimo Allure JSON rezultate
-                    def files = findFiles(glob: 'allure-results/*-result.json')
-                    echo "Pronađeno Allure fajlova za analizu: ${files.length}"
+                    // DEBUG: Izlistaj fajlove da vidimo putanju u logu
+                    echo "--- DEBUG: Lista fajlova u allure-results ---"
+                    bat 'dir allure-results'
+                    
+                    // 2. Duboka pretraga za JSON rezultatima
+                    def files = findFiles(glob: '**/allure-results/*-result.json')
+                    echo "Pronađeno Allure fajlova: ${files.length}"
+                    
+                    // Ako gore ne nađe ništa, probaj širu pretragu
+                    if (files.length == 0) {
+                        files = findFiles(glob: '**/*-result.json')
+                        echo "Pronađeno JSON fajlova bilo gdje: ${files.length}"
+                    }
                     
                     for (file in files) {
                         def json = readJSON file: file.path
-                        // Tražimo prvi fajl koji ima status failed ili broken
                         if (json.status == 'failed' || json.status == 'broken') {
+                            echo "Obrađujem grešku iz fajla: ${file.path}"
                             fName = json.name ?: "Test Failed"
                             fError = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Error detected"
                             
@@ -147,16 +157,16 @@ pipeline {
                         }
                     }
                 } catch (e) { 
-                    echo "Greška prilikom čitanja Allure JSON-a: ${e.message}" 
+                    echo "Greška u skripti: ${e.message}"
                 }
 
-                // 3. Čišćenje podataka za Windows curl (brisanje problematičnih karaktera)
+                // 3. Agresivno čišćenje za Windows CMD
                 fName = fName.replaceAll(/[^a-zA-Z0-9 ]/, "")
                 fError = fError.replaceAll(/[^a-zA-Z0-9 ]/, "")
                 fStep = fStep.replaceAll(/[^a-zA-Z0-9 ]/, "")
                 fPath = fPath.replaceAll(/[^a-zA-Z0-9 >]/, "")
 
-                // 4. Slanje emaila ako je parametar uključen
+                // 4. Email notifikacija
                 if (params.SEND_EMAIL) {
                     emailext(
                         subject: "QA Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
@@ -167,8 +177,8 @@ pipeline {
                     )
                 }
 
-                // 5. Trigerovanje n8n Webhook-a
-                echo "Slanje očišćenih podataka na n8n Webhook..."
+                // 5. n8n Webhook poziv
+                echo "Slanje na n8n: Name=${fName}, Error=${fError}"
                 bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"test_name\\\":\\\"${fName}\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"failed_step\\\":\\\"${fStep}\\\",\\\"error_reason\\\":\\\"${fError}\\\",\\\"steps_to_reproduce\\\":\\\"${fPath}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
             }
         }
