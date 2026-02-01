@@ -205,28 +205,38 @@ pipeline {
                         def stepDetailsParts = []
                         if (failure.all_steps) {
                             for (step in failure.all_steps) {
-                                stepDetailsParts << """{"name":"${step.name?.replaceAll('"', '\\\\"')}","status":"${step.status}","duration":${step.duration ?: 0}}"""
+                                stepDetailsParts << """{"name":"${step.name?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}","status":"${step.status}","duration":${step.duration ?: 0}}"""
                             }
                         }
-                        def stepsJson = "[${stepDetailsParts.join(', ')}]"
+                        def stepsJson = "[${stepDetailsParts.join(',')}]"
                         
                         jsonParts << """{
-                            "test_name":"${failure.test_name?.replaceAll('"', '\\\\"')}",
+                            "test_name":"${failure.test_name?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
                             "test_id":"${failure.test_id}",
                             "status":"${failure.status}",
-                            "error_message":"${failure.error_message?.replaceAll('"', '\\\\"')}",
-                            "full_error_details":"${failure.full_error_details?.replaceAll('"', '\\\\"')}",
-                            "failed_step":"${failure.failed_step?.replaceAll('"', '\\\\"')}",
-                            "failed_step_error":"${failure.failed_step_error?.replaceAll('"', '\\\\"')}",
-                            "steps_to_reproduce":"${failure.steps_to_reproduce?.replaceAll('"', '\\\\"')}",
+                            "error_message":"${failure.error_message?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
+                            "full_error_details":"${failure.full_error_details?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
+                            "failed_step":"${failure.failed_step?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
+                            "failed_step_error":"${failure.failed_step_error?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
+                            "steps_to_reproduce":"${failure.steps_to_reproduce?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
                             "all_steps":${stepsJson},
                             "duration":${failure.duration ?: 0},
                             "severity":"${failure.severity}",
                             "timestamp":"${failure.timestamp}"
                         }"""
                     }
-                    failuresJson = "[${jsonParts.join(', ')}]"
+                    failuresJson = "[${jsonParts.join(',')}]"
                 }
+
+                def webhookPayload = """{
+                    "build":"${env.BUILD_NUMBER}",
+                    "status":"${currentBuild.currentResult}",
+                    "report_url":"${env.FINAL_REPORT_URL}",
+                    "failures":${failuresJson}
+                }"""
+
+                // Write payload to file (Windows safe)
+                writeFile file: 'webhook-payload.json', text: webhookPayload
 
                 // --------------------------------------
                 // EMAIL (SUMMARY ONLY)
@@ -263,11 +273,11 @@ pipeline {
                 }
 
                 // --------------------------------------
-                // N8N WEBHOOK (ONE-LINE CURL, WINDOWS SAFE)
+                // N8N WEBHOOK (FILE-BASED, WINDOWS SAFE)
                 // --------------------------------------
                 echo "Triggering n8n webhook..."
 
-                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"report_url\\\":\\\"${env.FINAL_REPORT_URL}\\\",\\\"failures\\\":${failuresJson}}\""
+                bat 'curl.exe -X POST http://localhost:5678/webhook/playwright-results -H "Content-Type: application/json" -d @webhook-payload.json'
             }
         }
     }
