@@ -238,6 +238,12 @@ pipeline {
                 // Write payload to file (Windows safe)
                 writeFile file: 'webhook-payload.json', text: webhookPayload
 
+                // Set build status to UNSTABLE if tests failed
+                if (failedTestsDetails && failedTestsDetails.size() > 0) {
+                    echo "WARNING: ${failedTestsDetails.size()} test(s) failed - Setting build to UNSTABLE"
+                    currentBuild.result = 'UNSTABLE'
+                }
+
                 // --------------------------------------
                 // EMAIL (SUMMARY ONLY)
                 // --------------------------------------
