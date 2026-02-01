@@ -30,27 +30,19 @@ pipeline {
     stages {
 
         stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
+            steps { cleanWs() }
         }
 
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Install Dependencies') {
-            steps {
-                bat 'cmd /c npm ci'
-            }
+            steps { bat 'cmd /c npm ci' }
         }
 
         stage('Install Playwright Browsers') {
-            steps {
-                bat 'cmd /c npx playwright install --with-deps'
-            }
+            steps { bat 'cmd /c npx playwright install --with-deps' }
         }
 
         stage('Run Tests') {
@@ -134,7 +126,7 @@ pipeline {
                 }
 
                 // --------------------------------------
-                // ALLURE FAILURE EXTRACTION (FOR N8N)
+                // ALLURE FAILURE EXTRACTION
                 // --------------------------------------
                 def failedTestsDetails = []
 
@@ -146,50 +138,29 @@ pipeline {
 
                         if (json.status == 'failed' || json.status == 'broken') {
 
-                            def testName = json.name ?: "Unknown test"
-
-                            def fullErrorDetails = json.statusDetails?.message ?: "Unknown error"
-                            
-                            def errorMessage = "Unknown error"
-                            if (fullErrorDetails && fullErrorDetails != "Unknown error") {
-                                def lines = fullErrorDetails.split('\n')
-                                if (lines && lines.length > 0) {
-                                    errorMessage = lines[0]
-                                }
-                            }
+                            def fullError = json.statusDetails?.message ?: "Unknown error"
+                            def errorMessage = fullError ? fullError.split('\n')[0] : "Unknown error"
 
                             def failedStepObj = json.steps?.find {
                                 it.status == 'failed' || it.status == 'broken'
                             }
 
-                            def failedStep = failedStepObj?.name ?: "Unknown step"
-                            def failedStepError = failedStepObj?.statusDetails?.message ?: ""
-
                             def stepFlow = json.steps
                                     ?.collect { it.name }
                                     ?.join(" -> ") ?: "No steps recorded"
 
-                            def stepDetails = json.steps?.collect { step ->
-                                [
-                                    name: step.name,
-                                    status: step.status,
-                                    duration: step.stop - step.start
-                                ]
-                            } ?: []
-
                             failedTestsDetails << [
-                                test_name           : testName,
-                                test_id             : json.uuid ?: "N/A",
-                                status              : json.status,
-                                error_message       : errorMessage,
-                                full_error_details  : fullErrorDetails,
-                                failed_step         : failedStep,
-                                failed_step_error   : failedStepError,
-                                steps_to_reproduce  : stepFlow,
-                                all_steps           : stepDetails,
-                                duration            : json.stop - json.start,
-                                severity            : json.severity ?: "normal",
-                                timestamp           : json.start ?: "N/A"
+                                test_name          : json.name ?: "Unknown test",
+                                test_id            : json.uuid ?: "N/A",
+                                status             : json.status,
+                                error_message      : errorMessage,
+                                full_error_details : fullError,
+                                failed_step        : failedStepObj?.name ?: "Unknown step",
+                                failed_step_error  : failedStepObj?.statusDetails?.message ?: "",
+                                steps_to_reproduce : stepFlow,
+                                duration           : (json.stop - json.start) ?: 0,
+                                severity           : json.severity ?: "normal",
+                                timestamp          : json.start ?: "N/A"
                             ]
                         }
                     }
@@ -197,36 +168,36 @@ pipeline {
                     echo "Allure failure extraction failed: ${e.message}"
                 }
 
-                // Convert failedTestsDetails to JSON string manually (Jenkins sandbox safe)
-                def failuresJson = "[]"
-                if (failedTestsDetails && failedTestsDetails.size() > 0) {
-                    def jsonParts = []
-                    for (failure in failedTestsDetails) {
-                        def stepDetailsParts = []
-                        if (failure.all_steps) {
-                            for (step in failure.all_steps) {
-                                stepDetailsParts << """{"name":"${step.name?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}","status":"${step.status}","duration":${step.duration ?: 0}}"""
-                            }
-                        }
-                        def stepsJson = "[${stepDetailsParts.join(',')}]"
-                        
-                        jsonParts << """{
-                            "test_name":"${failure.test_name?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
-                            "test_id":"${failure.test_id}",
-                            "status":"${failure.status}",
-                            "error_message":"${failure.error_message?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
-                            "full_error_details":"${failure.full_error_details?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
-                            "failed_step":"${failure.failed_step?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
-                            "failed_step_error":"${failure.failed_step_error?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
-                            "steps_to_reproduce":"${failure.steps_to_reproduce?.replaceAll('"', '\\\\"').replaceAll('\n', '\\\\n')}",
-                            "all_steps":${stepsJson},
-                            "duration":${failure.duration ?: 0},
-                            "severity":"${failure.severity}",
-                            "timestamp":"${failure.timestamp}"
-                        }"""
-                    }
-                    failuresJson = "[${jsonParts.join(',')}]"
+                // --------------------------------------
+                // FORCE BUILD STATUS *BEFORE* PAYLOAD
+                // --------------------------------------
+                if (failedTestsDetails.size() > 0) {
+                    echo "WARNING: ${failedTestsDetails.size()} test(s) failed - Setting build to UNSTABLE"
+                    currentBuild.result = 'UNSTABLE'
                 }
+
+                // --------------------------------------
+                // MANUAL JSON (SANDBOX SAFE)
+                // --------------------------------------
+                def failuresJsonParts = []
+
+                for (f in failedTestsDetails) {
+                    failuresJsonParts << """{
+                        "test_name":"${f.test_name}",
+                        "test_id":"${f.test_id}",
+                        "status":"${f.status}",
+                        "error_message":"${f.error_message}",
+                        "full_error_details":"${f.full_error_details}",
+                        "failed_step":"${f.failed_step}",
+                        "failed_step_error":"${f.failed_step_error}",
+                        "steps_to_reproduce":"${f.steps_to_reproduce}",
+                        "duration":${f.duration},
+                        "severity":"${f.severity}",
+                        "timestamp":"${f.timestamp}"
+                    }"""
+                }
+
+                def failuresJson = "[${failuresJsonParts.join(',')}]"
 
                 def webhookPayload = """{
                     "build":"${env.BUILD_NUMBER}",
@@ -235,14 +206,7 @@ pipeline {
                     "failures":${failuresJson}
                 }"""
 
-                // Write payload to file (Windows safe)
                 writeFile file: 'webhook-payload.json', text: webhookPayload
-
-                // Set build status to UNSTABLE if tests failed
-                if (failedTestsDetails && failedTestsDetails.size() > 0) {
-                    echo "WARNING: ${failedTestsDetails.size()} test(s) failed - Setting build to UNSTABLE"
-                    currentBuild.result = 'UNSTABLE'
-                }
 
                 // --------------------------------------
                 // EMAIL (SUMMARY ONLY)
@@ -254,24 +218,16 @@ pipeline {
                             : "Councilbox QA Failure - Build #${env.BUILD_NUMBER}",
 
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-                        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
+                        to: 'ammar.micijevic@councilbox.com',
                         mimeType: 'text/html; charset=UTF-8',
 
                         body: """
                             <html>
-                              <body style="font-family:Arial, sans-serif;">
+                              <body>
                                 <h2>Councilbox QA Report - Build #${env.BUILD_NUMBER}</h2>
-                                <p><strong>Status:</strong> ${currentBuild.currentResult}</p>
-                                <p>
-                                  <strong>Tests:</strong>
-                                  Passed: ${env.PASSED_TESTS} /
-                                  Failed: ${env.FAILED_TESTS_COUNT}
-                                </p>
-                                <p>
-                                  <a href="${env.FINAL_REPORT_URL}">
-                                    View Full Allure Report
-                                  </a>
-                                </p>
+                                <p>Status: ${currentBuild.currentResult}</p>
+                                <p>Passed: ${env.PASSED_TESTS} | Failed: ${env.FAILED_TESTS_COUNT}</p>
+                                <a href="${env.FINAL_REPORT_URL}">View Allure Report</a>
                               </body>
                             </html>
                         """
@@ -279,10 +235,9 @@ pipeline {
                 }
 
                 // --------------------------------------
-                // N8N WEBHOOK (FILE-BASED, WINDOWS SAFE)
+                // N8N WEBHOOK (WINDOWS SAFE)
                 // --------------------------------------
                 echo "Triggering n8n webhook..."
-
                 bat 'curl.exe -X POST http://localhost:5678/webhook/playwright-results -H "Content-Type: application/json" -d @webhook-payload.json'
             }
         }
