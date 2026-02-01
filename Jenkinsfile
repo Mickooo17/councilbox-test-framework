@@ -25,9 +25,7 @@ pipeline {
 
     stages {
         stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
+            steps { cleanWs() }
         }
 
         stage('Checkout') {
@@ -35,15 +33,11 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                bat 'cmd /c npm ci'
-            }
+            steps { bat 'cmd /c npm ci' }
         }
 
         stage('Install Playwright Browsers') {
-            steps {
-                bat 'cmd /c npx playwright install --with-deps'
-            }
+            steps { bat 'cmd /c npx playwright install --with-deps' }
         }
 
         stage('Run Tests') {
@@ -79,46 +73,31 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         def reportPath = "builds/${env.BUILD_NUMBER}"
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
-
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                             bat """
                                 @echo off
                                 if exist gh-pages-temp rmdir /s /q gh-pages-temp
-                                
-                                echo Cloning gh-pages branch...
                                 git clone --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
                                 
-                                :: --- TREND HISTORY LOGIC ---
                                 set /a PREV_BUILD=%BUILD_NUMBER%-1
                                 if exist gh-pages-temp\\builds\\%PREV_BUILD%\\history (
-                                    echo Previous history found in build %PREV_BUILD%. Copying to results...
                                     if not exist allure-results\\history mkdir allure-results\\history
                                     xcopy /s /e /y gh-pages-temp\\builds\\%PREV_BUILD%\\history allure-results\\history\\
-                                ) else (
-                                    echo No previous history found for trend charts.
                                 )
 
-                                echo Generating Allure report...
                                 call npx allure generate allure-results --clean -o allure-report
-                                
-                                echo Preparing deployment folder for build %BUILD_NUMBER%...
                                 if not exist gh-pages-temp\\builds mkdir gh-pages-temp\\builds
                                 mkdir gh-pages-temp\\builds\\%BUILD_NUMBER%
-                                
-                                echo Copying report files...
                                 xcopy /s /e /y allure-report gh-pages-temp\\builds\\%BUILD_NUMBER%\\
                                 
                                 cd gh-pages-temp
                                 git config user.name "Jenkins Automation"
                                 git config user.email "jenkins@councilbox.com"
-                                
-                                echo Committing and pushing to GitHub Pages...
                                 git add builds/
-                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER} with history trend"
+                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER}"
                                 git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
                             """
                         }
-                        echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
@@ -129,50 +108,50 @@ pipeline {
         always {
             script {
                 if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
-                
-                allure([
-                    includeProperties: false,
-                    jdk: '',
-                    results: [[path: 'allure-results']]
-                ])
 
-                archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
-
-                // --- EMAIL NOTIFICATION ---
-                if (params.SEND_EMAIL) {
-                    echo "📧 Sending email notification..."
-                    emailext(
-                        subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
-                        from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-                        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
-                        mimeType: 'text/html; charset=UTF-8',
-                        body: """
-                            <html>
-                              <body style="font-family:Arial, sans-serif; font-size:14px; color:#333; background-color:#f9f9f9; padding:20px;">
-                                <h2 style="color:#1a73e8; margin-bottom:5px;">Councilbox QA Pipeline Report</h2>
-                                <table style="border-collapse:collapse; background:#fff; padding:10px; border:1px solid #ddd; width:100%; max-width:600px;">
-                                  <tr><td><strong>Build Number:</strong></td><td>${env.BUILD_NUMBER}</td></tr>
-                                  <tr><td><strong>Status:</strong></td><td style="color:${currentBuild.currentResult == 'SUCCESS' ? '#28a745' : '#d93025'}; font-weight:bold;">${currentBuild.currentResult}</td></tr>
-                                  <tr><td><strong>Duration:</strong></td><td>${currentBuild.durationString}</td></tr>
-                                  <tr><td><strong>Total Tests:</strong></td><td>${env.TOTAL_TESTS}</td></tr>
-                                  <tr><td><strong>Passed:</strong></td><td style="color:#28a745;">${env.PASSED_TESTS}</td></tr>
-                                  <tr><td><strong>Failed:</strong></td><td style="color:#d93025;">${env.FAILED_TESTS_COUNT}</td></tr>
-                                  <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
-                                </table>
-                                <p style="margin-top:20px;">
-                                    <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>Open Full Allure Report (GitHub Pages)</a>
-                                </p>
-                              </body>
-                            </html>
-                        """
-                    )
+                // --- DINAMIČKO IZVLAČENJE GREŠKE (BEZ HARDKODIRANJA) ---
+                try {
+                    // Tražimo JSON koji sadrži rezultate testa
+                    def resultFiles = findFiles(glob: 'allure-results/*-result.json')
+                    if (resultFiles.length > 0) {
+                        def lastResult = readJSON file: resultFiles[0].path
+                        // Izvlačimo poruku o grešci (npr. Timeout error)
+                        env.ERROR_MESSAGE = lastResult.statusDetails?.message?.split('\n')?.getAt(0) ?: "Nema poruke o grešci"
+                        // Izvlačimo naziv koraka koji je pao
+                        def failedStepObj = lastResult.steps.find { it.status == 'failed' || it.status == 'broken' }
+                        env.FAILED_STEP = failedStepObj ? failedStepObj.name : "Nepoznat korak"
+                        
+                        // Skupljamo sve prethodne korake u jedan niz (Steps to Reproduce)
+                        env.ALL_STEPS = lastResult.steps.collect { it.name }.join(" -> ")
+                    } else {
+                        env.ERROR_MESSAGE = "Nisu pronađeni Allure rezultati"
+                        env.FAILED_STEP = "N/A"
+                        env.ALL_STEPS = "N/A"
+                    }
+                } catch (Exception e) {
+                    env.ERROR_MESSAGE = "Greška pri čitanju JSON-a: ${e.message}"
+                    env.FAILED_STEP = "Error"
+                    env.ALL_STEPS = "Error"
                 }
 
-                // --- n8n WEBHOOK ---
+                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
+                archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+
+                // --- n8n WEBHOOK SA DINAMIČKIM PODACIMA ---
+                // Čistimo navodnike i nove redove za siguran curl prenos
+                def safeError = env.ERROR_MESSAGE.replace('"', '\\"').replace('\n', ' ')
+                def safeSteps = env.ALL_STEPS.replace('"', '\\"').replace('\n', ' ')
+
                 bat """
                   curl.exe -X POST http://localhost:5678/webhook/playwright-results ^
                   -H "Content-Type: application/json" ^
-                  -d "{\\"status\\":\\"${currentBuild.currentResult}\\",\\"env\\":\\"staging\\",\\"build\\":\\"${env.BUILD_NUMBER}\\",\\"duration\\":\\"${currentBuild.durationString}\\",\\"total\\":\\"${env.TOTAL_TESTS}\\",\\"passed\\":\\"${env.PASSED_TESTS}\\",\\"failed\\":\\"${env.FAILED_TESTS_COUNT}\\",\\"skipped\\":\\"${env.SKIPPED_TESTS}\\",\\"reportUrl\\":\\"${env.FINAL_REPORT_URL}\\"}"
+                  -d "{\\"status\\":\\"${currentBuild.currentResult}\\", ^
+                      \\"env\\":\\"staging\\", ^
+                      \\"build\\":\\"${env.BUILD_NUMBER}\\", ^
+                      \\"failed_step\\":\\"${env.FAILED_STEP}\\", ^
+                      \\"error_reason\\":\\"${safeError}\\", ^
+                      \\"steps_to_reproduce\\":\\"${safeSteps}\\", ^
+                      \\"reportUrl\\":\\"${env.FINAL_REPORT_URL}\\"}"
                 """
             }
         }
