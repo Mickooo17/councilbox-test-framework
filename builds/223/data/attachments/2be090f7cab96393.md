@@ -1,0 +1,123 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e7] [cursor=pointer]: 
+      - generic [ref=e11]:
+        - link " Activity" [ref=e13] [cursor=pointer]:
+          - /url: /company/2034/activity/dashboardCouncils
+          - button " Activity" [ref=e14] [cursor=pointer]:
+            - generic [ref=e16] [cursor=pointer]: 
+            - generic [ref=e17] [cursor=pointer]: Activity
+        - link " Appointments" [ref=e19] [cursor=pointer]:
+          - /url: /company/2034
+          - button " Appointments" [ref=e20] [cursor=pointer]:
+            - generic [ref=e22] [cursor=pointer]: 
+            - generic [ref=e23] [cursor=pointer]: Appointments
+        - link " Processes" [ref=e25] [cursor=pointer]:
+          - /url: /company/2034/managements
+          - button " Processes" [ref=e26] [cursor=pointer]:
+            - generic [ref=e28] [cursor=pointer]: 
+            - generic [ref=e29] [cursor=pointer]: Processes
+        - link " Procedures" [ref=e31] [cursor=pointer]:
+          - /url: /company/2034/procedures
+          - button " Procedures" [ref=e32] [cursor=pointer]:
+            - generic [ref=e34] [cursor=pointer]: 
+            - generic [ref=e35] [cursor=pointer]: Procedures
+        - link " Templates" [ref=e37] [cursor=pointer]:
+          - /url: /company/2034/drafts
+          - button " Templates" [ref=e38] [cursor=pointer]:
+            - generic [ref=e40] [cursor=pointer]: 
+            - generic [ref=e41] [cursor=pointer]: Templates
+        - link " Documents" [ref=e43] [cursor=pointer]:
+          - /url: /company/2034/documentation
+          - button " Documents" [ref=e44] [cursor=pointer]:
+            - generic [ref=e46] [cursor=pointer]: 
+            - generic [ref=e47] [cursor=pointer]: Documents
+        - link " Institutions" [ref=e49] [cursor=pointer]:
+          - /url: /company/2034/companies
+          - button " Institutions" [ref=e50] [cursor=pointer]:
+            - generic [ref=e52] [cursor=pointer]: 
+            - generic [ref=e53] [cursor=pointer]: Institutions
+        - link " Users" [ref=e55] [cursor=pointer]:
+          - /url: /company/2034/users
+          - button " Users" [ref=e56] [cursor=pointer]:
+            - generic [ref=e58] [cursor=pointer]: 
+            - generic [ref=e59] [cursor=pointer]: Users
+      - generic [ref=e61]:
+        - img "CBX white Logo" [ref=e62]
+        - generic [ref=e63]:
+          - generic [ref=e64]: © 2026
+          - text: v
+          - generic [ref=e65]: 8.2.3
+    - generic [ref=e67]:
+      - banner [ref=e68]:
+        - img "logo" [ref=e71] [cursor=pointer]
+        - generic [ref=e76]: Company Name 2026 - Ammar - 29.01.2026
+        - generic [ref=e78]:
+          - button "" [ref=e82] [cursor=pointer]:
+            - generic [ref=e83] [cursor=pointer]: 
+          - button "Actions Button" [ref=e88] [cursor=pointer]:
+            - generic [ref=e91] [cursor=pointer]:
+              - img "logo" [ref=e93] [cursor=pointer]
+              - generic [ref=e95] [cursor=pointer]: 
+      - generic [ref=e96]:
+        - button "Actions Button" [ref=e99] [cursor=pointer]:
+          - generic [ref=e100] [cursor=pointer]: 
+        - generic [ref=e103]:
+          - tablist [ref=e107]:
+            - tab "Video-appointments" [selected] [ref=e108] [cursor=pointer]:
+              - generic [ref=e109] [cursor=pointer]: Video-appointments
+            - tab "In-person appointments" [ref=e110] [cursor=pointer]:
+              - generic [ref=e111] [cursor=pointer]: In-person appointments
+          - generic [ref=e114]:
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e119]:
+                  - generic [ref=e122]:
+                    - generic [ref=e123] [cursor=pointer]:
+                      - generic [ref=e125] [cursor=pointer]:
+                        - generic [ref=e126] [cursor=pointer]: 
+                        - generic [ref=e127] [cursor=pointer]: List view
+                      - textbox "Input": "[object Object]"
+                    - group "Input fieldset"
+                  - generic [ref=e131]:
+                    - generic [ref=e132]: Status
+                    - generic [ref=e133]:
+                      - button "Confirmed, In progress, Pending report, Completed, In pause" [ref=e134] [cursor=pointer]
+                      - textbox: confirmed,room_opened,act_pending,complete,paused
+                      - img
+                  - generic [ref=e136]:
+                    - generic [ref=e137]: Period
+                    - generic [ref=e138]:
+                      - button "This week" [ref=e139] [cursor=pointer]
+                      - textbox: week
+                      - img
+                  - button "Icon Button" [ref=e141] [cursor=pointer]:
+                    - generic [ref=e142] [cursor=pointer]: 
+                - generic [ref=e144]:
+                  - generic [ref=e147]:
+                    - button "Icon Button" [ref=e149] [cursor=pointer]:
+                      - generic [ref=e150] [cursor=pointer]: 
+                    - textbox "Search" [ref=e152]
+                  - button "Icon Button" [ref=e153] [cursor=pointer]:
+                    - generic [ref=e154] [cursor=pointer]: 
+              - generic [ref=e159]:
+                - generic:
+                  - img "logo"
+                - generic [ref=e160]: No appointments available for the selected period and states.
+            - generic [ref=e163]:
+              - generic [ref=e165] [cursor=pointer]: 
+              - generic [ref=e166]: 0 selected
+  - generic [ref=e167]:
+    - img [ref=e169]
+    - generic [ref=e171]:
+      - generic [ref=e173]: New version OVAC 8.2
+      - generic [ref=e174]:
+        - generic [ref=e176]: We have updated the app to the latest version to offer you a better experience. This update includes important improvements, error corrections and optimizations so that use will be easier and friendlier.
+        - generic [ref=e181] [cursor=pointer]: Review upgrades
+    - button [ref=e183] [cursor=pointer]:
+      - img [ref=e185] [cursor=pointer]
+```
