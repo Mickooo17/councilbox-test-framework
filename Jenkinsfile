@@ -54,11 +54,6 @@ pipeline {
                   npx playwright test --reporter=line,allure-playwright || exit 0
                 '''
             }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: '**/junit-results/*.xml'
-                }
-            }
         }
 
         stage('Extract Allure Summary') {
@@ -84,7 +79,6 @@ pipeline {
                             bat """
                                 @echo off
                                 if exist gh-pages-temp rmdir /s /q gh-pages-temp
-                                echo Cloning gh-pages branch...
                                 git clone --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
                                 
                                 set /a PREV_BUILD=%BUILD_NUMBER%-1
@@ -118,10 +112,16 @@ pipeline {
             script {
                 if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
                 
-                def failedStep = "N/A"
-                def errorReason = "No failure detected"
-                def stepsToReproduce = "N/A"
-                def testName = "All tests passed"
+                // Kreiramo mapu podataka koju ćemo poslati
+                def payloadMap = [
+                    status: currentBuild.currentResult,
+                    build: env.BUILD_NUMBER,
+                    reportUrl: env.FINAL_REPORT_URL,
+                    test_name: "All tests passed",
+                    error_reason: "N/A",
+                    failed_step: "N/A",
+                    steps_to_reproduce: "N/A"
+                ]
 
                 // --- EKSTRAKCIJA DETALJA IZ ALLURE JSON-A ---
                 try {
@@ -129,12 +129,16 @@ pipeline {
                     for (file in files) {
                         def json = readJSON file: file.path
                         if (json.status == 'failed' || json.status == 'broken') {
-                            testName = json.name ?: "Unknown Test"
-                            errorReason = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Unknown error"
+                            payloadMap.test_name = json.name ?: "Unknown Test"
                             
+                            // Duboka pretraga za Error Message
                             def failedStepObj = json.steps.find { it.status == 'failed' || it.status == 'broken' }
-                            failedStep = failedStepObj ? failedStepObj.name : "Unknown step"
-                            stepsToReproduce = json.steps.collect { it.name }.join(" -> ")
+                            payloadMap.error_reason = failedStepObj?.statusDetails?.message?.split('\n')?.getAt(0) ?: json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Check Report"
+                            payloadMap.failed_step = failedStepObj ? failedStepObj.name : "Assertion Failure"
+                            
+                            // Skraćivanje koraka da ne preopteretimo paket
+                            def stepsList = json.steps.collect { it.name }
+                            payloadMap.steps_to_reproduce = stepsList.size() > 7 ? stepsList[0..6].join(" -> ") + "..." : stepsList.join(" -> ")
                             break
                         }
                     }
@@ -142,43 +146,27 @@ pipeline {
                     echo "Allure detail extraction failed: ${e.message}"
                 }
 
-                allure([
-                    includeProperties: false,
-                    jdk: '',
-                    results: [[path: 'allure-results']]
-                ])
-
+                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-                // --- ČIŠĆENJE PODATAKA ZA CURL (KLJUČNO ZA WINDOWS) ---
-                def cleanTestName = testName.replace('"', '').replace('\\', '/')
-                def cleanError = errorReason.replace('"', '').replace('\\', '/').replace('\n', ' ').replace('\r', '')
-                def cleanSteps = stepsToReproduce.replace('"', '').replace('\\', '/').replace('\n', ' ')
-                def cleanFailedStep = failedStep.replace('"', '').replace('\\', '/')
+                // --- BASE64 ENKODIRANJE (ZA WINDOWS STABILNOST) ---
+                def jsonString = groovy.json.JsonOutput.toJson(payloadMap)
+                def base64Payload = jsonString.getBytes("UTF-8").encodeBase64().toString()
 
                 // --- EMAIL NOTIFIKACIJA ---
                 if (params.SEND_EMAIL) {
                     emailext(
                         subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
-                        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
+                        to: 'ammar.micijevic@councilbox.com',
                         mimeType: 'text/html; charset=UTF-8',
-                        body: """
-                            <html>
-                              <body style="font-family:Arial, sans-serif; padding:20px;">
-                                <h2 style="color:#1a73e8;">Councilbox QA Report - Build #${env.BUILD_NUMBER}</h2>
-                                <p><strong>Status:</strong> ${currentBuild.currentResult}</p>
-                                <p><strong>Tests:</strong> Passed: ${env.PASSED_TESTS} / Failed: ${env.FAILED_TESTS_COUNT}</p>
-                                <p><a href='${env.FINAL_REPORT_URL}' style='padding:10px; background:#1a73e8; color:#fff; text-decoration:none;'>View Full Report</a></p>
-                              </body>
-                            </html>
-                        """
+                        body: "<h2>Report Build #${env.BUILD_NUMBER}</h2><p>Status: ${currentBuild.currentResult}</p><a href='${env.FINAL_REPORT_URL}'>View Report</a>"
                     )
                 }
 
-                // --- n8n WEBHOOK (SADA U JEDNOJ LINIJI ZA WINDOWS) ---
-                echo "Triggering n8n webhook..."
-                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"test_name\\\":\\\"${cleanTestName}\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"failed_step\\\":\\\"${cleanFailedStep}\\\",\\\"error_reason\\\":\\\"${cleanError}\\\",\\\"steps_to_reproduce\\\":\\\"${cleanSteps}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
+                // --- n8n WEBHOOK (Šaljemo Base64 string pod ključem "data") ---
+                echo "Triggering n8n webhook with Base64 payload..."
+                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"data\\\":\\\"${base64Payload}\\\"}\""
             }
         }
     }
