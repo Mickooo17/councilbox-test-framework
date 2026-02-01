@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
     }
 
     tools {
@@ -25,7 +25,9 @@ pipeline {
 
     stages {
         stage('Clean Workspace') {
-            steps { cleanWs() }
+            steps {
+                cleanWs()
+            }
         }
 
         stage('Checkout') {
@@ -33,11 +35,15 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps { bat 'cmd /c npm ci' }
+            steps {
+                bat 'cmd /c npm ci'
+            }
         }
 
         stage('Install Playwright Browsers') {
-            steps { bat 'cmd /c npx playwright install --with-deps' }
+            steps {
+                bat 'cmd /c npx playwright install --with-deps'
+            }
         }
 
         stage('Run Tests') {
@@ -48,21 +54,21 @@ pipeline {
                   npx playwright test --reporter=line,allure-playwright || exit 0
                 '''
             }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/junit-results/*.xml'
+                }
+            }
         }
 
         stage('Extract Allure Summary') {
             steps {
+                bat 'cmd /c node scripts/extract-allure-summary.js'
                 script {
-                    try {
-                        bat 'cmd /c node scripts/extract-allure-summary.js'
-                        env.TOTAL_TESTS = readFile('total-tests.txt').trim()
-                        env.PASSED_TESTS = readFile('passed-tests.txt').trim()
-                        env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
-                        env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
-                    } catch (Exception e) {
-                        echo "Summary extraction failed, using defaults."
-                        env.TOTAL_TESTS = "0"; env.PASSED_TESTS = "0"; env.FAILED_TESTS_COUNT = "0"; env.SKIPPED_TESTS = "0"
-                    }
+                    env.TOTAL_TESTS = readFile('total-tests.txt').trim()
+                    env.PASSED_TESTS = readFile('passed-tests.txt').trim()
+                    env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
+                    env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
                 }
             }
         }
@@ -78,6 +84,7 @@ pipeline {
                             bat """
                                 @echo off
                                 if exist gh-pages-temp rmdir /s /q gh-pages-temp
+                                echo Cloning gh-pages branch...
                                 git clone --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
                                 
                                 set /a PREV_BUILD=%BUILD_NUMBER%-1
@@ -95,10 +102,11 @@ pipeline {
                                 git config user.name "Jenkins Automation"
                                 git config user.email "jenkins@councilbox.com"
                                 git add builds/
-                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER}"
+                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER} with history trend"
                                 git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
                             """
                         }
+                        echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
@@ -115,55 +123,61 @@ pipeline {
                 def stepsToReproduce = "N/A"
                 def testName = "All tests passed"
 
-                // --- NOVA LOGIKA ZA EKSTRAKCIJU GREŠKE --- 
+                // --- EKSTRAKCIJA DETALJA IZ ALLURE JSON-A ---
                 try {
                     def files = findFiles(glob: 'allure-results/*-result.json')
                     for (file in files) {
                         def json = readJSON file: file.path
                         if (json.status == 'failed' || json.status == 'broken') {
                             testName = json.name ?: "Unknown Test"
+                            errorReason = json.statusDetails?.message?.split('\n')?.getAt(0) ?: "Unknown error"
                             
-                            // Prvo gledamo specifični korak koji je pao 
                             def failedStepObj = json.steps.find { it.status == 'failed' || it.status == 'broken' }
-                            
-                            // Ako korak ima poruku (tu obično piše "Expected URL..."), uzmi nju 
-                            if (failedStepObj?.statusDetails?.message) {
-                                errorReason = failedStepObj.statusDetails.message
-                            } else {
-                                errorReason = json.statusDetails?.message ?: "Check Allure Report"
-                            }
-                            
-                            failedStep = failedStepObj ? failedStepObj.name : "Assertion Failure"
+                            failedStep = failedStepObj ? failedStepObj.name : "Unknown step"
                             stepsToReproduce = json.steps.collect { it.name }.join(" -> ")
                             break
                         }
                     }
                 } catch (Exception e) {
-                    echo "Allure JSON extraction failed: ${e.message}"
+                    echo "Allure detail extraction failed: ${e.message}"
                 }
 
-                allure([includeProperties: false, jdk: '', results: [[path: 'allure-results']]])
+                allure([
+                    includeProperties: false,
+                    jdk: '',
+                    results: [[path: 'allure-results']]
+                ])
+
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-                // --- ČIŠĆENJE ZA CURL (Windows Safe) --- 
+                // --- ČIŠĆENJE PODATAKA ZA CURL (KLJUČNO ZA WINDOWS) ---
                 def cleanTestName = testName.replace('"', '').replace('\\', '/')
-                def cleanError = errorReason.split('\n')[0].replace('"', '').replace('\\', '/')
-                def cleanSteps = stepsToReproduce.replace('"', '').replace('\\', '/')
+                def cleanError = errorReason.replace('"', '').replace('\\', '/').replace('\n', ' ').replace('\r', '')
+                def cleanSteps = stepsToReproduce.replace('"', '').replace('\\', '/').replace('\n', ' ')
                 def cleanFailedStep = failedStep.replace('"', '').replace('\\', '/')
 
-                // --- EMAIL ---
+                // --- EMAIL NOTIFIKACIJA ---
                 if (params.SEND_EMAIL) {
                     emailext(
-                        subject: "QA Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-                        from: 'councilboxautotest@gmail.com',
-                        to: 'ammar.micijevic@councilbox.com',
-                        body: "Build status: ${currentBuild.currentResult}\nReport: ${env.FINAL_REPORT_URL}",
-                        mimeType: 'text/html'
+                        subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
+                        from: 'Councilbox Automation <councilboxautotest@gmail.com>',
+                        to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
+                        mimeType: 'text/html; charset=UTF-8',
+                        body: """
+                            <html>
+                              <body style="font-family:Arial, sans-serif; padding:20px;">
+                                <h2 style="color:#1a73e8;">Councilbox QA Report - Build #${env.BUILD_NUMBER}</h2>
+                                <p><strong>Status:</strong> ${currentBuild.currentResult}</p>
+                                <p><strong>Tests:</strong> Passed: ${env.PASSED_TESTS} / Failed: ${env.FAILED_TESTS_COUNT}</p>
+                                <p><a href='${env.FINAL_REPORT_URL}' style='padding:10px; background:#1a73e8; color:#fff; text-decoration:none;'>View Full Report</a></p>
+                              </body>
+                            </html>
+                        """
                     )
                 }
 
-                // --- n8n WEBHOOK (Single line Fix) --- 
-                echo "Triggering n8n with: ${cleanError}"
+                // --- n8n WEBHOOK (SADA U JEDNOJ LINIJI ZA WINDOWS) ---
+                echo "Triggering n8n webhook..."
                 bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"test_name\\\":\\\"${cleanTestName}\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"failed_step\\\":\\\"${cleanFailedStep}\\\",\\\"error_reason\\\":\\\"${cleanError}\\\",\\\"steps_to_reproduce\\\":\\\"${cleanSteps}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
             }
         }
