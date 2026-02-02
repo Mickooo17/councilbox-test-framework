@@ -201,7 +201,7 @@ pipeline {
                     }
                     
                     try {
-                        $response = Invoke-WebRequest -Uri "http://localhost:5678/webhook/playwright-results" -Method POST -Headers $headers -Body $payload -UseBasicParsing -SkipHttpErrorCheck
+                        $response = Invoke-WebRequest -Uri "http://localhost:5678/webhook/playwright-results" -Method POST -Headers $headers -Body $payload -UseBasicParsing -ErrorAction Stop
                         Write-Host "✅ Webhook sent successfully to n8n (Status: $($response.StatusCode))"
                     } catch {
                         Write-Host "⚠️ Webhook error: $($_.Exception.Message)" -ForegroundColor Yellow
