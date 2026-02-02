@@ -72,7 +72,14 @@ pipeline {
                     env.FAILED_TEST_NAME = readFile('failed-test-name.txt').trim()
                     env.TEST_STEPS = readFile('failed-test-steps.txt').trim()
                     env.ERROR_MESSAGE = readFile('failed-test-error.txt').trim()
-                    env.BUILD_STATUS = currentBuild.currentResult
+                    
+                    // Set status based on test results
+                    if (env.FAILED_TESTS_COUNT.toInteger() > 0) {
+                        currentBuild.result = 'UNSTABLE'
+                        env.BUILD_STATUS = 'UNSTABLE'
+                    } else {
+                        env.BUILD_STATUS = currentBuild.currentResult ?: 'SUCCESS'
+                    }
                     env.BUILD_DURATION = currentBuild.durationString
                 }
             }
