@@ -3,6 +3,9 @@ pipeline {
 
     parameters {
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
+        string(name: 'FAILED_TEST_NAME', defaultValue: '', description: 'Name of the failed test')
+        string(name: 'TEST_STEPS', defaultValue: '', description: 'Steps to reproduce the failure')
+        string(name: 'ERROR_MESSAGE', defaultValue: '', description: 'Error message from the failure')
     }
 
     tools {
@@ -69,6 +72,9 @@ pipeline {
                     env.PASSED_TESTS = readFile('passed-tests.txt').trim()
                     env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
                     env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
+                    env.FAILED_TEST_NAME = readFile('failed-test-name.txt').trim()
+                    env.TEST_STEPS = readFile('failed-test-steps.txt').trim()
+                    env.ERROR_MESSAGE = readFile('failed-test-error.txt').trim()
                 }
             }
         }
@@ -159,6 +165,12 @@ pipeline {
                                   <tr><td><strong>Failed:</strong></td><td style="color:#d93025;">${env.FAILED_TESTS_COUNT}</td></tr>
                                   <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
                                 </table>
+                                <div style="margin-top:20px; padding:15px; background-color:#fff3cd; border-left:4px solid #ff9800; border-radius:3px;">
+                                  <h3 style="margin-top:0; color:#856404;">First Failed Test Details:</h3>
+                                  <p><strong>Test Name:</strong> ${env.FAILED_TEST_NAME ?: 'N/A'}</p>
+                                  <p><strong>Steps to Reproduce:</strong> ${env.TEST_STEPS ?: 'N/A'}</p>
+                                  <p><strong>Error Message:</strong> ${env.ERROR_MESSAGE ?: 'N/A'}</p>
+                                </div>
                                 <p style="margin-top:20px;">
                                     <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>Open Full Allure Report (GitHub Pages)</a>
                                 </p>
@@ -169,7 +181,7 @@ pipeline {
                 }
 
                 // --- n8n WEBHOOK ---
-                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"env\\\":\\\"staging\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"duration\\\":\\\"${currentBuild.durationString}\\\",\\\"total\\\":\\\"${env.TOTAL_TESTS}\\\",\\\"passed\\\":\\\"${env.PASSED_TESTS}\\\",\\\"failed\\\":\\\"${env.FAILED_TESTS_COUNT}\\\",\\\"skipped\\\":\\\"${env.SKIPPED_TESTS}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
+                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"env\\\":\\\"staging\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"duration\\\":\\\"${currentBuild.durationString}\\\",\\\"total\\\":\\\"${env.TOTAL_TESTS}\\\",\\\"passed\\\":\\\"${env.PASSED_TESTS}\\\",\\\"failed\\\":\\\"${env.FAILED_TESTS_COUNT}\\\",\\\"skipped\\\":\\\"${env.SKIPPED_TESTS}\\\",\\\"failedTestName\\\":\\\"${env.FAILED_TEST_NAME}\\\",\\\"testSteps\\\":\\\"${env.TEST_STEPS}\\\",\\\"errorMessage\\\":\\\"${env.ERROR_MESSAGE}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
 
             }
         }
