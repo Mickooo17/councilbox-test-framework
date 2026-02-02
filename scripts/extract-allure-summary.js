@@ -7,6 +7,10 @@ const failedTests = [];
 let firstFailedTestName = '';
 let firstFailedTestSteps = '';
 let firstFailedTestErrorMessage = '';
+let firstFailedTestFullError = '';
+let firstFailedTestFailedStep = '';
+let firstFailedTestFailedStepError = '';
+let firstFailedTestDuration = 0;
 
 fs.readdirSync(resultsDir).forEach(file => {
   if (file.endsWith('-result.json')) {
@@ -20,12 +24,22 @@ fs.readdirSync(resultsDir).forEach(file => {
       // Capture first failed test details
       if (!firstFailedTestName) {
         firstFailedTestName = content.name || 'Unknown';
+        firstFailedTestDuration = content.stop - content.start || 0;
         
         // Extract steps from steps array
         if (content.steps && content.steps.length > 0) {
           firstFailedTestSteps = content.steps
             .map(step => `${step.name}${step.status === 'failed' ? ' [FAILED]' : ''}`)
             .join(' -> ');
+          
+          // Find the failed step
+          const failedStep = content.steps.find(s => s.status === 'failed');
+          if (failedStep) {
+            firstFailedTestFailedStep = failedStep.name;
+            if (failedStep.statusDetails && failedStep.statusDetails.message) {
+              firstFailedTestFailedStepError = failedStep.statusDetails.message;
+            }
+          }
         } else {
           firstFailedTestSteps = 'No steps recorded';
         }
@@ -33,10 +47,14 @@ fs.readdirSync(resultsDir).forEach(file => {
         // Extract error message from statusDetails
         if (content.statusDetails && content.statusDetails.message) {
           firstFailedTestErrorMessage = content.statusDetails.message;
+          firstFailedTestFullError = content.statusDetails.message;
         } else if (content.statusDetails && content.statusDetails.trace) {
-          firstFailedTestErrorMessage = content.statusDetails.trace.split('\n')[0];
+          const trace = content.statusDetails.trace;
+          firstFailedTestErrorMessage = trace.split('\n')[0];
+          firstFailedTestFullError = trace;
         } else {
           firstFailedTestErrorMessage = 'Unknown error';
+          firstFailedTestFullError = 'Unknown error';
         }
       }
     }
@@ -59,3 +77,7 @@ fs.writeFileSync('failed-tests.html', htmlList);
 fs.writeFileSync('failed-test-name.txt', firstFailedTestName);
 fs.writeFileSync('failed-test-steps.txt', firstFailedTestSteps);
 fs.writeFileSync('failed-test-error.txt', firstFailedTestErrorMessage);
+fs.writeFileSync('failed-test-full-error.txt', firstFailedTestFullError);
+fs.writeFileSync('failed-test-failed-step.txt', firstFailedTestFailedStep);
+fs.writeFileSync('failed-test-failed-step-error.txt', firstFailedTestFailedStepError);
+fs.writeFileSync('failed-test-duration.txt', firstFailedTestDuration.toString());
