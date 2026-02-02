@@ -75,6 +75,8 @@ pipeline {
                     env.FAILED_TEST_NAME = readFile('failed-test-name.txt').trim()
                     env.TEST_STEPS = readFile('failed-test-steps.txt').trim()
                     env.ERROR_MESSAGE = readFile('failed-test-error.txt').trim()
+                    env.BUILD_STATUS = currentBuild.currentResult
+                    env.BUILD_DURATION = currentBuild.durationString
                 }
             }
         }
@@ -181,7 +183,33 @@ pipeline {
                 }
 
                 // --- n8n WEBHOOK ---
-                bat "curl.exe -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${currentBuild.currentResult}\\\",\\\"env\\\":\\\"staging\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"duration\\\":\\\"${currentBuild.durationString}\\\",\\\"total\\\":\\\"${env.TOTAL_TESTS}\\\",\\\"passed\\\":\\\"${env.PASSED_TESTS}\\\",\\\"failed\\\":\\\"${env.FAILED_TESTS_COUNT}\\\",\\\"skipped\\\":\\\"${env.SKIPPED_TESTS}\\\",\\\"failedTestName\\\":\\\"${env.FAILED_TEST_NAME}\\\",\\\"testSteps\\\":\\\"${env.TEST_STEPS}\\\",\\\"errorMessage\\\":\\\"${env.ERROR_MESSAGE}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\""
+                powershell '''
+                    $payload = @{
+                        status = $env:BUILD_STATUS
+                        env = "staging"
+                        build = $env:BUILD_NUMBER
+                        duration = $env:BUILD_DURATION
+                        total = $env:TOTAL_TESTS
+                        passed = $env:PASSED_TESTS
+                        failed = $env:FAILED_TESTS_COUNT
+                        skipped = $env:SKIPPED_TESTS
+                        failedTestName = $env:FAILED_TEST_NAME
+                        testSteps = $env:TEST_STEPS
+                        errorMessage = $env:ERROR_MESSAGE
+                        reportUrl = $env:FINAL_REPORT_URL
+                    } | ConvertTo-Json
+                    
+                    $headers = @{
+                        "Content-Type" = "application/json"
+                    }
+                    
+                    try {
+                        Invoke-WebRequest -Uri "http://localhost:5678/webhook/playwright-results" -Method POST -Headers $headers -Body $payload -ErrorAction Stop
+                        Write-Host "✅ Webhook sent successfully to n8n"
+                    } catch {
+                        Write-Host "⚠️ Webhook failed: $($_.Exception.Message)"
+                    }
+                '''
 
             }
         }
