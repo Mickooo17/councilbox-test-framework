@@ -160,26 +160,21 @@ pipeline {
                         mimeType: 'text/html; charset=UTF-8',
                         body: """
                             <html>
-                              <body style="font-family:Arial, sans-serif; font-size:14px; color:#333; background-color:#f9f9f9; padding:20px;">
-                                <h2 style="color:#1a73e8; margin-bottom:5px;">Councilbox QA Pipeline Report</h2>
-                                <table style="border-collapse:collapse; background:#fff; padding:10px; border:1px solid #ddd; width:100%; max-width:600px;">
-                                  <tr><td><strong>Build Number:</strong></td><td>${env.BUILD_NUMBER}</td></tr>
-                                  <tr><td><strong>Status:</strong></td><td style="color:${currentBuild.currentResult == 'SUCCESS' ? '#28a745' : '#d93025'}; font-weight:bold;">${currentBuild.currentResult}</td></tr>
-                                  <tr><td><strong>Duration:</strong></td><td>${currentBuild.durationString}</td></tr>
-                                  <tr><td><strong>Total Tests:</strong></td><td>${env.TOTAL_TESTS}</td></tr>
-                                  <tr><td><strong>Passed:</strong></td><td style="color:#28a745;">${env.PASSED_TESTS}</td></tr>
-                                  <tr><td><strong>Failed:</strong></td><td style="color:#d93025;">${env.FAILED_TESTS_COUNT}</td></tr>
-                                  <tr><td><strong>Skipped:</strong></td><td style="color:#ff9800;">${env.SKIPPED_TESTS}</td></tr>
-                                </table>
-                                <div style="margin-top:20px; padding:15px; background-color:#fff3cd; border-left:4px solid #ff9800; border-radius:3px;">
-                                  <h3 style="margin-top:0; color:#856404;">First Failed Test Details:</h3>
-                                  <p><strong>Test Name:</strong> ${env.FAILED_TEST_NAME ?: 'N/A'}</p>
-                                  <p><strong>Steps to Reproduce:</strong> ${env.TEST_STEPS ?: 'N/A'}</p>
-                                  <p><strong>Error Message:</strong> ${env.ERROR_MESSAGE ?: 'N/A'}</p>
-                                </div>
-                                <p style="margin-top:20px;">
-                                    <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>Open Full Allure Report (GitHub Pages)</a>
+                              <body style="font-family:Arial, sans-serif; font-size:14px; color:#333;">
+                                <h2 style="color:#1a73e8;">Councilbox QA Report - Build #${env.BUILD_NUMBER}</h2>
+                                
+                                <p><strong>Status:</strong> <span style="color:${currentBuild.currentResult == 'SUCCESS' ? '#28a745' : '#d93025'}; font-weight:bold; font-size:16px;">${currentBuild.currentResult}</span></p>
+                                
+                                <p style="font-size:16px;">
+                                  <strong>Passed:</strong> <span style="color:#28a745;">${env.PASSED_TESTS}</span> | 
+                                  <strong>Failed:</strong> <span style="color:#d93025;">${env.FAILED_TESTS_COUNT}</span>
                                 </p>
+                                
+                                <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                                
+                                <c style="margin-top:20px; display:block;">
+                                  <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:12px 24px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>View Allure Report</a>
+                                </c>
                               </body>
                             </html>
                         """
