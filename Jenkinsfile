@@ -3,9 +3,7 @@ pipeline {
 
     parameters {
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
-        string(name: 'FAILED_TEST_NAME', defaultValue: '', description: 'Name of the failed test')
-        string(name: 'TEST_STEPS', defaultValue: '', description: 'Steps to reproduce the failure')
-        string(name: 'ERROR_MESSAGE', defaultValue: '', description: 'Error message from the failure')
+
     }
 
     tools {
