@@ -16,8 +16,6 @@ pipeline {
         PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
         // FIX 1: Prevent Git from waiting for password input
         GIT_TERMINAL_PROMPT = '0'
-        // FIX 1: Sprečava Git da čeka na unos lozinke u pozadini
-        GIT_TERMINAL_PROMPT = '0'
     }
 
     options {
