@@ -3,7 +3,6 @@ pipeline {
 
     parameters {
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
-
     }
 
     tools {
@@ -15,6 +14,10 @@ pipeline {
         GITHUB_USER = 'Mickooo17'
         GITHUB_REPO = 'councilbox-test-framework'
         PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
+        // FIX 1: Prevent Git from waiting for password input
+        GIT_TERMINAL_PROMPT = '0'
+        // FIX 1: Sprečava Git da čeka na unos lozinke u pozadini
+        GIT_TERMINAL_PROMPT = '0'
     }
 
     options {
@@ -32,7 +35,17 @@ pipeline {
         }
 
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                script {
+                    // FIX 2: Isključuje Windows Credential Manager koji uzrokuje zaglavljivanje
+                    if (isUnix()) {
+                        sh 'git config --global credential.helper ""'
+                    } else {
+                        bat 'git config --global credential.helper ""'
+                    }
+                    checkout scm
+                }
+            }
         }
 
         stage('Install Dependencies') {
@@ -178,10 +191,10 @@ pipeline {
                     )
                 }
 
-                // --- n8n WEBHOOK (Linux/Docker version using curl) ---
+                // --- n8n WEBHOOK ---
                 sh """
-                    curl -X POST http://host.docker.internal:5678/webhook/playwright-results \
-                    -H "Content-Type: application/json" \
+                    curl -X POST http://host.docker.internal:5678/webhook/playwright-results \\
+                    -H "Content-Type: application/json" \\
                     -d '{
                         "status": "${env.BUILD_STATUS}",
                         "env": "staging",
