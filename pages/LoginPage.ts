@@ -19,7 +19,8 @@ export class LoginPage {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.submitButton.click();
-    await this.page.waitForLoadState('networkidle');
+    // Removed waitForLoadState('networkidle') as it can be flaky. 
+    // Subsequent steps should await specific elements.
   }
 
   async validateErrorMessage(expectedMessage = 'This field is required.') {
