@@ -3,6 +3,9 @@ pipeline {
 
     parameters {
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
+        string(name: 'FAILED_TEST_NAME', defaultValue: '', description: 'Name of the failed test')
+        string(name: 'TEST_STEPS', defaultValue: '', description: 'Steps to reproduce the failure')
+        string(name: 'ERROR_MESSAGE', defaultValue: '', description: 'Error message from the failure')
     }
 
     tools {
@@ -14,8 +17,6 @@ pipeline {
         GITHUB_USER = 'Mickooo17'
         GITHUB_REPO = 'councilbox-test-framework'
         PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
-        // FIX 1: Prevent Git from waiting for password input
-        GIT_TERMINAL_PROMPT = '0'
     }
 
     options {
@@ -33,17 +34,7 @@ pipeline {
         }
 
         stage('Checkout') {
-            steps {
-                script {
-                    // FIX 2: Isključuje Windows Credential Manager koji uzrokuje zaglavljivanje
-                    if (isUnix()) {
-                        sh 'git config --global credential.helper ""'
-                    } else {
-                        bat 'git config --global credential.helper ""'
-                    }
-                    checkout scm
-                }
-            }
+            steps { checkout scm }
         }
 
         stage('Install Dependencies') {
@@ -113,7 +104,7 @@ pipeline {
                                     cp -r gh-pages-temp/builds/\$PREV_BUILD/history/* allure-results/history/
                                 else
                                     echo "No previous history found for trend charts."
-                                fi
+                                endif
 
                                 echo "Generating Allure report..."
                                 npx allure generate allure-results --clean -o allure-report
@@ -189,10 +180,10 @@ pipeline {
                     )
                 }
 
-                // --- n8n WEBHOOK ---
+                // --- n8n WEBHOOK (Linux/Docker version using curl) ---
                 sh """
-                    curl -X POST http://host.docker.internal:5678/webhook/playwright-results \\
-                    -H "Content-Type: application/json" \\
+                    curl -X POST http://host.docker.internal:5678/webhook/playwright-results \
+                    -H "Content-Type: application/json" \
                     -d '{
                         "status": "${env.BUILD_STATUS}",
                         "env": "staging",
