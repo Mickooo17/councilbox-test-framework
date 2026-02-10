@@ -149,7 +149,7 @@ pipeline {
         always {
             script {
                 if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
-                
+
                 allure([
                     includeProperties: false,
                     jdk: '',
@@ -176,48 +176,44 @@ pipeline {
                                 <p style="font-size:16px;">
                                   <strong>Passed:</strong> <span style="color:#28a745;">${env.PASSED_TESTS}</span> | 
                                   <strong>Failed:</strong> <span style="color:#d93025;">${env.FAILED_TESTS_COUNT}</span>
+                                  <strong>Skipped:</strong> <span style="color:#ff9800;">${env.SKIPPED_TESTS}</span>
                                 </p>
                                 
-                                <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                                <div style="margin-top:15px; padding:10px; background-color:#fff3cd; border-left:4px solid #ff9800; border-radius:3px;">
+                                  <h3 style="margin-top:0; color:#856404;">First Failed Test Details:</h3>
+                                  <p><strong>Test Name:</strong> ${env.FAILED_TEST_NAME ?: 'N/A'}</p>
+                                  <p><strong>Steps to Reproduce:</strong> ${env.TEST_STEPS ?: 'N/A'}</p>
+                                  <p><strong>Error Message:</strong> ${env.ERROR_MESSAGE ?: 'N/A'}</p>
+                                </div>
                                 
-                                <c style="margin-top:20px; display:block;">
-                                  <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:12px 24px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;'>View Allure Report</a>
-                                </c>
+                                <p style="margin-top:15px;">
+                                    <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:8px 16px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:4px; font-weight:bold;'>Open Full Allure Report (GitHub Pages)</a>
+                                </p>
                               </body>
                             </html>
                         """
                     )
                 }
 
-                // --- n8n WEBHOOK ---
-                powershell '''
-                    $payload = @{
-                        status = $env:BUILD_STATUS
-                        env = "staging"
-                        build = $env:BUILD_NUMBER
-                        duration = $env:BUILD_DURATION
-                        total = $env:TOTAL_TESTS
-                        passed = $env:PASSED_TESTS
-                        failed = $env:FAILED_TESTS_COUNT
-                        skipped = $env:SKIPPED_TESTS
-                        failedTestName = $env:FAILED_TEST_NAME
-                        testSteps = $env:TEST_STEPS
-                        errorMessage = $env:ERROR_MESSAGE
-                        reportUrl = $env:FINAL_REPORT_URL
-                    } | ConvertTo-Json
-                    
-                    $headers = @{
-                        "Content-Type" = "application/json"
-                    }
-                    
-                    try {
-                        $response = Invoke-WebRequest -Uri "http://localhost:5678/webhook/playwright-results" -Method POST -Headers $headers -Body $payload -UseBasicParsing -ErrorAction Stop
-                        Write-Host "✅ Webhook sent successfully to n8n (Status: $($response.StatusCode))"
-                    } catch {
-                        Write-Host "⚠️ Webhook error: $($_.Exception.Message)" -ForegroundColor Yellow
-                    }
-                '''
-
+                // --- n8n WEBHOOK (Linux/Docker version using curl) ---
+                bat """
+                    curl -X POST http://host.docker.internal:5678/webhook/playwright-results \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "status": "${env.BUILD_STATUS}",
+                        "env": "staging",
+                        "build": "${env.BUILD_NUMBER}",
+                        "duration": "${env.BUILD_DURATION}",
+                        "total": "${env.TOTAL_TESTS}",
+                        "passed": "${env.PASSED_TESTS}",
+                        "failed": "${env.FAILED_TESTS_COUNT}",
+                        "skipped": "${env.SKIPPED_TESTS}",
+                        "failedTestName": "${env.FAILED_TEST_NAME}",
+                        "testSteps": "${env.TEST_STEPS}",
+                        "errorMessage": "${env.ERROR_MESSAGE}",
+                        "reportUrl": "${env.FINAL_REPORT_URL}"
+                    }' || echo "Webhook failed"
+                """
             }
         }
     }

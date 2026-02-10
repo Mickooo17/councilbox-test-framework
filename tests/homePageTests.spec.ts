@@ -1,4 +1,5 @@
 import * as f from './fixtures';
+import { expect } from '@playwright/test';
 
 /**
  * Home Page Test Suite
@@ -33,7 +34,7 @@ f.test.describe('HomePage - User Profile Tests', () => {
   f.test('should have accessible profile dropdown @regression', async ({ homePage }) => {
     // Assert
     const profileIcon = homePage.profileIcon;
-    await profileIcon.isVisible();
-    await profileIcon.isEnabled();
+    await expect(profileIcon).toBeVisible();
+    await expect(profileIcon).toBeEnabled();
   });
 });
