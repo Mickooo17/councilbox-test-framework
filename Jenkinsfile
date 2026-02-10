@@ -2,10 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
-        string(name: 'FAILED_TEST_NAME', defaultValue: '', description: 'Name of the failed test')
-        string(name: 'TEST_STEPS', defaultValue: '', description: 'Steps to reproduce the failure')
-        string(name: 'ERROR_MESSAGE', defaultValue: '', description: 'Error message from the failure')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send email notification after build')
     }
 
     tools {
@@ -27,6 +24,7 @@ pipeline {
     }
 
     stages {
+
         stage('Clean Workspace') {
             steps {
                 cleanWs()
@@ -36,7 +34,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 deleteDir()
-
                 git(
                     url: 'git@github.com:Mickooo17/councilbox-test-framework.git',
                     branch: 'main',
@@ -47,23 +44,19 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm ci'
+                bat 'npm ci'
             }
         }
 
         stage('Install Playwright Browsers') {
             steps {
-                sh 'npx playwright install --with-deps'
+                bat 'npx playwright install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh '''
-                  # U Linuxu koristimo export za charset
-                  export LANG=en_US.UTF-8
-                  npx playwright test --reporter=line,allure-playwright || exit 0
-                '''
+                bat 'npx playwright test --reporter=line,allure-playwright'
             }
             post {
                 always {
@@ -74,7 +67,7 @@ pipeline {
 
         stage('Extract Allure Summary') {
             steps {
-                sh 'node scripts/extract-allure-summary.js'
+                bat 'node scripts\\extract-allure-summary.js'
                 script {
                     env.TOTAL_TESTS = readFile('total-tests.txt').trim()
                     env.PASSED_TESTS = readFile('passed-tests.txt').trim()
@@ -92,48 +85,37 @@ pipeline {
         stage('Deploy to GitHub Pages') {
             steps {
                 script {
+
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+
                         def reportPath = "builds/${env.BUILD_NUMBER}"
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
 
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
-                                # Brisanje starog foldera ako postoji
-                                rm -rf gh-pages-temp
-                                
-                                echo "Cloning gh-pages branch..."
-                                git clone --branch gh-pages --single-branch https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}.git gh-pages-temp
-                                
-                                # --- TREND HISTORY LOGIC ---
-                                PREV_BUILD=\$((${env.BUILD_NUMBER}-1))
-                                if [ -d "gh-pages-temp/builds/\$PREV_BUILD/history" ]; then
-                                    echo "Previous history found in build \$PREV_BUILD. Copying to results..."
-                                    mkdir -p allure-results/history
-                                    cp -r gh-pages-temp/builds/\$PREV_BUILD/history/* allure-results/history/
-                                else
-                                    echo "No previous history found for trend charts."
-                                endif
 
-                                echo "Generating Allure report..."
+                            bat """
+                                if exist gh-pages-temp rmdir /s /q gh-pages-temp
+
+                                git clone --branch gh-pages https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
+
                                 npx allure generate allure-results --clean -o allure-report
-                                
-                                echo "Preparing deployment folder for build ${env.BUILD_NUMBER}..."
-                                mkdir -p gh-pages-temp/builds/${env.BUILD_NUMBER}
-                                
-                                echo "Copying report files..."
-                                cp -r allure-report/* gh-pages-temp/builds/${env.BUILD_NUMBER}/
-                                
+
+                                mkdir gh-pages-temp\\builds\\${env.BUILD_NUMBER}
+
+                                xcopy allure-report gh-pages-temp\\builds\\${env.BUILD_NUMBER} /E /I /Y
+
                                 cd gh-pages-temp
+
                                 git config user.name "Jenkins Automation"
                                 git config user.email "jenkins@councilbox.com"
-                                
-                                echo "Committing and pushing to GitHub Pages..."
-                                git add builds/
-                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER} with history trend"
-                                git push https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}.git gh-pages
+
+                                git add builds
+                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER}"
+                                git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
                             """
                         }
-                        echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
+
+                        echo "Report deployed: ${env.FINAL_REPORT_URL}"
                     }
                 }
             }
