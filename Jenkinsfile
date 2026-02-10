@@ -31,8 +31,16 @@ pipeline {
         }
 
         stage('Checkout') {
-            steps { checkout scm }
-        }
+            steps {
+        deleteDir()
+        git(
+            url: 'git@github.com:Mickooo17/councilbox-test-framework.git',
+            branch: 'main',
+            credentialsId: 'github-ssh'
+        )
+    }
+}
+
 
         stage('Install Dependencies') {
             steps {
