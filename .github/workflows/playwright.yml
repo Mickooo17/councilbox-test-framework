@@ -51,7 +51,6 @@ jobs:
         run: |
           git checkout gh-pages
           mkdir -p allure-results/history
-          # Kopiramo istoriju iz zadnjeg builda sa gh-pages grane
           cp -r builds/$(ls builds | sort -n | tail -1)/history/* allure-results/history/ || echo "No history found"
           git checkout -
 
@@ -76,6 +75,14 @@ jobs:
           echo "FAILED=$(cat failed-tests-count.txt || echo '0')" >> $GITHUB_OUTPUT
           echo "SKIPPED=$(cat skipped-tests.txt || echo '0')" >> $GITHUB_OUTPUT
           echo "FAILED_NAME=$(cat failed-test-name.txt || echo 'N/A')" >> $GITHUB_OUTPUT
+          # Postavljanje boja i statusa za email
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "STATUS_TEXT=SUCCESS" >> $GITHUB_ENV
+            echo "STATUS_COLOR=#28a745" >> $GITHUB_ENV
+          else
+            echo "STATUS_TEXT=FAILURE" >> $GITHUB_ENV
+            echo "STATUS_COLOR=#d93025" >> $GITHUB_ENV
+          fi
 
       - name: Send Results to n8n (Ngrok)
         if: always()
@@ -99,16 +106,40 @@ jobs:
           server_port: 465
           username: councilboxautotest@gmail.com
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Councilbox QA Report - Build #${{ github.run_number }} - ${{ job.status }}
+          subject: Councilbox QA Report - Build #${{ github.run_number }} - ${{ env.STATUS_TEXT }}
           to: ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com
           from: Councilbox Automation
           html_body: |
             <h2>Councilbox QA Pipeline Report</h2>
             <p><strong>Build Number:</strong> ${{ github.run_number }}</p>
-            <p><strong>Status:</strong> ${{ job.status }}</p>
+            <p><strong>Status:</strong> ${{ env.STATUS_TEXT }}</p>
             <p><strong>Total Tests:</strong> ${{ steps.vars.outputs.TOTAL }}</p>
             <p><strong>Passed:</strong> ${{ steps.vars.outputs.PASSED }}</p>
             <p><strong>Failed:</strong> ${{ steps.vars.outputs.FAILED }}</p>
             <p><strong>First Failed Test:</strong> ${{ steps.vars.outputs.FAILED_NAME }}</p>
             <br>
-            <a href="https://${{ env.GITHUB_USER }}.github.io/${{ env.GITHUB_REPO }}/builds/${{ github.run_number }}/">View Full Allure Report</a>
+            <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+                <tr>
+                  <th style="padding: 10px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Metric</th>
+                  <th style="padding: 10px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Value</th>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #ddd;"><strong>Status:</strong></td>
+                  <td style="padding: 10px; border: 1px solid #ddd; color: ${{ env.STATUS_COLOR }}; font-weight: bold;">
+                    ${{ env.STATUS_TEXT }}
+                  </td>
+                </tr>
+                <tr style="background-color: #f9f9f9;">
+                  <td style="padding: 10px; border: 1px solid #ddd;"><strong>Pass Rate:</strong></td>
+                  <td style="padding: 10px; border: 1px solid #ddd;">
+                    ${{ steps.vars.outputs.PASSED }} / ${{ steps.vars.outputs.TOTAL }}
+                  </td>
+                </tr>
+            </table>
+            
+            <div style="margin-top: 25px; text-align: center;">
+              <a href="https://${{ env.GITHUB_USER }}.github.io/${{ env.GITHUB_REPO }}/builds/${{ github.run_number }}/" 
+                 style="display: inline-block; background-color: #1a73e8; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                 Open Full Allure Report
+              </a>
+            </div>
