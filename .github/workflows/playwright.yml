@@ -1,7 +1,7 @@
 name: Playwright QA Pipeline
 on:
-  push:
-    branches: [ main, master ]
+  schedule:
+    - cron: '30 0 * * *' # 1:30 AM CET (00:30 UTC)
   workflow_dispatch:
     inputs:
       send_email:
@@ -78,10 +78,12 @@ jobs:
           # Postavljanje boja i statusa za email
           if [ "${{ job.status }}" = "success" ]; then
             echo "STATUS_TEXT=SUCCESS" >> $GITHUB_ENV
-            echo "STATUS_COLOR=#28a745" >> $GITHUB_ENV
+            echo "STATUS_COLOR=#2eae6f" >> $GITHUB_ENV
+            echo "EMAIL_BG=#e6fffa" >> $GITHUB_ENV
           else
             echo "STATUS_TEXT=FAILURE" >> $GITHUB_ENV
-            echo "STATUS_COLOR=#d93025" >> $GITHUB_ENV
+            echo "STATUS_COLOR=#e53e3e" >> $GITHUB_ENV
+            echo "EMAIL_BG=#fff5f5" >> $GITHUB_ENV
           fi
 
       - name: Send Results to n8n (Ngrok)
@@ -99,7 +101,7 @@ jobs:
           }'
 
       - name: Send Email Notification
-        if: always() && (github.event.inputs.send_email == 'true' || github.event_name == 'push')
+        if: always() && (github.event.inputs.send_email == 'true' || github.event_name == 'schedule')
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -110,36 +112,60 @@ jobs:
           to: ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com
           from: Councilbox Automation
           html_body: |
-            <h2>Councilbox QA Pipeline Report</h2>
-            <p><strong>Build Number:</strong> ${{ github.run_number }}</p>
-            <p><strong>Status:</strong> ${{ env.STATUS_TEXT }}</p>
-            <p><strong>Total Tests:</strong> ${{ steps.vars.outputs.TOTAL }}</p>
-            <p><strong>Passed:</strong> ${{ steps.vars.outputs.PASSED }}</p>
-            <p><strong>Failed:</strong> ${{ steps.vars.outputs.FAILED }}</p>
-            <p><strong>First Failed Test:</strong> ${{ steps.vars.outputs.FAILED_NAME }}</p>
-            <br>
-            <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
-                <tr>
-                  <th style="padding: 10px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Metric</th>
-                  <th style="padding: 10px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Value</th>
-                </tr>
-                <tr>
-                  <td style="padding: 10px; border: 1px solid #ddd;"><strong>Status:</strong></td>
-                  <td style="padding: 10px; border: 1px solid #ddd; color: ${{ env.STATUS_COLOR }}; font-weight: bold;">
-                    ${{ env.STATUS_TEXT }}
-                  </td>
-                </tr>
-                <tr style="background-color: #f9f9f9;">
-                  <td style="padding: 10px; border: 1px solid #ddd;"><strong>Pass Rate:</strong></td>
-                  <td style="padding: 10px; border: 1px solid #ddd;">
-                    ${{ steps.vars.outputs.PASSED }} / ${{ steps.vars.outputs.TOTAL }}
-                  </td>
-                </tr>
-            </table>
-            
-            <div style="margin-top: 25px; text-align: center;">
-              <a href="https://${{ env.GITHUB_USER }}.github.io/${{ env.GITHUB_REPO }}/builds/${{ github.run_number }}/" 
-                 style="display: inline-block; background-color: #1a73e8; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                 Open Full Allure Report
-              </a>
-            </div>
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px;">
+              <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                
+                <!-- Header -->
+                <div style="background-color: ${{ env.STATUS_COLOR }}; padding: 30px 20px; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">${{ env.STATUS_TEXT }}</h1>
+                  <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Build #${{ github.run_number }}</p>
+                </div>
+
+                <!-- Content -->
+                <div style="padding: 30px;">
+                  <p style="color: #4a5568; font-size: 16px; text-align: center; margin-bottom: 25px;">
+                    Automated tests have completed. Here is the summary:
+                  </p>
+
+                  <!-- Stats Grid -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+                    <div style="text-align: center; padding: 15px; background-color: #f7fafc; border-radius: 6px;">
+                      <div style="font-size: 24px; font-weight: bold; color: #2d3748;">${{ steps.vars.outputs.TOTAL }}</div>
+                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Total</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background-color: #f0fff4; border-radius: 6px;">
+                      <div style="font-size: 24px; font-weight: bold; color: #38a169;">${{ steps.vars.outputs.PASSED }}</div>
+                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Passed</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background-color: #fff5f5; border-radius: 6px;">
+                      <div style="font-size: 24px; font-weight: bold; color: #e53e3e;">${{ steps.vars.outputs.FAILED }}</div>
+                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Failed</div>
+                    </div>
+                  </div>
+
+                  <!-- Failed Test Info (if any) -->
+                  <div style="background-color: ${{ env.EMAIL_BG }}; border-left: 4px solid ${{ env.STATUS_COLOR }}; padding: 15px; margin-bottom: 30px; border-radius: 4px;">
+                    <p style="margin: 0; color: #4a5568;">
+                      <strong>First Failed Test:</strong> <span style="font-family: monospace;">${{ steps.vars.outputs.FAILED_NAME }}</span>
+                    </p>
+                  </div>
+
+                  <!-- CTA Button -->
+                  <div style="text-align: center;">
+                    <a href="https://${{ env.GITHUB_USER }}.github.io/${{ env.GITHUB_REPO }}/builds/${{ github.run_number }}/" 
+                       style="display: inline-block; background-color: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; transition: background-color 0.2s;">
+                       View Full Allure Report
+                    </a>
+                  </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div style="background-color: #edf2f7; padding: 15px; text-align: center; font-size: 12px; color: #718096;">
+                  <p style="margin: 0;">Sent by Councilbox Automation • GitHub Actions</p>
+                </div>
+              </div>
+            </body>
+            </html>
