@@ -1,3 +1,5 @@
+import { InstitutionData } from '../pages/institutions/InstitutionsPage';
+
 export class DataGenerator {
     static randomNumber(length: number): string {
         let result = '';
@@ -21,5 +23,15 @@ export class DataGenerator {
 
     static randomCity(): string {
         return `Test City ${this.randomNumber(4)}`;
+    }
+
+    static randomInstitutionData(): InstitutionData {
+        return {
+            name: this.randomInstitutionName(),
+            cif: this.randomNumber(8),
+            address: this.randomAddress(),
+            zipCode: this.randomZipCode(),
+            city: this.randomCity(),
+        };
     }
 }
