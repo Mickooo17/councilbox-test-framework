@@ -197,7 +197,7 @@ pipeline {
 
                 // --- n8n WEBHOOK (Linux/Docker version using curl) ---
                 bat """
-                    curl -X POST http://host.docker.internal:5678/webhook/playwright-results \
+                    curl -X POST http://localhost:5678/webhook-test/playwright-results \
                     -H "Content-Type: application/json" \
                     -d '{
                         "status": "${env.BUILD_STATUS}",
