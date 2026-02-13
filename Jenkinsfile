@@ -196,8 +196,45 @@ pipeline {
                 }
 
                 // --- n8n WEBHOOK (Windows version using curl) ---
-                bat "curl -X POST http://localhost:5678/webhook/playwright-results -H \"Content-Type: application/json\" -d \"{\\\"status\\\":\\\"${env.BUILD_STATUS}\\\",\\\"env\\\":\\\"staging\\\",\\\"build\\\":\\\"${env.BUILD_NUMBER}\\\",\\\"duration\\\":\\\"${env.BUILD_DURATION}\\\",\\\"total\\\":\\\"${env.TOTAL_TESTS}\\\",\\\"passed\\\":\\\"${env.PASSED_TESTS}\\\",\\\"failed\\\":\\\"${env.FAILED_TESTS_COUNT}\\\",\\\"skipped\\\":\\\"${env.SKIPPED_TESTS}\\\",\\\"failedTestName\\\":\\\"${env.FAILED_TEST_NAME}\\\",\\\"testSteps\\\":\\\"${env.TEST_STEPS}\\\",\\\"errorMessage\\\":\\\"${env.ERROR_MESSAGE}\\\",\\\"reportUrl\\\":\\\"${env.FINAL_REPORT_URL}\\\"}\" || echo Webhook failed"
-            }
+                post {
+  always {
+    script {
+
+      powershell(returnStatus: true, script: """
+        try {
+            \$body = @{
+                status         = "${env.BUILD_STATUS}"
+                env            = "staging"
+                build          = "${env.BUILD_NUMBER}"
+                duration       = "${env.BUILD_DURATION}"
+                total          = "${env.TOTAL_TESTS}"
+                passed         = "${env.PASSED_TESTS}"
+                failed         = "${env.FAILED_TESTS_COUNT}"
+                skipped        = "${env.SKIPPED_TESTS}"
+                failedTestName = "${env.FAILED_TEST_NAME}"
+                testSteps      = "${env.TEST_STEPS}"
+                errorMessage   = "${env.ERROR_MESSAGE}"
+                reportUrl      = "${env.FINAL_REPORT_URL}"
+            } | ConvertTo-Json -Depth 5
+
+            Invoke-RestMethod `
+                -Uri "http://localhost:5678/webhook/playwright-results" `
+                -Method Post `
+                -Body \$body `
+                -ContentType "application/json"
+
+            Write-Host "Webhook sent successfully"
+        }
+        catch {
+            Write-Host "Webhook failed but build will continue"
+            Write-Host \$_
+        }
+      """)
+
+    }
+  }
+}
+}
         }
     }
 }
