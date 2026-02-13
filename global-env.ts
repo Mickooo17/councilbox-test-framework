@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const env = (process.env.TEST_ENV || 'dev').trim();
+const env = (process.env.TEST_ENV || 'staging').trim();
 const configPath = path.join(__dirname, 'Application.json');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 

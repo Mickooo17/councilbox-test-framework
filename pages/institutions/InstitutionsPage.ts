@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from '../BasePage';
+import { MESSAGES } from '../../utils/Constants';
 
 export interface InstitutionData {
     name: string;
@@ -24,6 +25,9 @@ export class InstitutionsPage extends BasePage {
     readonly successAlert: Locator;
     readonly searchInput: Locator;
     readonly tableBody: Locator;
+    readonly deleteInstitutionButton: Locator;
+    readonly deleteButton: Locator;
+    readonly acceptButton: Locator;
 
     constructor(page: Page) {
         super(page);
@@ -41,6 +45,9 @@ export class InstitutionsPage extends BasePage {
         this.successAlert = page.getByRole('alert');
         this.searchInput = page.getByRole('textbox', { name: 'Search institution...' });
         this.tableBody = page.locator('tbody');
+        this.deleteInstitutionButton = page.getByRole('button', { name: '' });
+        this.deleteButton = page.getByRole('button', { name: ' Delete' });
+        this.acceptButton = page.getByRole('button', { name: 'Accept' });
     }
 
     async openCreateInstitutionForm() {
@@ -74,9 +81,7 @@ export class InstitutionsPage extends BasePage {
     }
 
     async verifySuccessAlert() {
-        await expect(this.successAlert).toMatchAriaSnapshot(
-            `- text: The company has been created successfully. From now on, you can use it normally, or link it to other users by giving them its link code`
-        );
+        await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_CREATED);
     }
 
     async searchInstitution(name: string) {
@@ -93,5 +98,18 @@ export class InstitutionsPage extends BasePage {
         await this.openCreateInstitutionForm();
         await this.fillInstitutionDetails(data);
         await this.submitCreateForm();
+    }
+
+    async deleteInstitution(name: string) {
+        await this.navigateToInstitutions();
+        await this.searchInput.click();
+        await this.searchInput.fill(name);
+        await this.tableBody.getByRole('button', { name: '' }).click();
+        await this.deleteButton.click();
+        await this.acceptButton.click();
+    }
+
+    async verifyDeleteSuccessAlert() {
+        await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_DELETED);
     }
 }

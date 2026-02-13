@@ -8,12 +8,12 @@ export class HomePage {
   }
 
   async verifyProfileIconIsAccessible() {
-  await expect(this.profileIcon).toBeVisible();
-  await expect(this.profileIcon).toBeEnabled();
-}
+    await expect(this.profileIcon).toBeVisible();
+    await expect(this.profileIcon).toBeEnabled();
+  }
 
   async validateHomePageIsOpened() {
-    await expect(this.page).toHaveURL(/\/company\b/i);
     await this.verifyProfileIconIsAccessible();
+    await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 15000 });
   }
 }

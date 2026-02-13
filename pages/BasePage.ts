@@ -6,7 +6,7 @@ export class BasePage {
     readonly governmentIcon: Locator;
     readonly qaDevMenuItem: Locator;
 
-    constructor(protected page: Page) {
+    constructor(public page: Page) {
         this.closeModalButton = page.locator('.MuiButtonBase-root.MuiIconButton-root.closeIcon');
         this.institutionsButton = page.getByRole('button', { name: ' Institutions' });
         this.governmentIcon = page.locator('.ri-government-line');
@@ -17,12 +17,14 @@ export class BasePage {
         await this.closeModalButton.click();
     }
 
-    async selectCompany() {
+    async selectQADevCompany() {
         await this.governmentIcon.click();
         await this.qaDevMenuItem.click();
+        await this.page.waitForLoadState('networkidle');
     }
 
     async navigateToInstitutions() {
+        await this.institutionsButton.waitFor({ state: 'visible', timeout: 10000 });
         await this.institutionsButton.click();
     }
 }
