@@ -32,15 +32,14 @@ pipeline {
 
         stage('Checkout') {
             steps {
-        deleteDir()
-        git(
-            url: 'git@github.com:Mickooo17/councilbox-test-framework.git',
-            branch: 'main',
-            credentialsId: 'github-ssh'
-        )
-    }
-}
-
+                deleteDir()
+                git(
+                    url: 'git@github.com:Mickooo17/councilbox-test-framework.git',
+                    branch: 'main',
+                    credentialsId: 'github-ssh'
+                )
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
@@ -195,46 +194,39 @@ pipeline {
                     )
                 }
 
-                // --- n8n WEBHOOK (Windows version using curl) ---
-                post {
-  always {
-    script {
+                // --- n8n WEBHOOK ---
+                // Corrected: PowerShell block is now directly inside the main script block
+                powershell(returnStatus: true, script: """
+                    try {
+                        \$body = @{
+                            status         = "${env.BUILD_STATUS}"
+                            env            = "staging"
+                            build          = "${env.BUILD_NUMBER}"
+                            duration       = "${env.BUILD_DURATION}"
+                            total          = "${env.TOTAL_TESTS}"
+                            passed         = "${env.PASSED_TESTS}"
+                            failed         = "${env.FAILED_TESTS_COUNT}"
+                            skipped        = "${env.SKIPPED_TESTS}"
+                            failedTestName = "${env.FAILED_TEST_NAME}"
+                            testSteps      = "${env.TEST_STEPS}"
+                            errorMessage   = "${env.ERROR_MESSAGE}"
+                            reportUrl      = "${env.FINAL_REPORT_URL}"
+                        } | ConvertTo-Json -Depth 5
 
-      powershell(returnStatus: true, script: """
-        try {
-            \$body = @{
-                status         = "${env.BUILD_STATUS}"
-                env            = "staging"
-                build          = "${env.BUILD_NUMBER}"
-                duration       = "${env.BUILD_DURATION}"
-                total          = "${env.TOTAL_TESTS}"
-                passed         = "${env.PASSED_TESTS}"
-                failed         = "${env.FAILED_TESTS_COUNT}"
-                skipped        = "${env.SKIPPED_TESTS}"
-                failedTestName = "${env.FAILED_TEST_NAME}"
-                testSteps      = "${env.TEST_STEPS}"
-                errorMessage   = "${env.ERROR_MESSAGE}"
-                reportUrl      = "${env.FINAL_REPORT_URL}"
-            } | ConvertTo-Json -Depth 5
+                        Invoke-RestMethod `
+                            -Uri "http://localhost:5678/webhook/playwright-results" `
+                            -Method Post `
+                            -Body \$body `
+                            -ContentType "application/json"
 
-            Invoke-RestMethod `
-                -Uri "http://localhost:5678/webhook/playwright-results" `
-                -Method Post `
-                -Body \$body `
-                -ContentType "application/json"
-
-            Write-Host "Webhook sent successfully"
-        }
-        catch {
-            Write-Host "Webhook failed but build will continue"
-            Write-Host \$_
-        }
-      """)
-
-    }
-  }
-}
-}
+                        Write-Host "Webhook sent successfully"
+                    }
+                    catch {
+                        Write-Host "Webhook failed but build will continue"
+                        Write-Host \$_
+                    }
+                """)
+            }
         }
     }
 }
