@@ -9,6 +9,8 @@ f.test.describe('Templates - Create Template Tests', () => {
         await loginPage.login(f.superadminUser.username, f.superadminUser.password);
         await homePage.validateHomePageIsOpened();
         await templatesPage.dismissModal();
+        await templatesPage.selectQADevCompany();
+        await templatesPage.page.waitForLoadState('networkidle');
         await templatesPage.navigateToTemplates();
     });
 
