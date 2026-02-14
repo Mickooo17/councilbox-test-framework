@@ -80,13 +80,17 @@ pipeline {
                     env.TEST_STEPS = readFile('failed-test-steps.txt').trim()
                     env.ERROR_MESSAGE = readFile('failed-test-error.txt').trim()
                     
-                    // Set status based on test results
-                    if (env.FAILED_TESTS_COUNT.toInteger() > 0) {
+                    def failedCount = env.FAILED_TESTS_COUNT.toInteger()
+                    def skippedCount = env.SKIPPED_TESTS.toInteger()
+
+                    // Logika: Ako ima propalih ili preskočenih testova, build je UNSTABLE
+                    if (failedCount > 0 || skippedCount > 0) {
                         currentBuild.result = 'UNSTABLE'
                         env.BUILD_STATUS = 'UNSTABLE'
                     } else {
-                        env.BUILD_STATUS = currentBuild.currentResult ?: 'SUCCESS'
+                        env.BUILD_STATUS = 'SUCCESS'
                     }
+                    
                     env.BUILD_DURATION = currentBuild.durationString
                 }
             }
