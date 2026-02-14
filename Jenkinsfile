@@ -79,6 +79,12 @@ pipeline {
                     env.FAILED_TEST_NAME = readFile('failed-test-name.txt').trim()
                     env.TEST_STEPS = readFile('failed-test-steps.txt').trim()
                     env.ERROR_MESSAGE = readFile('failed-test-error.txt').trim()
+                    env.FULL_ERROR = readFile('failed-test-full-error.txt').trim()
+                    env.FAILED_STEP = readFile('failed-test-failed-step.txt').trim()
+                    env.FAILED_STEP_ERROR = readFile('failed-test-failed-step-error.txt').trim()
+                    env.ERROR_CONTEXT = readFile('failed-test-error-context.txt').trim()
+                    // Screenshot base64 stored in file (too large for env var)
+                    env.HAS_SCREENSHOT = fileExists('failed-test-screenshot-base64.txt') ? 'true' : 'false'
                     
                     def failedCount = env.FAILED_TESTS_COUNT.toInteger()
                     def skippedCount = env.SKIPPED_TESTS.toInteger()
@@ -249,19 +255,47 @@ ${env.TEST_STEPS ?: 'N/A'}
 ${env.FAILED_TEST_NAME ?: 'N/A'}
 "@.Replace('"', "'")
 
+        \$cleanFullError = @"
+${env.FULL_ERROR ?: 'N/A'}
+"@.Replace('"', "'")
+
+        \$cleanFailedStep = @"
+${env.FAILED_STEP ?: 'N/A'}
+"@.Replace('"', "'")
+
+        \$cleanFailedStepError = @"
+${env.FAILED_STEP_ERROR ?: 'N/A'}
+"@.Replace('"', "'")
+
+        \$cleanErrorContext = @"
+${env.ERROR_CONTEXT ?: 'N/A'}
+"@.Replace('"', "'")
+
+        # Read screenshot base64 from file (too large for env var)
+        \$screenshotBase64 = ''
+        if (Test-Path 'failed-test-screenshot-base64.txt') {
+            \$screenshotBase64 = Get-Content 'failed-test-screenshot-base64.txt' -Raw
+            if (\$screenshotBase64) { \$screenshotBase64 = \$screenshotBase64.Trim() }
+        }
+
         \$body = @{
-            status         = "${env.BUILD_STATUS}"
-            env            = "staging"
-            build          = "${env.BUILD_NUMBER}"
-            duration       = "${env.BUILD_DURATION}"
-            total          = "${env.TOTAL_TESTS}"
-            passed         = "${env.PASSED_TESTS}"
-            failed         = "${env.FAILED_TESTS_COUNT}"
-            skipped        = "${env.SKIPPED_TESTS}"
-            failedTestName = \$cleanTestName
-            testSteps      = \$cleanSteps
-            errorMessage   = \$cleanError
-            reportUrl      = "${env.FINAL_REPORT_URL}"
+            status           = "${env.BUILD_STATUS}"
+            env              = "staging"
+            build            = "${env.BUILD_NUMBER}"
+            duration         = "${env.BUILD_DURATION}"
+            total            = "${env.TOTAL_TESTS}"
+            passed           = "${env.PASSED_TESTS}"
+            failed           = "${env.FAILED_TESTS_COUNT}"
+            skipped          = "${env.SKIPPED_TESTS}"
+            failedTestName   = \$cleanTestName
+            testSteps        = \$cleanSteps
+            errorMessage     = \$cleanError
+            fullError        = \$cleanFullError
+            failedStep       = \$cleanFailedStep
+            failedStepError  = \$cleanFailedStepError
+            errorContext     = \$cleanErrorContext
+            screenshotBase64 = \$screenshotBase64
+            reportUrl        = "${env.FINAL_REPORT_URL}"
         } | ConvertTo-Json -Depth 5
 
         Invoke-RestMethod `
