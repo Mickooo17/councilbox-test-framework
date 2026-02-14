@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bug Report - should create a new template and verify it appears in the list @smoke @regression</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-slate-800/60 backdrop-blur-lg shadow-2xl rounded-2xl p-10 border border-slate-700">
+            
+            <h1 class="text-4xl font-bold mb-4 text-red-400">🐞 should create a new template and verify it appears in the list @smoke @regression</h1>
+            <p class="text-slate-300 text-lg mb-8">The test failed because the assertion expected the table body (`tbody`) to contain the specific text 'test something just to test :D', but the actual content received was 'Automation Template 63736815 Jan 26and 185 moreNotificationActivated'. This indicates an incorrect expected value in the assertion.</p>
+
+            <div class="grid grid-cols-2 gap-6 mb-10">
+                <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">Environment</h2>
+                    <p><strong>Build:</strong> #294</p>
+                    <p><strong>Environment:</strong> staging</p>
+                    <p><strong>Failed Step:</strong> Expect 'toContainText'</p>
+                </div>
+
+                <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-xl font-semibold text-green-400 mb-3">Links</h2>
+                    <p>
+                        <a href="https://Mickooo17.github.io/councilbox-test-framework/builds/294/" class="text-blue-400 hover:text-blue-300 underline">📂 Open Allure Report</a>
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-purple-400 mb-4">Steps to Reproduce</h2>
+            <ol class="list-decimal list-inside space-y-2 text-slate-300 mb-10">
+                <li>Before Hooks</li>
+                <li>Wait for selector <span class="text-cyan-300">locator('#add-procedure-button')</span></li>
+                <li>Click <span class="text-cyan-300">locator('#add-procedure-button')</span></li>
+                <li>Fill <span class="text-cyan-300">'Automation Template 637368'</span> getByRole(<span class="text-cyan-300">'textbox', { name: 'Input' }</span>)</li>
+                <li>Fill <span class="text-cyan-300">'Automation Content nesU4ThwBcsziZPzhW98JtiAZExdjorqCcgabuqvADlhXjTeFM7RDrfwpAjQ'</span> <span class="text-cyan-300">locator('#draft-editor-text div').nth(2)</span></li>
+                <li>Wait for selector <span class="text-cyan-300">getByText('Notification', { exact: true })</span></li>
+                <li>Click <span class="text-cyan-300">getByText('Notification', { exact: true })</span></li>
+                <li>Click <span class="text-cyan-300">getByRole('button', { name: ' Create' })</span></li>
+                <li>Expect <span class="text-cyan-300">'toContainText'</span></li>
+                <li>Fill <span class="text-cyan-300">'Automation Template 637368'</span> getByRole(<span class="text-cyan-300">'textbox', { name: 'Search templates' }</span>)</li>
+                <li>Expect <span class="text-cyan-300">'toContainText'</span> [FAILED]</li>
+                <li>screenshot</li>
+                <li>screenshot</li>
+                <li>video</li>
+                <li>error-context</li>
+                <li>trace</li>
+                <li>After Hooks</li>
+            </ol>
+
+            <div class="grid grid-cols-2 gap-6 mb-10">
+                <div class="bg-green-900/30 p-6 rounded-xl border border-green-700">
+                    <h3 class="text-xl font-semibold text-green-400 mb-3">Expected Behavior</h3>
+                    <code class="block bg-black/50 p-4 rounded-lg text-green-300 overflow-auto max-h-40">
+                        locator('tbody') to contain text 'test something just to test :D'
+                    </code>
+                </div>
+
+                <div class="bg-red-900/30 p-6 rounded-xl border border-red-700">
+                    <h3 class="text-xl font-semibold text-red-400 mb-3">Actual Result (Error)</h3>
+                    <code class="block bg-black/50 p-4 rounded-lg text-red-300 overflow-auto max-h-40">
+                        Error: expect(locator).toContainText(expected) failed
+
+Locator: locator('tbody')
+Expected string: 'test something just to test :D'
+Received string: 'Automation Template 63736815 Jan 26and 185 moreNotificationActivated'
+Timeout: 5000ms
+
+Call log:
+  - Expect 'toContainText' with timeout 5000ms
+  - waiting for locator('tbody')
+    8 Ã— locator resolved to &lt;tbody class='cbx-table-tbody eijf-cbx-table-tbody'&gt;â€¦&lt;/tbody&gt;
+      - unexpected value 'Automation Template 63736815 Jan 26and 185 moreNotificationActivated'
+                    </code>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-orange-400 mb-4">AI Analysis (Root Cause)</h2>
+            <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700 mb-10">
+                <p class="text-slate-300">
+                    The test failed because the assertion expected the 'tbody' element to contain the string 'test something just to test :D', but it actually received 'Automation Template 63736815 Jan 26and 185 moreNotificationActivated'. This indicates a mismatch in the expected value of the assertion. The test successfully created a template named 'Automation Template 637368' and then proceeded to search for it. The received string in the 'tbody' *does* contain the newly created template's name, suggesting the template was created and potentially visible in the table. However, the core issue is that the test's assertion for verifying the newly created template uses an incorrect, hardcoded expected string ('test something just to test :D') that does not correspond to the template name it just created or any logical string in the context of the test's objective. The `Page State (ARIA)` snapshot also shows a "There are no results for your search" message after the search input, which could be a UI bug or a separate issue, but the immediate cause of failure is the hardcoded incorrect expected string in the assertion.
+                </p>
+            </div>
+
+            <div class="mt-12 text-center text-slate-500 text-sm">
+                Generated by AI Reporter ⚡
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
