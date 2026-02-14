@@ -160,35 +160,78 @@ pipeline {
                 // --- EMAIL NOTIFICATION ---
                 if (params.SEND_EMAIL) {
                     echo "📧 Sending email notification..."
+                    def statusText = currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE'
+                    def statusColor = currentBuild.currentResult == 'SUCCESS' ? '#2eae6f' : '#e53e3e'
+                    def emailBg = currentBuild.currentResult == 'SUCCESS' ? '#e6fffa' : '#fff5f5'
+
                     emailext(
-                        subject: "${currentBuild.currentResult == 'SUCCESS' ? 'Councilbox QA Report - Build #' + env.BUILD_NUMBER + ' - SUCCESS' : 'Councilbox QA Failure - Build #' + env.BUILD_NUMBER}",
+                        subject: "Councilbox QA Report - Build #${env.BUILD_NUMBER} - ${statusText}",
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
                         to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
                         mimeType: 'text/html; charset=UTF-8',
                         body: """
+                            <!DOCTYPE html>
                             <html>
-                              <body style="font-family:Arial, sans-serif; font-size:14px; color:#333;">
-                                <h2 style="color:#1a73e8;">Councilbox QA Report - Build #${env.BUILD_NUMBER}</h2>
-                                
-                                <p><strong>Status:</strong> <span style="color:${currentBuild.currentResult == 'SUCCESS' ? '#28a745' : '#d93025'}; font-weight:bold; font-size:16px;">${currentBuild.currentResult}</span></p>
-                                
-                                <p style="font-size:16px;">
-                                  <strong>Passed:</strong> <span style="color:#28a745;">${env.PASSED_TESTS}</span> | 
-                                  <strong>Failed:</strong> <span style="color:#d93025;">${env.FAILED_TESTS_COUNT}</span>
-                                  <strong>Skipped:</strong> <span style="color:#ff9800;">${env.SKIPPED_TESTS}</span>
-                                </p>
-                                
-                                <div style="margin-top:15px; padding:10px; background-color:#fff3cd; border-left:4px solid #ff9800; border-radius:3px;">
-                                  <h3 style="margin-top:0; color:#856404;">First Failed Test Details:</h3>
-                                  <p><strong>Test Name:</strong> ${env.FAILED_TEST_NAME ?: 'N/A'}</p>
-                                  <p><strong>Steps to Reproduce:</strong> ${env.TEST_STEPS ?: 'N/A'}</p>
-                                  <p><strong>Error Message:</strong> ${env.ERROR_MESSAGE ?: 'N/A'}</p>
+                            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px;">
+                              <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+                                <!-- Header -->
+                                <div style="background-color: ${statusColor}; padding: 30px 20px; text-align: center;">
+                                  <h1 style="color: white; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">${statusText}</h1>
+                                  <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Build #${env.BUILD_NUMBER}</p>
                                 </div>
-                                
-                                <p style="margin-top:15px;">
-                                    <a href='${env.FINAL_REPORT_URL}' style='display:inline-block; padding:8px 16px; background-color:#1a73e8; color:#fff; text-decoration:none; border-radius:4px; font-weight:bold;'>Open Full Allure Report (GitHub Pages)</a>
-                                </p>
-                              </body>
+
+                                <!-- Content -->
+                                <div style="padding: 30px;">
+                                  <p style="color: #4a5568; font-size: 16px; text-align: center; margin-bottom: 25px;">
+                                    Automated tests have completed. Here is the summary:
+                                  </p>
+
+                                  <!-- Stats Grid -->
+                                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+                                    <div style="text-align: center; padding: 15px; background-color: #f7fafc; border-radius: 6px;">
+                                      <div style="font-size: 24px; font-weight: bold; color: #2d3748;">${env.TOTAL_TESTS}</div>
+                                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Total</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 15px; background-color: #f0fff4; border-radius: 6px;">
+                                      <div style="font-size: 24px; font-weight: bold; color: #38a169;">${env.PASSED_TESTS}</div>
+                                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Passed</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 15px; background-color: #fff5f5; border-radius: 6px;">
+                                      <div style="font-size: 24px; font-weight: bold; color: #e53e3e;">${env.FAILED_TESTS_COUNT}</div>
+                                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Failed</div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Failed Test Info -->
+                                  <div style="background-color: ${emailBg}; border-left: 4px solid ${statusColor}; padding: 15px; margin-bottom: 30px; border-radius: 4px;">
+                                    <p style="margin: 0 0 8px 0; color: #4a5568;">
+                                      <strong>First Failed Test:</strong> <span style="font-family: monospace;">${env.FAILED_TEST_NAME ?: 'N/A'}</span>
+                                    </p>
+                                    <p style="margin: 0 0 8px 0; color: #4a5568;">
+                                      <strong>Steps:</strong> <span style="font-family: monospace;">${env.TEST_STEPS ?: 'N/A'}</span>
+                                    </p>
+                                    <p style="margin: 0; color: #4a5568;">
+                                      <strong>Error:</strong> <span style="font-family: monospace;">${env.ERROR_MESSAGE ?: 'N/A'}</span>
+                                    </p>
+                                  </div>
+
+                                  <!-- CTA Button -->
+                                  <div style="text-align: center;">
+                                    <a href="${env.FINAL_REPORT_URL}"
+                                       style="display: inline-block; background-color: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                                       View Full Allure Report
+                                    </a>
+                                  </div>
+
+                                </div>
+
+                                <!-- Footer -->
+                                <div style="background-color: #edf2f7; padding: 15px; text-align: center; font-size: 12px; color: #718096;">
+                                  <p style="margin: 0;">Sent by Councilbox Automation &bull; Jenkins</p>
+                                </div>
+                              </div>
+                            </body>
                             </html>
                         """
                     )
