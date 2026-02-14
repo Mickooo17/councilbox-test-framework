@@ -32,7 +32,7 @@ const envProps = [
   `Jenkins.URL=${process.env.JENKINS_URL || 'N/A'}`,
   `Executor=${process.env.NODE_NAME || os.hostname()}`,
   `Branch=${process.env.GIT_BRANCH || 'main'}`,
-  `Base.URL=${process.env.BASE_URL || 'https://app.councilbox.com'}`,
+  `Base.URL=${process.env.BASE_URL || 'https://qa.ovac.councilbox.com/admin'}`,
 ];
 fs.writeFileSync(path.join(allureResultsDir, 'environment.properties'), envProps.join('\n'));
 
