@@ -239,44 +239,27 @@ pipeline {
                 }
 
                 // --- n8n WEBHOOK ---
-                // Corrected: PowerShell block is now directly inside the main script block
+                // Read large text fields from files in PowerShell to avoid here-string parsing issues
                 powershell(returnStatus: true, script: """
     try {
-        # Čišćenje varijabli od navodnika koji lome PowerShell stringove
-        \$cleanError = @"
-${env.ERROR_MESSAGE ?: 'N/A'}
-"@.Replace('"', "'")
-
-        \$cleanSteps = @"
-${env.TEST_STEPS ?: 'N/A'}
-"@.Replace('"', "'")
-
-        \$cleanTestName = @"
-${env.FAILED_TEST_NAME ?: 'N/A'}
-"@.Replace('"', "'")
-
-        \$cleanFullError = @"
-${env.FULL_ERROR ?: 'N/A'}
-"@.Replace('"', "'")
-
-        \$cleanFailedStep = @"
-${env.FAILED_STEP ?: 'N/A'}
-"@.Replace('"', "'")
-
-        \$cleanFailedStepError = @"
-${env.FAILED_STEP_ERROR ?: 'N/A'}
-"@.Replace('"', "'")
-
-        \$cleanErrorContext = @"
-${env.ERROR_CONTEXT ?: 'N/A'}
-"@.Replace('"', "'")
-
-        # Read screenshot base64 from file (too large for env var)
-        \$screenshotBase64 = ''
-        if (Test-Path 'failed-test-screenshot-base64.txt') {
-            \$screenshotBase64 = Get-Content 'failed-test-screenshot-base64.txt' -Raw
-            if (\$screenshotBase64) { \$screenshotBase64 = \$screenshotBase64.Trim() }
+        # Helper function to safely read file content
+        function Read-SafeFile(\$filePath) {
+            if (Test-Path \$filePath) {
+                \$content = Get-Content \$filePath -Raw -ErrorAction SilentlyContinue
+                if (\$content) { return \$content.Trim().Replace('"', "'") }
+            }
+            return 'N/A'
         }
+
+        # Read all text fields directly from files (avoids PowerShell here-string issues)
+        \$cleanTestName      = Read-SafeFile 'failed-test-name.txt'
+        \$cleanSteps         = Read-SafeFile 'failed-test-steps.txt'
+        \$cleanError         = Read-SafeFile 'failed-test-error.txt'
+        \$cleanFullError     = Read-SafeFile 'failed-test-full-error.txt'
+        \$cleanFailedStep    = Read-SafeFile 'failed-test-failed-step.txt'
+        \$cleanFailedStepErr = Read-SafeFile 'failed-test-failed-step-error.txt'
+        \$cleanErrorContext  = Read-SafeFile 'failed-test-error-context.txt'
+        \$screenshotBase64   = Read-SafeFile 'failed-test-screenshot-base64.txt'
 
         \$body = @{
             status           = "${env.BUILD_STATUS}"
@@ -292,7 +275,7 @@ ${env.ERROR_CONTEXT ?: 'N/A'}
             errorMessage     = \$cleanError
             fullError        = \$cleanFullError
             failedStep       = \$cleanFailedStep
-            failedStepError  = \$cleanFailedStepError
+            failedStepError  = \$cleanFailedStepErr
             errorContext     = \$cleanErrorContext
             screenshotBase64 = \$screenshotBase64
             reportUrl        = "${env.FINAL_REPORT_URL}"
@@ -302,7 +285,7 @@ ${env.ERROR_CONTEXT ?: 'N/A'}
             -Uri "http://localhost:5678/webhook/playwright-results" `
             -Method Post `
             -Body \$body `
-            -ContentType "application/json"
+            -ContentType "application/json; charset=utf-8"
 
         Write-Host "Webhook sent successfully"
     }
