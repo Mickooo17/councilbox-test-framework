@@ -4,6 +4,7 @@ import envConfig from '../global-env';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { InstitutionsPage } from '../pages/institutions/InstitutionsPage';
+import { TemplatesPage } from '../pages/templates/TemplatesPage';
 
 export const adminUser = envConfig.users.admin;
 export const adminProfessionalUser = envConfig.users.adminProfessional;
@@ -20,6 +21,7 @@ export const test = base.extend<{
   loginPage: LoginPage;
   homePage: HomePage;
   institutionsPage: InstitutionsPage;
+  templatesPage: TemplatesPage;
   page: Page;
 }>({
   loginPage: async ({ page }, use) => {
@@ -30,6 +32,9 @@ export const test = base.extend<{
   },
   institutionsPage: async ({ page }, use) => {
     await use(new InstitutionsPage(page));
+  },
+  templatesPage: async ({ page }, use) => {
+    await use(new TemplatesPage(page));
   },
   page: async ({ page }, use) => {
     await page.goto(loginUrl, { waitUntil: 'networkidle' });

@@ -3,12 +3,14 @@ import { Page, Locator } from '@playwright/test';
 export class BasePage {
     readonly closeModalButton: Locator;
     readonly institutionsButton: Locator;
+    readonly templatesButton: Locator;
     readonly governmentIcon: Locator;
     readonly qaDevMenuItem: Locator;
 
     constructor(public page: Page) {
         this.closeModalButton = page.locator('.MuiButtonBase-root.MuiIconButton-root.closeIcon');
         this.institutionsButton = page.getByRole('button', { name: ' Institutions' });
+        this.templatesButton = page.getByRole('button', { name: ' Templates' });
         this.governmentIcon = page.locator('.ri-government-line');
         this.qaDevMenuItem = page.getByRole('menuitem', { name: 'company-logo QA DEV' });
     }
@@ -26,5 +28,10 @@ export class BasePage {
     async navigateToInstitutions() {
         await this.institutionsButton.waitFor({ state: 'visible', timeout: 10000 });
         await this.institutionsButton.click();
+    }
+
+    async navigateToTemplates() {
+        await this.templatesButton.waitFor({ state: 'visible', timeout: 10000 });
+        await this.templatesButton.click();
     }
 }
