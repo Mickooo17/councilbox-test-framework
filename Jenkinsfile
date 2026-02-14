@@ -58,7 +58,7 @@ pipeline {
                 bat '''
                   @echo off
                   chcp 65001 >NUL
-                  npx playwright test --reporter=line,allure-playwright || exit 0
+                  npx playwright test --project=Chromium --reporter=line,allure-playwright || exit 0
                 '''
             }
             post {
@@ -203,18 +203,6 @@ pipeline {
                                     </div>
                                   </div>
 
-                                  <!-- Failed Test Info -->
-                                  <div style="background-color: ${emailBg}; border-left: 4px solid ${statusColor}; padding: 15px; margin-bottom: 30px; border-radius: 4px;">
-                                    <p style="margin: 0 0 8px 0; color: #4a5568;">
-                                      <strong>First Failed Test:</strong> <span style="font-family: monospace;">${env.FAILED_TEST_NAME ?: 'N/A'}</span>
-                                    </p>
-                                    <p style="margin: 0 0 8px 0; color: #4a5568;">
-                                      <strong>Steps:</strong> <span style="font-family: monospace;">${env.TEST_STEPS ?: 'N/A'}</span>
-                                    </p>
-                                    <p style="margin: 0; color: #4a5568;">
-                                      <strong>Error:</strong> <span style="font-family: monospace;">${env.ERROR_MESSAGE ?: 'N/A'}</span>
-                                    </p>
-                                  </div>
 
                                   <!-- CTA Button -->
                                   <div style="text-align: center;">
