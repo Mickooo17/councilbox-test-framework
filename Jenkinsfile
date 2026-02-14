@@ -121,6 +121,9 @@ pipeline {
                                     echo No previous history found for trend charts.
                                 )
 
+                                echo Generating Allure environment and executor metadata...
+                                node generate-allure-meta.js
+
                                 echo Generating Allure report...
                                 call npx allure generate allure-results --clean -o allure-report
                                 
