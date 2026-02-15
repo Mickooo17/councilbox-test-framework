@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bug Report - should create a new template and verify it appears in the list @smoke @regression</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-slate-800/60 backdrop-blur-lg shadow-2xl rounded-2xl p-10 border border-slate-700">
+            
+            <h1 class="text-4xl font-bold mb-4 text-red-400">🐞 should create a new template and verify it appears in the list @smoke @regression</h1>
+            <p class="text-slate-300 text-lg mb-8">The test failed to locate and verify the visibility of the text 'Description of the procedure' within the specified timeout, resulting in a TimeoutError.</p>
+
+            <div class="grid grid-cols-2 gap-6 mb-10">
+                <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">Environment</h2>
+                    <p><strong>Build:</strong> #295</p>
+                    <p><strong>Environment:</strong> staging</p>
+                    <p><strong>Failed Step:</strong> Wait for selector getByText('Description of the procedure', { exact: true })</p>
+                </div>
+
+                <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-xl font-semibold text-green-400 mb-3">Links</h2>
+                    <p>
+                        <a href="https://Mickooo17.github.io/councilbox-test-framework/builds/295/" class="text-blue-400 hover:text-blue-300 underline">📂 Open Allure Report</a>
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-purple-400 mb-4">Steps to Reproduce</h2>
+            <ol class="list-decimal list-inside space-y-2 text-slate-300 mb-10">
+                <li>Before Hooks</li>
+                <li>Wait for selector <span class="text-cyan-300">locator('#add-procedure-button')</span></li>
+                <li>Click <span class="text-cyan-300">locator('#add-procedure-button')</span></li>
+                <li>Fill <span class="text-cyan-300">'Automation Template 386854'</span> <span class="text-cyan-300">getByRole('textbox', { name: 'Input' })</span></li>
+                <li>Fill <span class="text-cyan-300">'Automation Content xdOgTQrlSt9fUGHSwfo2r8Z4nO7VRyH5if5Zn0C4vrvoIwjviWY9JWSaTSvy'</span> <span class="text-cyan-300">locator('#draft-editor-text div').nth(2)</span></li>
+                <li>Wait for selector <span class="text-cyan-300">getByText('Description of the procedure', { exact: true })</span> <span class="text-red-400">[FAILED]</span></li>
+                <li>screenshot</li>
+                <li>error-context</li>
+                <li>trace</li>
+                <li>After Hooks</li>
+            </ol>
+
+            <div class="grid grid-cols-2 gap-6 mb-10">
+                <div class="bg-green-900/30 p-6 rounded-xl border border-green-700">
+                    <h3 class="text-xl font-semibold text-green-400 mb-3">Expected Behavior</h3>
+                    <code class="block bg-black/50 p-4 rounded-lg text-green-300 overflow-auto max-h-40">
+                        The text 'Description of the procedure' should be visible on the page within the 5000ms timeout.
+                    </code>
+                </div>
+
+                <div class="bg-red-900/30 p-6 rounded-xl border border-red-700">
+                    <h3 class="text-xl font-semibold text-red-400 mb-3">Actual Result (Error)</h3>
+                    <code class="block bg-black/50 p-4 rounded-lg text-red-300 overflow-auto max-h-40">
+                        TimeoutError: locator.waitFor: Timeout 5000ms exceeded.
+Call log:
+  - waiting for getByText('Description of the procedure', { exact: true }) to be visible
+                    </code>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-orange-400 mb-4">AI Analysis (Root Cause)</h2>
+            <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700 mb-10">
+                <p class="text-slate-300">
+                    The test failed because the Playwright locator `getByText('Description of the procedure', { exact: true })` timed out. The ARIA page snapshot reveals a paragraph with the text "Description of the procedure or appointment" (ref=e283) under the 'Categories' heading. However, the locator was configured with `exact: true`, meaning it was specifically looking for the text "Description of the procedure" without any additional characters. Since the actual text on the page is "Description of the procedure or appointment", it does not match exactly, causing the locator to fail and exceed the timeout. The root cause is a mismatch between the expected exact text in the test step and the actual text rendered in the UI.
+                </p>
+            </div>
+
+            <div class="mt-12 text-center text-slate-500 text-sm">
+                Generated by AI Reporter ⚡
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
