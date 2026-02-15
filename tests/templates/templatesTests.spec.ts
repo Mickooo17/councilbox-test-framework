@@ -26,6 +26,6 @@ f.test.describe('Templates - Create Template Tests', () => {
         await templatesPage.createTemplate(templateData);
         await templatesPage.verifySuccessAlert();
         await templatesPage.searchTemplate(templateData.name);
-        await templatesPage.verifyTemplateInTable("test something just to test :D");
+        await templatesPage.verifyTemplateInTable(templateData.name);
     });
 });
