@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { MESSAGES } from '../../utils/Constants';
 
@@ -51,65 +51,77 @@ export class InstitutionsPage extends BasePage {
     }
 
     async openCreateInstitutionForm() {
-        await this.actionsButton.click();
+        await test.step('Open create institution form', async () => {
+            await this.actionsButton.click();
+        });
     }
 
     async fillInstitutionDetails(data: InstitutionData) {
-        //await this.businessNameInput.click();
-        await this.businessNameInput.fill(data.name);
+        await test.step(`Fill institution details: ${data.name}`, async () => {
+            await this.businessNameInput.fill(data.name);
+            await this.cifInput.fill(data.cif);
+            await this.addressInput.fill(data.address);
+            await this.zipCodeInput.fill(data.zipCode);
 
-        //await this.cifInput.click();
-        await this.cifInput.fill(data.cif);
+            await this.countryDropdown.click();
+            await this.countryOptionAndorra.click();
 
-        //await this.addressInput.click();
-        await this.addressInput.fill(data.address);
+            await this.cityInput.fill(data.city);
 
-        await this.zipCodeInput.fill(data.zipCode);
-
-        await this.countryDropdown.click();
-        await this.countryOptionAndorra.click();
-
-        //await this.cityInput.click();
-        await this.cityInput.fill(data.city);
-
-        await this.languageDropdown.click();
-        await this.languageOptionEnglish.click();
+            await this.languageDropdown.click();
+            await this.languageOptionEnglish.click();
+        });
     }
 
     async submitCreateForm() {
-        await this.createButton.click();
+        await test.step('Submit create form', async () => {
+            await this.createButton.click();
+        });
     }
 
     async verifySuccessAlert() {
-        await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_CREATED);
+        await test.step('Verify institution created success alert', async () => {
+            await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_CREATED);
+        });
     }
 
     async searchInstitution(name: string) {
-        await this.navigateToInstitutions();
-        await this.searchInput.click();
-        await this.searchInput.fill(name);
+        await test.step(`Search for institution: ${name}`, async () => {
+            await this.navigateToInstitutions();
+            await this.searchInput.click();
+            await this.searchInput.fill(name);
+        });
     }
 
     async verifyInstitutionInTable(name: string) {
-        await expect(this.tableBody).toContainText(name);
+        await test.step(`Verify institution "${name}" appears in table`, async () => {
+            await expect(this.tableBody).toContainText(name);
+        });
     }
 
     async createInstitution(data: InstitutionData) {
-        await this.openCreateInstitutionForm();
-        await this.fillInstitutionDetails(data);
-        await this.submitCreateForm();
+        await test.step(`Create institution: ${data.name}`, async () => {
+            await this.openCreateInstitutionForm();
+            await this.fillInstitutionDetails(data);
+            await this.submitCreateForm();
+        });
     }
 
     async deleteInstitution(name: string) {
-        await this.navigateToInstitutions();
-        await this.searchInput.click();
-        await this.searchInput.fill(name);
-        await this.tableBody.getByRole('button', { name: '' }).click();
-        await this.deleteButton.click();
-        await this.acceptButton.click();
+        await test.step(`Delete institution: ${name}`, async () => {
+            await this.navigateToInstitutions();
+            await this.searchInput.click();
+            await this.searchInput.fill(name);
+            await this.tableBody.getByRole('button', { name: '' }).click();
+            await this.deleteButton.click();
+            await this.acceptButton.click();
+        });
     }
 
     async verifyDeleteSuccessAlert() {
-        await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_DELETED);
+        await test.step('Verify institution deleted success alert', async () => {
+            await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_DELETED);
+        });
     }
 }
+

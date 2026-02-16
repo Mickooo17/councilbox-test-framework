@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, test } from '@playwright/test';
 
 export class BasePage {
     readonly closeModalButton: Locator;
@@ -16,22 +16,30 @@ export class BasePage {
     }
 
     async dismissModal() {
-        await this.closeModalButton.click();
+        await test.step('Dismiss modal dialog', async () => {
+            await this.closeModalButton.click();
+        });
     }
 
     async selectQADevCompany() {
-        await this.governmentIcon.click();
-        await this.qaDevMenuItem.click();
-        await this.page.waitForLoadState('networkidle');
+        await test.step('Select QA DEV company', async () => {
+            await this.governmentIcon.click();
+            await this.qaDevMenuItem.click();
+            await this.page.waitForLoadState('networkidle');
+        });
     }
 
     async navigateToInstitutions() {
-        await this.institutionsButton.waitFor({ state: 'visible', timeout: 10000 });
-        await this.institutionsButton.click();
+        await test.step('Navigate to Institutions page', async () => {
+            await this.institutionsButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.institutionsButton.click();
+        });
     }
 
     async navigateToTemplates() {
-        await this.templatesButton.waitFor({ state: 'visible', timeout: 10000 });
-        await this.templatesButton.click();
+        await test.step('Navigate to Templates page', async () => {
+            await this.templatesButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.templatesButton.click();
+        });
     }
 }

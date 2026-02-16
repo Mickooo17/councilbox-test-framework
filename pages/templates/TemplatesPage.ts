@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { MESSAGES } from '../../utils/Constants';
 
@@ -40,58 +40,76 @@ export class TemplatesPage extends BasePage {
     }
 
     async openCreateTemplateForm() {
-        // Click the floating action button (FAB) at the bottom-right corner
-        const fabButton = this.page.locator('#add-procedure-button');
-        await fabButton.waitFor({ state: 'visible', timeout: 10000 });
-        await fabButton.click();
+        await test.step('Open create template form', async () => {
+            const fabButton = this.page.locator('#add-procedure-button');
+            await fabButton.waitFor({ state: 'visible', timeout: 10000 });
+            await fabButton.click();
+        });
     }
 
     async fillTemplateDetails(data: TemplateData) {
-        await this.templateNameInput.fill(data.name);
-        await this.contentEditor.fill(data.content);
+        await test.step(`Fill template details: ${data.name}`, async () => {
+            await this.templateNameInput.fill(data.name);
+            await this.contentEditor.fill(data.content);
 
-        // Select the random template type
-        const typeOption = this.page.getByText(data.type, { exact: true });
-        await typeOption.waitFor({ state: 'visible', timeout: 5000 });
-        await typeOption.click();
+            // Select the random template type
+            const typeOption = this.page.getByText(data.type, { exact: true });
+            await typeOption.waitFor({ state: 'visible', timeout: 5000 });
+            await typeOption.click();
+        });
     }
 
     async submitCreateForm() {
-        await this.createButton.click();
+        await test.step('Submit create form', async () => {
+            await this.createButton.click();
+        });
     }
 
     async createTemplate(data: TemplateData) {
-        await this.openCreateTemplateForm();
-        await this.fillTemplateDetails(data);
-        await this.submitCreateForm();
+        await test.step(`Create template: ${data.name}`, async () => {
+            await this.openCreateTemplateForm();
+            await this.fillTemplateDetails(data);
+            await this.submitCreateForm();
+        });
     }
 
     async verifySuccessAlert() {
-        await expect(this.alertMessage).toContainText(MESSAGES.TEMPLATE_CREATED);
+        await test.step('Verify template created success alert', async () => {
+            await expect(this.alertMessage).toContainText(MESSAGES.TEMPLATE_CREATED);
+        });
     }
 
     async searchTemplate(name: string) {
-        await this.searchInput.fill(name);
+        await test.step(`Search for template: ${name}`, async () => {
+            await this.searchInput.fill(name);
+        });
     }
 
     async verifyTemplateInTable(name: string) {
-        await expect(this.tableBody).toContainText(name);
+        await test.step(`Verify template "${name}" appears in table`, async () => {
+            await expect(this.tableBody).toContainText(name);
+        });
     }
 
     async deleteTemplate(name: string) {
-        await this.searchTemplate(name);
-        // Click the 3-dot actions button on the found row
-        const row = this.tableBody.locator('tr', { hasText: name });
-        await row.waitFor({ state: 'visible', timeout: 5000 });
-        await row.locator('button').first().click();
-        await this.deleteButton.waitFor({ state: 'visible', timeout: 5000 });
-        await this.deleteButton.click();
-        await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 5000 });
-        await this.confirmDeleteButton.click();
+        await test.step(`Delete template: ${name}`, async () => {
+            await this.searchTemplate(name);
+            // Click the 3-dot actions button on the found row
+            const row = this.tableBody.locator('tr', { hasText: name });
+            await row.waitFor({ state: 'visible', timeout: 5000 });
+            await row.locator('button').first().click();
+            await this.deleteButton.waitFor({ state: 'visible', timeout: 5000 });
+            await this.deleteButton.click();
+            await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 5000 });
+            await this.confirmDeleteButton.click();
+        });
     }
 
     async verifyDeleteSuccessAlert() {
-        await expect(this.alertMessage).toContainText(MESSAGES.TEMPLATE_DELETED);
+        await test.step('Verify template deleted success alert', async () => {
+            await expect(this.alertMessage).toContainText(MESSAGES.TEMPLATE_DELETED);
+        });
     }
 }
+
 

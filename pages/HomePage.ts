@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect, test } from '@playwright/test';
 
 export class HomePage {
   readonly profileIcon: Locator;
@@ -8,12 +8,16 @@ export class HomePage {
   }
 
   async verifyProfileIconIsAccessible() {
-    await expect(this.profileIcon).toBeVisible();
-    await expect(this.profileIcon).toBeEnabled();
+    await test.step('Verify profile icon is accessible', async () => {
+      await expect(this.profileIcon).toBeVisible();
+      await expect(this.profileIcon).toBeEnabled();
+    });
   }
 
   async validateHomePageIsOpened() {
-    await this.verifyProfileIconIsAccessible();
-    await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 15000 });
+    await test.step('Validate home page is opened', async () => {
+      await this.verifyProfileIconIsAccessible();
+      await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 15000 });
+    });
   }
 }

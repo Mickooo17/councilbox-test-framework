@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect, test } from '@playwright/test';
 
 export class LoginPage {
   readonly usernameInput: Locator;
@@ -16,28 +16,32 @@ export class LoginPage {
   }
 
   async login(username: string, password: string) {
-    await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
-    await this.submitButton.click();
-    // Removed waitForLoadState('networkidle') as it can be flaky. 
-    // Subsequent steps should await specific elements.
+    await test.step('Login with credentials', async () => {
+      await this.usernameInput.fill(username);
+      await this.passwordInput.fill(password);
+      await this.submitButton.click();
+    });
   }
 
   async validateErrorMessage(expectedMessage = 'This field is required.') {
-    const errorCount = await this.loginErrorMessage.count();
-    expect(errorCount, 'Expected at least one validation error to be shown').toBeGreaterThan(0);
+    await test.step(`Validate error message: "${expectedMessage}"`, async () => {
+      const errorCount = await this.loginErrorMessage.count();
+      expect(errorCount, 'Expected at least one validation error to be shown').toBeGreaterThan(0);
 
-    for (let i = 0; i < errorCount; i += 1) {
-      const errorLocator = this.loginErrorMessage.nth(i);
-      await expect(errorLocator).toBeVisible();
-      if (expectedMessage) {
-        await expect(errorLocator).toContainText(expectedMessage);
+      for (let i = 0; i < errorCount; i += 1) {
+        const errorLocator = this.loginErrorMessage.nth(i);
+        await expect(errorLocator).toBeVisible();
+        if (expectedMessage) {
+          await expect(errorLocator).toContainText(expectedMessage);
+        }
       }
-    }
+    });
   }
 
   async validateErrorMessageForInvalidCredentials(expectedMessage = 'Username or password incorrect.') {
-    await expect(this.loginErrorMessageInvalid).toBeVisible();
-    await expect(this.loginErrorMessageInvalid).toContainText(expectedMessage);
+    await test.step(`Validate invalid credentials error: "${expectedMessage}"`, async () => {
+      await expect(this.loginErrorMessageInvalid).toBeVisible();
+      await expect(this.loginErrorMessageInvalid).toContainText(expectedMessage);
+    });
   }
 }
