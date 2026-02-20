@@ -11,20 +11,15 @@ pipeline {
 
     environment {
         CI = 'true'
+        TEST_ENV = 'staging'
         GITHUB_USER = 'Mickooo17'
         GITHUB_REPO = 'councilbox-test-framework'
         PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
 
-        // Test credentials loaded from Jenkins Credentials Store
-        STAGING_ADMIN_PASSWORD             = credentials('STAGING_ADMIN_PASSWORD')
+        // Staging credentials loaded from Jenkins Credentials Store
+        STAGING_ADMIN_PASSWORD              = credentials('STAGING_ADMIN_PASSWORD')
         STAGING_ADMIN_PROFESSIONAL_PASSWORD = credentials('STAGING_ADMIN_PROFESSIONAL_PASSWORD')
-        STAGING_SUPERADMIN_PASSWORD        = credentials('STAGING_SUPERADMIN_PASSWORD')
-        DEV_ADMIN_PASSWORD                 = credentials('DEV_ADMIN_PASSWORD')
-        DEV_ADMIN_PROFESSIONAL_PASSWORD    = credentials('DEV_ADMIN_PROFESSIONAL_PASSWORD')
-        DEV_SUPERADMIN_PASSWORD            = credentials('DEV_SUPERADMIN_PASSWORD')
-        PROD_ADMIN_PASSWORD                = credentials('PROD_ADMIN_PASSWORD')
-        PROD_ADMIN_PROFESSIONAL_PASSWORD   = credentials('PROD_ADMIN_PROFESSIONAL_PASSWORD')
-        PROD_SUPERADMIN_PASSWORD           = credentials('PROD_SUPERADMIN_PASSWORD')
+        STAGING_SUPERADMIN_PASSWORD         = credentials('STAGING_SUPERADMIN_PASSWORD')
     }
 
     options {
