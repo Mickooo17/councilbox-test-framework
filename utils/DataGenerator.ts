@@ -1,5 +1,6 @@
 import { InstitutionData } from '../pages/institutions/InstitutionsPage';
 import { TemplateData } from '../pages/templates/TemplatesPage';
+import { TagData } from '../pages/templates/TagsPage';
 
 export class DataGenerator {
     static randomNumber(length: number): string {
@@ -66,6 +67,18 @@ export class DataGenerator {
             name: this.randomTemplateName(),
             content: `Automation Content ${this.randomString(60)}`,
             type: this.randomTemplateType(),
+        };
+    }
+
+    static randomTagKey(): string {
+        return `AUTO_TAG_${this.randomString(6).toUpperCase()}`;
+    }
+
+    static randomTagData(): TagData {
+        return {
+            key: this.randomTagKey(),
+            value: `auto_value_${this.randomString(6)}`,
+            description: `Automation tag description ${this.randomString(10)}`,
         };
     }
 }

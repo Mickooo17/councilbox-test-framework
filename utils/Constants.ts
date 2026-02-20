@@ -3,4 +3,6 @@ export const MESSAGES = {
     INSTITUTION_DELETED: 'The company has been successfully deleted.',
     TEMPLATE_CREATED: 'Template successfully created',
     TEMPLATE_DELETED: 'The template has been successfully deleted',
+    TAG_DELETED: 'The tag has been successfully deleted',
+    TAG_DELETE_MODAL_HEADER: 'Delete tag',
 };
