@@ -17,7 +17,6 @@ pipeline {
         PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
 
         // Staging credentials loaded from Jenkins Credentials Store
-        STAGING_ADMIN_PASSWORD              = credentials('STAGING_ADMIN_PASSWORD')
         STAGING_ADMIN_PROFESSIONAL_PASSWORD = credentials('STAGING_ADMIN_PROFESSIONAL_PASSWORD')
         STAGING_SUPERADMIN_PASSWORD         = credentials('STAGING_SUPERADMIN_PASSWORD')
     }
