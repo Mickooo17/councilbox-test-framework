@@ -7,6 +7,7 @@ import { InstitutionsPage } from '../pages/institutions/InstitutionsPage';
 import { TemplatesPage } from '../pages/templates/TemplatesPage';
 import { TagsPage } from '../pages/templates/TagsPage';
 import { DocumentationPage } from '../pages/documentation/DocumentationPage';
+import { UsersPage } from '../pages/users/UsersPage';
 
 export const adminUser = envConfig.users.admin;
 export const adminProfessionalUser = envConfig.users.adminProfessional;
@@ -26,6 +27,7 @@ export const test = base.extend<{
   templatesPage: TemplatesPage;
   tagsPage: TagsPage;
   documentationPage: DocumentationPage;
+  usersPage: UsersPage;
   page: Page;
 }>({
   loginPage: async ({ page }, use) => {
@@ -45,6 +47,9 @@ export const test = base.extend<{
   },
   documentationPage: async ({ page }, use) => {
     await use(new DocumentationPage(page));
+  },
+  usersPage: async ({ page }, use) => {
+    await use(new UsersPage(page));
   },
   page: async ({ page }, use) => {
     await page.goto(loginUrl, { waitUntil: 'networkidle' });

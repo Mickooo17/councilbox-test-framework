@@ -5,6 +5,7 @@ export class BasePage {
     readonly institutionsButton: Locator;
     readonly templatesButton: Locator;
     readonly documentationButton: Locator;
+    readonly usersButton: Locator;
     readonly governmentIcon: Locator;
     readonly qaDevMenuItem: Locator;
 
@@ -13,6 +14,7 @@ export class BasePage {
         this.institutionsButton = page.getByRole('button', { name: ' Institutions' });
         this.templatesButton = page.getByRole('button', { name: ' Templates' });
         this.documentationButton = page.locator('#documentation-link');
+        this.usersButton = page.getByRole('button', { name: ' Users' });
         this.governmentIcon = page.locator('.ri-government-line');
         this.qaDevMenuItem = page.getByRole('menuitem', { name: 'company-logo QA DEV' });
     }
@@ -49,6 +51,14 @@ export class BasePage {
         await test.step('Navigate to Documentation page', async () => {
             await this.documentationButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.documentationButton.click();
+        });
+    }
+
+    async navigateToUsers() {
+        await test.step('Navigate to Users page', async () => {
+            await this.usersButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.usersButton.click();
+            await this.page.waitForLoadState('networkidle');
         });
     }
 }
