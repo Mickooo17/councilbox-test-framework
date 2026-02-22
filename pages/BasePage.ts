@@ -4,6 +4,7 @@ export class BasePage {
     readonly closeModalButton: Locator;
     readonly institutionsButton: Locator;
     readonly templatesButton: Locator;
+    readonly documentationButton: Locator;
     readonly governmentIcon: Locator;
     readonly qaDevMenuItem: Locator;
 
@@ -11,6 +12,7 @@ export class BasePage {
         this.closeModalButton = page.locator('.MuiButtonBase-root.MuiIconButton-root.closeIcon');
         this.institutionsButton = page.getByRole('button', { name: ' Institutions' });
         this.templatesButton = page.getByRole('button', { name: ' Templates' });
+        this.documentationButton = page.locator('#documentation-link');
         this.governmentIcon = page.locator('.ri-government-line');
         this.qaDevMenuItem = page.getByRole('menuitem', { name: 'company-logo QA DEV' });
     }
@@ -40,6 +42,13 @@ export class BasePage {
         await test.step('Navigate to Templates page', async () => {
             await this.templatesButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.templatesButton.click();
+        });
+    }
+
+    async navigateToDocumentation() {
+        await test.step('Navigate to Documentation page', async () => {
+            await this.documentationButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.documentationButton.click();
         });
     }
 }
