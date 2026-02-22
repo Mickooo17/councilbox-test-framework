@@ -1,7 +1,8 @@
 import * as f from '../fixtures';
 
-f.test.describe('Documentation - Upload Document Tests', () => {
+f.test.describe.serial('Documentation - Upload and Download Document Tests', () => {
     let testDocumentName: string;
+    let isDocumentUploaded = false;
 
     f.test.beforeEach(async ({ loginPage, homePage, documentationPage }) => {
         await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
@@ -10,13 +11,6 @@ f.test.describe('Documentation - Upload Document Tests', () => {
         await documentationPage.selectQADevCompany();
         await documentationPage.page.waitForLoadState('networkidle');
         await documentationPage.navigateToDocumentation();
-    });
-
-    f.test.afterEach(async ({ documentationPage }) => {
-        if (testDocumentName) {
-            await documentationPage.deleteDocument(testDocumentName);
-            await documentationPage.verifyDeleteSuccessAlert();
-        }
     });
 
     f.test('should upload a new document and verify it appears in the list @smoke @regression', async ({ documentationPage }) => {
@@ -29,5 +23,18 @@ f.test.describe('Documentation - Upload Document Tests', () => {
         await documentationPage.verifyUploadSuccessAlert();
         await documentationPage.searchDocument(testDocumentName);
         await documentationPage.verifyDocumentInTable(testDocumentName);
+        isDocumentUploaded = true;
+    });
+
+    f.test('should download the uploaded document and verify in File Manager @smoke @regression', async ({ documentationPage }) => {
+        f.test.skip(!isDocumentUploaded, 'Skipping because the upload test did not pass');
+
+        // Download the document
+        await documentationPage.downloadDocument(testDocumentName);
+        await documentationPage.verifyDownloadInFileManager(testDocumentName);
+
+        // Cleanup: delete the document after verifying download
+        await documentationPage.deleteDocument(testDocumentName);
+        await documentationPage.verifyDeleteSuccessAlert();
     });
 });

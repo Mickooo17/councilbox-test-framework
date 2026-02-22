@@ -6,7 +6,8 @@ const folders = [
   'allure-report',
   'playwright-report',
   'test-results',
-  'junit-results'
+  'junit-results',
+  'test-data'
 ];
 
 folders.forEach(folder => {
