@@ -5,4 +5,9 @@ export const MESSAGES = {
     TEMPLATE_DELETED: 'The template has been successfully deleted',
     TAG_DELETED: 'The tag has been successfully deleted',
     TAG_DELETE_MODAL_HEADER: 'Delete tag',
+    USER_CREATED: 'User successfully created',
+    USER_DELETED: 'User successfully deleted',
+    USER_DELETE_CONFIRMATION: 'Are you sure you want to delete the selected user?',
+    DOCUMENT_UPLOADED: 'File uploaded',
+    DOCUMENT_DELETED: 'Document deleted',
 };

@@ -1,5 +1,6 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
+import { MESSAGES } from '../../utils/Constants';
 import path from 'path';
 import fs from 'fs';
 
@@ -19,8 +20,8 @@ export class DocumentationPage extends BasePage {
         this.fileInput = page.locator('input[type="file"]').first();
         this.searchInput = page.locator('#company-document-search-input');
         this.alertAcceptButton = page.locator('#alert-confirm-button-accept');
-        this.successUploadAlert = page.locator('.Toastify__toast--success').filter({ hasText: 'File uploaded' });
-        this.successDeleteAlert = page.locator('.Toastify__toast--success').filter({ hasText: 'Document deleted' }); // Assuming similar generic toast
+        this.successUploadAlert = page.locator('.Toastify__toast--success').filter({ hasText: MESSAGES.DOCUMENT_UPLOADED });
+        this.successDeleteAlert = page.locator('.Toastify__toast--success').filter({ hasText: MESSAGES.DOCUMENT_DELETED }); // Assuming similar generic toast
     }
 
     async uploadDocument(fileName: string, fileContent: string) {

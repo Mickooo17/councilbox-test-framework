@@ -1,5 +1,6 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
+import { MESSAGES } from '../../utils/Constants';
 
 export interface UserData {
     name: string;
@@ -73,7 +74,7 @@ export class UsersPage extends BasePage {
 
     async verifyUserCreatedAlert() {
         await test.step('Verify user created success alert', async () => {
-            await expect(this.page.getByRole('alert')).toContainText('User successfully created', { timeout: 10000 });
+            await expect(this.page.getByRole('alert')).toContainText(MESSAGES.USER_CREATED, { timeout: 10000 });
         });
     }
 
@@ -94,14 +95,14 @@ export class UsersPage extends BasePage {
         await test.step('Delete user', async () => {
             await this.page.getByRole('cell', { name: 'Icon Button' }).getByLabel('Icon Button').click();
             await this.page.getByRole('button', { name: ' Delete' }).click();
-            await expect(this.page.locator('#modal')).toContainText('Are you sure you want to delete the selected user?');
+            await expect(this.page.locator('#modal')).toContainText(MESSAGES.USER_DELETE_CONFIRMATION);
             await this.page.getByRole('button', { name: 'Delete' }).click();
         });
     }
 
     async verifyUserDeletedAlert() {
         await test.step('Verify user deleted success alert', async () => {
-            await expect(this.page.getByRole('alert')).toContainText('User successfully deleted', { timeout: 10000 });
+            await expect(this.page.getByRole('alert')).toContainText(MESSAGES.USER_DELETED, { timeout: 10000 });
         });
     }
 }
