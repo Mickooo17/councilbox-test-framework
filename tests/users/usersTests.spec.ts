@@ -3,7 +3,7 @@ import { DataGenerator } from '../../utils/DataGenerator';
 
 f.test.describe('Users - Add User Tests', () => {
     f.test.beforeEach(async ({ loginPage, homePage, usersPage }) => {
-        await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
+        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
         await homePage.validateHomePageIsOpened();
         await usersPage.dismissModal();
         await usersPage.selectQADevCompany();
