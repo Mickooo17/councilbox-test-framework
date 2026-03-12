@@ -60,8 +60,10 @@ export class TemplatesPage extends BasePage {
     }
 
     async submitCreateForm() {
-        await test.step('Submit create form', async () => {
+        await test.step('Submit create form and wait for drawer to close', async () => {
             await this.createButton.click();
+            // Wait for the form drawer to fully close before continuing
+            await this.page.waitForSelector('#add-procedure-button', { state: 'visible', timeout: 10000 });
         });
     }
 
@@ -108,6 +110,27 @@ export class TemplatesPage extends BasePage {
     async verifyDeleteSuccessAlert() {
         await test.step('Verify template deleted success alert', async () => {
             await expect(this.alertMessage).toContainText(MESSAGES.TEMPLATE_DELETED);
+        });
+    }
+
+    async verifyNoSearchResults() {
+        await test.step('Verify no template search results', async () => {
+            await this.page.waitForTimeout(1000);
+            await expect(this.page.getByText('There are no results for your search. Please, check your selection and try again.')).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    async verifyTemplateNotInTable(name: string) {
+        await test.step(`Verify template "${name}" is NOT in the table`, async () => {
+            await this.page.waitForTimeout(1000);
+            // After deletion + search, page may show empty state (no tbody) OR a table without the name
+            const tbodyCount = await this.tableBody.count();
+            if (tbodyCount > 0) {
+                await expect(this.tableBody).not.toContainText(name, { timeout: 5000 });
+            } else {
+                // No tbody means the page is in empty state — template is gone
+                await expect(this.page.getByText('There are no results for your search. Please, check your selection and try again.')).toBeVisible({ timeout: 5000 });
+            }
         });
     }
 }

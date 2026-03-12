@@ -54,7 +54,7 @@ export class DataGenerator {
     static randomTemplateType(): string {
         const types = [
             'Consents',
-            'Description of the procedure',
+            'Description of the procedure or appointment',
             'Conclusion',
             'Warning',
             'Notification',

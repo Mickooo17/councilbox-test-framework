@@ -123,5 +123,19 @@ export class InstitutionsPage extends BasePage {
             await expect(this.successAlert).toContainText(MESSAGES.INSTITUTION_DELETED);
         });
     }
+
+    async verifyNoSearchResults() {
+        await test.step('Verify no institution search results', async () => {
+            await this.page.waitForTimeout(1000);
+            await expect(this.tableBody).not.toContainText(/Automation Institution/i, { timeout: 5000 });
+        });
+    }
+
+    async verifyInstitutionNotInTable(name: string) {
+        await test.step(`Verify institution "${name}" is NOT in the table`, async () => {
+            await this.page.waitForTimeout(1000);
+            await expect(this.tableBody).not.toContainText(name, { timeout: 5000 });
+        });
+    }
 }
 

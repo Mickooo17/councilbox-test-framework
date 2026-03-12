@@ -6,6 +6,10 @@ export class LoginPage {
   readonly submitButton: Locator;
   readonly loginErrorMessage: Locator;
   readonly loginErrorMessageInvalid: Locator;
+  readonly passwordRecoveryLink: Locator;
+  readonly passwordToggleButton: Locator;
+  readonly privacyPolicyLink: Locator;
+  readonly legalNoticeLink: Locator;
 
   constructor(private page: Page) {
     this.usernameInput = page.locator('#username');
@@ -13,6 +17,10 @@ export class LoginPage {
     this.submitButton = page.locator('button[id="restore-password-button"]');
     this.loginErrorMessage = page.getByText('This field is required.');
     this.loginErrorMessageInvalid = page.getByText('Username or password incorrect. You have 10 attempts remaining.');
+    this.passwordRecoveryLink = page.locator('#restore-password-link');
+    this.passwordToggleButton = page.getByLabel('Toggle password visibility');
+    this.privacyPolicyLink = page.getByText('Privacy policy');
+    this.legalNoticeLink = page.getByText('Legal notice and Terms and conditions of use');
   }
 
   async login(username: string, password: string) {
@@ -44,4 +52,41 @@ export class LoginPage {
       await expect(this.loginErrorMessageInvalid).toContainText(expectedMessage);
     });
   }
-}
+
+  async clickPasswordRecoveryLink() {
+    await test.step('Click password recovery link', async () => {
+      await this.passwordRecoveryLink.click();
+    });
+  }
+
+  async verifyPasswordRecoveryPage() {
+    await test.step('Verify password recovery page is shown', async () => {
+      await expect(this.page).toHaveURL(/forgetPwd/, { timeout: 10000 });
+    });
+  }
+
+  async togglePasswordVisibility() {
+    await test.step('Toggle password visibility', async () => {
+      await this.passwordToggleButton.click();
+    });
+  }
+
+  async verifyPasswordVisible() {
+    await test.step('Verify password field is visible (type=text)', async () => {
+      await expect(this.passwordInput).toHaveAttribute('type', 'text');
+    });
+  }
+
+  async verifyPasswordHidden() {
+    await test.step('Verify password field is hidden (type=password)', async () => {
+      await expect(this.passwordInput).toHaveAttribute('type', 'password');
+    });
+  }
+
+  async verifyFooterLinks() {
+    await test.step('Verify footer links are present', async () => {
+      await expect(this.privacyPolicyLink).toBeVisible();
+      await expect(this.legalNoticeLink).toBeVisible();
+    });
+  }
+}

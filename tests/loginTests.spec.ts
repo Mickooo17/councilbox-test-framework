@@ -80,4 +80,41 @@ f.test.describe('LoginPage - UI Tests', () => {
     await passwordInput.isVisible();
     await submitButton.isVisible();
   });
+
+  f.test('should verify footer links are present @regression', async ({ loginPage }) => {
+    // Assert - Privacy policy and Legal notice links should be visible
+    await loginPage.verifyFooterLinks();
+  });
+});
+
+f.test.describe('LoginPage - Password Recovery Tests', () => {
+  f.test('should navigate to password recovery page @regression', async ({ loginPage }) => {
+    // Act
+    await loginPage.clickPasswordRecoveryLink();
+
+    // Assert
+    await loginPage.verifyPasswordRecoveryPage();
+  });
+});
+
+f.test.describe('LoginPage - Password Visibility Tests', () => {
+  f.test('should toggle password visibility @regression', async ({ loginPage }) => {
+    // Arrange - type something in the password field first
+    await loginPage.passwordInput.fill('testPassword123');
+
+    // Assert - password is hidden by default
+    await loginPage.verifyPasswordHidden();
+
+    // Act - toggle visibility
+    await loginPage.togglePasswordVisibility();
+
+    // Assert - password is now visible
+    await loginPage.verifyPasswordVisible();
+
+    // Act - toggle back
+    await loginPage.togglePasswordVisibility();
+
+    // Assert - password is hidden again
+    await loginPage.verifyPasswordHidden();
+  });
 });

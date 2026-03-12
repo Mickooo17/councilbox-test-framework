@@ -118,4 +118,40 @@ export class TagsPage extends BasePage {
             await expect(this.alertMessage).toContainText(MESSAGES.TAG_DELETED);
         });
     }
+
+    async verifyNoSearchResults() {
+        await test.step('Verify no tag search results', async () => {
+            await this.page.waitForTimeout(1000);
+            // Tags page shows a different empty state message than Templates
+            await expect(this.page.getByText('No content found. Please review your selection and try again.')).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    async editTag(key: string, newData: Partial<TagData>) {
+        await test.step(`Edit tag: ${key}`, async () => {
+            await this.searchTag(key);
+            const row = this.tableBody.locator('tr', { hasText: key });
+            await row.waitFor({ state: 'visible', timeout: 5000 });
+            await row.locator('button').first().click();
+
+            // Click Edit option
+            const editButton = this.page.getByRole('button', { name: ' Edit' });
+            await editButton.waitFor({ state: 'visible', timeout: 5000 });
+            await editButton.click();
+
+            // Wait for form to appear and fill new data
+            await this.tagKeyInput.waitFor({ state: 'visible', timeout: 5000 });
+
+            if (newData.value) {
+                await this.tagValueInput.clear();
+                await this.tagValueInput.fill(newData.value);
+            }
+            if (newData.description) {
+                await this.tagDescriptionInput.clear();
+                await this.tagDescriptionInput.fill(newData.description);
+            }
+
+            await this.saveButton.click();
+        });
+    }
 }
