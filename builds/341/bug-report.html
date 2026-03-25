@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bug Report - should edit an existing user name and verify the change @regression</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-slate-800/60 backdrop-blur-lg shadow-2xl rounded-2xl p-10 border border-slate-700">
+            
+            <h1 class="text-4xl font-bold mb-4 text-red-400">🐞 should edit an existing user name and verify the change @regression</h1>
+            <p class="text-slate-300 text-lg mb-8">The test failed because the success alert 'User successfully updated' was not found. Instead, other success messages were detected, or the element was missing.</p>
+
+            <div class="grid grid-cols-2 gap-6 mb-10">
+                <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-xl font-semibold text-blue-400 mb-3">Environment</h2>
+                    <p><strong>Build:</strong> #341</p>
+                    <p><strong>Environment:</strong> staging</p>
+                    <p><strong>Failed Step:</strong> Verify user edited success alert</p>
+                </div>
+
+                <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700">
+                    <h2 class="text-xl font-semibold text-green-400 mb-3">Links</h2>
+                    <p>
+                        <a href="https://Mickooo17.github.io/councilbox-test-framework/builds/341/" class="text-blue-400 hover:text-blue-300 underline">📂 Open Allure Report</a>
+                    </p>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-purple-400 mb-4">Steps to Reproduce</h2>
+            <ol class="list-decimal list-inside space-y-2 text-slate-300 mb-10">
+                <li>Before Hooks</li>
+                <li>Click <span class="text-cyan-300">Add User</span> button</li>
+                <li>Fill user form: <span class="text-cyan-300">AUTO_NAME_615165 AUTO_SURNAME_615165</span></li>
+                <li>Select language: <span class="text-cyan-300">English</span></li>
+                <li>Submit user form (<span class="text-cyan-300">Continue → Add</span>)</li>
+                <li>Verify <span class="text-cyan-300">user created success alert</span></li>
+                <li>Search for user: <span class="text-cyan-300">AUTO_NAME_615165</span></li>
+                <li>Verify user <span class="text-cyan-300">AUTO_NAME_615165 AUTO_SURNAME_615165</span> is in the table</li>
+                <li>Edit user with <span class="text-cyan-300">new data</span></li>
+                <li>Verify <span class="text-cyan-300">user edited success alert</span> [FAILED]</li>
+            </ol>
+
+            <div class="grid grid-cols-2 gap-6 mb-10">
+                <div class="bg-green-900/30 p-6 rounded-xl border border-green-700">
+                    <h3 class="text-xl font-semibold text-green-400 mb-3">Expected Behavior</h3>
+                    <code class="block bg-black/50 p-4 rounded-lg text-green-300 overflow-auto max-h-40">
+                        locator.getByRole('alert') should contain text 'User successfully updated'
+                    </code>
+                </div>
+
+                <div class="bg-red-900/30 p-6 rounded-xl border border-red-700">
+                    <h3 class="text-xl font-semibold text-red-400 mb-3">Actual Result (Error)</h3>
+                    <code class="block bg-black/50 p-4 rounded-lg text-red-300 overflow-auto max-h-40">
+                        Error: expect(locator).toContainText(expected) failed
+                        Expected string: "User successfully updated"
+                        Received: "User successfully created" (3x), "User successfully saved" (6x)
+                    </code>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-orange-400 mb-4">AI Analysis (Root Cause)</h2>
+            <div class="bg-slate-900/60 p-6 rounded-xl border border-slate-700 mb-10">
+                <p class="text-slate-300">
+                    The test failed because it couldn't find the alert message <span class="text-cyan-300">'User successfully updated'</span> after the edit action. According to the call log, the application was still displaying or re-displaying older alerts such as <span class="text-cyan-300">'User successfully created'</span> and <span class="text-cyan-300">'User successfully saved'</span>. Crucially, the ARIA snapshot reveals that at the time of the failure, the application was on the <strong>Documents</strong> page (<span class="text-cyan-300">/company/1112/documentation</span>) showing a search for <span class="text-cyan-300">'test_document_1774398734166'</span>, rather than the <strong>Users</strong> page. This suggests a navigation error or an unexpected redirect occurred, causing the "Edit User" flow to break or be performed in the wrong context.
+                </p>
+            </div>
+
+            <div class="mt-12 text-center text-slate-500 text-sm">
+                Generated by AI Reporter ⚡
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
