@@ -85,6 +85,14 @@ f.test.describe('LoginPage - UI Tests', () => {
     // Assert - Privacy policy and Legal notice links should be visible
     await loginPage.verifyFooterLinks();
   });
+
+  f.test('should have all required appointment access elements visible @smoke', async ({ page, appointmentLoginPage }) => {
+    // Act - Fixture opens /admin, so we need to navigate specifically to /login
+    await page.goto('https://qa.ovac.pre.councilbox.com/login');
+
+    // Assert
+    await appointmentLoginPage.verifyAppointmentAccessElementsVisible();
+  });
 });
 
 f.test.describe('LoginPage - Password Recovery Tests', () => {

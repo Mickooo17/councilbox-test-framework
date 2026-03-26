@@ -89,4 +89,4 @@ export class LoginPage {
       await expect(this.legalNoticeLink).toBeVisible();
     });
   }
-}
+}

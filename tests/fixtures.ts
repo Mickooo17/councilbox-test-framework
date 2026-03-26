@@ -8,6 +8,7 @@ import { TemplatesPage } from '../pages/templates/TemplatesPage';
 import { TagsPage } from '../pages/templates/TagsPage';
 import { DocumentationPage } from '../pages/documentation/DocumentationPage';
 import { UsersPage } from '../pages/users/UsersPage';
+import { AppointmentLoginPage } from '../pages/AppointmentLoginPage';
 
 export const adminUser = envConfig.users.admin;
 export const adminProfessionalUser = envConfig.users.adminProfessional;
@@ -28,6 +29,7 @@ export const test = base.extend<{
   tagsPage: TagsPage;
   documentationPage: DocumentationPage;
   usersPage: UsersPage;
+  appointmentLoginPage: AppointmentLoginPage;
   page: Page;
 }>({
   loginPage: async ({ page }, use) => {
@@ -50,6 +52,9 @@ export const test = base.extend<{
   },
   usersPage: async ({ page }, use) => {
     await use(new UsersPage(page));
+  },
+  appointmentLoginPage: async ({ page }, use) => {
+    await use(new AppointmentLoginPage(page));
   },
   page: async ({ page }, use) => {
     await page.goto(loginUrl, { waitUntil: 'networkidle' });
