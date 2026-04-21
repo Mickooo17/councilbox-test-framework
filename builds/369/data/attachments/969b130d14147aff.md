@@ -1,0 +1,168 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6] [cursor=pointer]: Institutions
+    - link "See more entities" [ref=e9] [cursor=pointer]:
+      - /url: /company/2092/myCompanies
+      - button "See more entities" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11] [cursor=pointer]:
+          - text: See more entities
+          - img [ref=e12] [cursor=pointer]
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - menuitem " company regression 2026" [ref=e18] [cursor=pointer]:
+          - generic [ref=e20] [cursor=pointer]: 
+        - separator [ref=e22]
+      - generic [ref=e23]:
+        - menuitem " Councilbox" [ref=e24] [cursor=pointer]:
+          - generic [ref=e26] [cursor=pointer]: 
+        - separator [ref=e28]
+      - generic [ref=e29]:
+        - menuitem " New Institution" [ref=e30] [cursor=pointer]:
+          - generic [ref=e32] [cursor=pointer]: 
+        - separator [ref=e34]
+      - generic [ref=e35]:
+        - menuitem " dkao" [ref=e36] [cursor=pointer]:
+          - generic [ref=e38] [cursor=pointer]: 
+        - separator [ref=e40]
+      - generic [ref=e41]:
+        - menuitem " Automation Institution 212649" [ref=e42] [cursor=pointer]:
+          - generic [ref=e44] [cursor=pointer]: 
+        - separator [ref=e46]
+      - generic [ref=e47]:
+        - menuitem " Automation Institution 708179" [ref=e48] [cursor=pointer]:
+          - generic [ref=e50] [cursor=pointer]: 
+        - separator [ref=e52]
+      - generic [ref=e53]:
+        - menuitem " Automation Institution 977089" [ref=e54] [cursor=pointer]:
+          - generic [ref=e56] [cursor=pointer]: 
+        - separator [ref=e58]
+      - generic [ref=e59]:
+        - menuitem "company-logo SIPA DODIK" [ref=e60] [cursor=pointer]:
+          - img "company-logo" [ref=e62] [cursor=pointer]
+        - separator [ref=e64]
+      - generic [ref=e65]:
+        - menuitem " Automation Institution 542148" [ref=e66] [cursor=pointer]:
+          - generic [ref=e68] [cursor=pointer]: 
+        - separator [ref=e70]
+      - generic [ref=e71]:
+        - menuitem "company-logo Edin Dzeko" [ref=e72] [cursor=pointer]:
+          - img "company-logo" [ref=e74] [cursor=pointer]
+        - separator [ref=e76]
+  - generic [ref=e77]:
+    - generic [ref=e80] [cursor=pointer]: 
+    - generic [ref=e84]:
+      - link " Activity" [ref=e86] [cursor=pointer]:
+        - /url: /company/2092/activity/dashboardCouncils
+        - button " Activity" [ref=e87] [cursor=pointer]:
+          - generic [ref=e89] [cursor=pointer]: 
+          - generic [ref=e90] [cursor=pointer]: Activity
+      - link " Appointments" [ref=e92] [cursor=pointer]:
+        - /url: /company/2092
+        - button " Appointments" [ref=e93] [cursor=pointer]:
+          - generic [ref=e95] [cursor=pointer]: 
+          - generic [ref=e96] [cursor=pointer]: Appointments
+      - link " Processes" [ref=e98] [cursor=pointer]:
+        - /url: /company/2092/managements
+        - button " Processes" [ref=e99] [cursor=pointer]:
+          - generic [ref=e101] [cursor=pointer]: 
+          - generic [ref=e102] [cursor=pointer]: Processes
+      - link " Procedures" [ref=e104] [cursor=pointer]:
+        - /url: /company/2092/procedures
+        - button " Procedures" [ref=e105] [cursor=pointer]:
+          - generic [ref=e107] [cursor=pointer]: 
+          - generic [ref=e108] [cursor=pointer]: Procedures
+      - link " Templates" [ref=e110] [cursor=pointer]:
+        - /url: /company/2092/drafts
+        - button " Templates" [ref=e111] [cursor=pointer]:
+          - generic [ref=e113] [cursor=pointer]: 
+          - generic [ref=e114] [cursor=pointer]: Templates
+      - link " Documents" [ref=e116] [cursor=pointer]:
+        - /url: /company/2092/documentation
+        - button " Documents" [ref=e117] [cursor=pointer]:
+          - generic [ref=e119] [cursor=pointer]: 
+          - generic [ref=e120] [cursor=pointer]: Documents
+      - link " Institutions" [ref=e122] [cursor=pointer]:
+        - /url: /company/2092/companies
+        - button " Institutions" [ref=e123] [cursor=pointer]:
+          - generic [ref=e125] [cursor=pointer]: 
+          - generic [ref=e126] [cursor=pointer]: Institutions
+      - link " Users" [ref=e128] [cursor=pointer]:
+        - /url: /company/2092/users
+        - button " Users" [ref=e129] [cursor=pointer]:
+          - generic [ref=e131] [cursor=pointer]: 
+          - generic [ref=e132] [cursor=pointer]: Users
+    - generic [ref=e134]:
+      - img "CBX white Logo" [ref=e135]
+      - generic [ref=e136]:
+        - generic [ref=e137]: © 2026
+        - text: v
+        - generic [ref=e138]: 8.4.3
+  - generic [ref=e140]:
+    - banner [ref=e141]:
+      - generic [ref=e143] [cursor=pointer]:
+        - generic [ref=e145] [cursor=pointer]: 
+        - paragraph [ref=e147] [cursor=pointer]: company regression 2026
+      - generic [ref=e152]: company regression 2026
+      - generic [ref=e154]:
+        - button "" [ref=e158] [cursor=pointer]:
+          - generic [ref=e159] [cursor=pointer]: 
+        - button "Actions Button" [ref=e164] [cursor=pointer]:
+          - generic [ref=e167] [cursor=pointer]:
+            - img "logo" [ref=e169] [cursor=pointer]
+            - generic [ref=e171] [cursor=pointer]: 
+    - generic [ref=e172]:
+      - button "Actions Button" [ref=e175] [cursor=pointer]:
+        - generic [ref=e176] [cursor=pointer]: 
+      - generic [ref=e179]:
+        - generic [ref=e183]:
+          - button "Icon Button" [ref=e184] [cursor=pointer]:
+            - paragraph [ref=e186] [cursor=pointer]: Video-appointments
+          - button "Icon Button" [ref=e188] [cursor=pointer]:
+            - paragraph [ref=e190] [cursor=pointer]: In-person appointments
+        - generic [ref=e193]:
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - generic [ref=e198]:
+                - generic [ref=e201]:
+                  - generic [ref=e202] [cursor=pointer]:
+                    - generic [ref=e204] [cursor=pointer]:
+                      - generic [ref=e205] [cursor=pointer]: 
+                      - generic [ref=e206] [cursor=pointer]: List view
+                    - textbox "Input": "[object Object]"
+                  - group "Input fieldset"
+                - generic [ref=e210]:
+                  - generic [ref=e211]: Status
+                  - generic [ref=e212]:
+                    - button "Confirmed, In progress, Pending report, Completed, In pause" [ref=e213] [cursor=pointer]
+                    - textbox: confirmed,room_opened,act_pending,complete,paused
+                    - img
+                - generic [ref=e215]:
+                  - generic [ref=e216]: Period
+                  - generic [ref=e217]:
+                    - button "This week" [ref=e218] [cursor=pointer]
+                    - textbox: week
+                    - img
+                - button "Icon Button" [ref=e220] [cursor=pointer]:
+                  - generic [ref=e221] [cursor=pointer]: 
+              - generic [ref=e223]:
+                - generic [ref=e224]:
+                  - paragraph [ref=e225]: Search by participant or record
+                  - generic [ref=e228]:
+                    - button "Icon Button" [ref=e230] [cursor=pointer]:
+                      - generic [ref=e231] [cursor=pointer]: 
+                    - textbox "Search" [ref=e233]
+                - button "Icon Button" [ref=e234] [cursor=pointer]:
+                  - generic [ref=e235] [cursor=pointer]: 
+            - generic [ref=e240]:
+              - img "logo" [ref=e242]
+              - generic [ref=e243]: No appointments available for the selected period and states.
+          - generic [ref=e245]:
+            - paragraph [ref=e246] [cursor=pointer]: Legal notice and Terms and conditions of use
+            - paragraph [ref=e247] [cursor=pointer]: PRIVACY_POLICY
+          - generic [ref=e249]:
+            - generic [ref=e251] [cursor=pointer]: 
+            - generic [ref=e252]: 0 selected
+```
