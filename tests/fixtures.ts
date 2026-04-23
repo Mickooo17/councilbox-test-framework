@@ -57,11 +57,6 @@ export const test = base.extend<{
     await use(new AppointmentLoginPage(page));
   },
   page: async ({ page }, use) => {
-    // Random jitter delay (0–5s) to stagger Jenkins node starts and avoid 429 rate limiting
-    const jitter = Math.floor(Math.random() * 5000);
-    console.log(`[fixture] Waiting ${jitter}ms before navigating (rate limit jitter)`);
-    await page.waitForTimeout(jitter);
-
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {

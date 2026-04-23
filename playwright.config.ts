@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
+  workers: process.env.CI ? 2 : '50%',
   projects: [
     {
       name: 'Chromium',
