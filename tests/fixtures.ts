@@ -57,7 +57,22 @@ export const test = base.extend<{
     await use(new AppointmentLoginPage(page));
   },
   page: async ({ page }, use) => {
-    await page.goto(loginUrl, { waitUntil: 'networkidle' });
+    // Random jitter delay (0–5s) to stagger Jenkins node starts and avoid 429 rate limiting
+    const jitter = Math.floor(Math.random() * 5000);
+    console.log(`[fixture] Waiting ${jitter}ms before navigating (rate limit jitter)`);
+    await page.waitForTimeout(jitter);
+
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await page.goto(loginUrl, { waitUntil: 'networkidle', timeout: 30000 });
+        break; // success — exit retry loop
+      } catch (error) {
+        if (attempt === maxAttempts) throw error; // all attempts failed
+        console.warn(`[fixture] Login page did not load (attempt ${attempt}/${maxAttempts}), retrying in 5s...`);
+        await page.waitForTimeout(5000); // longer wait to let rate limit window reset
+      }
+    }
     await use(page);
   },
 });

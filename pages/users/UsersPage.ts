@@ -72,7 +72,7 @@ export class UsersPage extends BasePage {
             // Buffer to allow React state validations to settle before clicking Continue
             await this.page.waitForTimeout(500);
             await this.continueButton.click();
-            
+
             // Wait for step 2 to appear
             await this.addButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.addButton.click();
