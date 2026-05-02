@@ -1,0 +1,155 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e7] [cursor=pointer]: 
+      - generic [ref=e11]:
+        - link " Activity" [ref=e13] [cursor=pointer]:
+          - /url: /company/1112/activity/dashboardCouncils
+          - button " Activity" [ref=e14] [cursor=pointer]:
+            - generic [ref=e16] [cursor=pointer]: 
+            - generic [ref=e17] [cursor=pointer]: Activity
+        - link " Appointments" [ref=e19] [cursor=pointer]:
+          - /url: /company/1112
+          - button " Appointments" [ref=e20] [cursor=pointer]:
+            - generic [ref=e22] [cursor=pointer]: 
+            - generic [ref=e23] [cursor=pointer]: Appointments
+        - link " Processes" [ref=e25] [cursor=pointer]:
+          - /url: /company/1112/managements
+          - button " Processes" [ref=e26] [cursor=pointer]:
+            - generic [ref=e28] [cursor=pointer]: 
+            - generic [ref=e29] [cursor=pointer]: Processes
+        - link " Procedures" [ref=e31] [cursor=pointer]:
+          - /url: /company/1112/procedures
+          - button " Procedures" [ref=e32] [cursor=pointer]:
+            - generic [ref=e34] [cursor=pointer]: 
+            - generic [ref=e35] [cursor=pointer]: Procedures
+        - link " Templates" [ref=e37] [cursor=pointer]:
+          - /url: /company/1112/drafts
+          - button " Templates" [ref=e38] [cursor=pointer]:
+            - generic [ref=e40] [cursor=pointer]: 
+            - generic [ref=e41] [cursor=pointer]: Templates
+        - link " Documents" [ref=e43] [cursor=pointer]:
+          - /url: /company/1112/documentation
+          - button " Documents" [ref=e44] [cursor=pointer]:
+            - generic [ref=e46] [cursor=pointer]: 
+            - generic [ref=e47] [cursor=pointer]: Documents
+        - link " Institutions" [ref=e49] [cursor=pointer]:
+          - /url: /company/1112/companies
+          - button " Institutions" [ref=e50] [cursor=pointer]:
+            - generic [ref=e52] [cursor=pointer]: 
+            - generic [ref=e53] [cursor=pointer]: Institutions
+        - link " Users" [ref=e55] [cursor=pointer]:
+          - /url: /company/1112/users
+          - button " Users" [ref=e56] [cursor=pointer]:
+            - generic [ref=e58] [cursor=pointer]: 
+            - generic [ref=e59] [cursor=pointer]: Users
+      - generic [ref=e61]:
+        - img "CBX white Logo" [ref=e62]
+        - generic [ref=e63]:
+          - generic [ref=e64]: © 2026
+          - text: v
+          - generic [ref=e65]: 8.4.3
+    - generic [ref=e67]:
+      - banner [ref=e68]:
+        - img "logo" [ref=e71] [cursor=pointer]
+        - generic [ref=e76]: QA DEV
+        - generic [ref=e78]:
+          - button "" [ref=e82] [cursor=pointer]:
+            - generic [ref=e83] [cursor=pointer]: 
+          - button "Actions Button" [ref=e88] [cursor=pointer]:
+            - generic [ref=e91] [cursor=pointer]:
+              - img "logo" [ref=e93] [cursor=pointer]
+              - generic [ref=e95] [cursor=pointer]: 
+      - generic [ref=e96]:
+        - button "Actions Button" [ref=e99] [cursor=pointer]:
+          - generic [ref=e100] [cursor=pointer]: 
+        - generic [ref=e103]:
+          - generic [ref=e107]:
+            - button "Icon Button" [ref=e108] [cursor=pointer]:
+              - paragraph [ref=e110] [cursor=pointer]: Video-appointments
+            - button "Icon Button" [ref=e112] [cursor=pointer]:
+              - paragraph [ref=e114] [cursor=pointer]: In-person appointments
+          - generic [ref=e117]:
+            - generic [ref=e119]:
+              - generic [ref=e120]:
+                - generic [ref=e122]:
+                  - generic [ref=e125]:
+                    - generic [ref=e126] [cursor=pointer]:
+                      - generic [ref=e128] [cursor=pointer]:
+                        - generic [ref=e129] [cursor=pointer]: 
+                        - generic [ref=e130] [cursor=pointer]: List view
+                      - textbox "Input": "[object Object]"
+                    - group "Input fieldset"
+                  - generic [ref=e134]:
+                    - generic [ref=e135]: Status
+                    - generic [ref=e136]:
+                      - button "Confirmed, In progress, Pending report, Completed, In pause" [ref=e137] [cursor=pointer]
+                      - textbox: confirmed,room_opened,act_pending,complete,paused
+                      - img
+                  - generic [ref=e139]:
+                    - generic [ref=e140]: Period
+                    - generic [ref=e141]:
+                      - button "This week" [ref=e142] [cursor=pointer]
+                      - textbox: week
+                      - img
+                  - button "Icon Button" [ref=e144] [cursor=pointer]:
+                    - generic [ref=e145] [cursor=pointer]: 
+                - generic [ref=e147]:
+                  - generic [ref=e148]:
+                    - paragraph [ref=e149]: Search by participant or record
+                    - generic [ref=e152]:
+                      - button "Icon Button" [ref=e154] [cursor=pointer]:
+                        - generic [ref=e155] [cursor=pointer]: 
+                      - textbox "Search" [ref=e157]
+                  - button "Icon Button" [ref=e158] [cursor=pointer]:
+                    - generic [ref=e159] [cursor=pointer]: 
+              - generic [ref=e164]:
+                - img "logo" [ref=e166]
+                - generic [ref=e167]: No appointments available for the selected period and states.
+            - generic [ref=e169]:
+              - paragraph [ref=e170] [cursor=pointer]: Legal notice and Terms and conditions of use
+              - paragraph [ref=e171] [cursor=pointer]: PRIVACY_POLICY
+            - generic [ref=e173]:
+              - generic [ref=e175] [cursor=pointer]: 
+              - generic [ref=e176]: 0 selected
+  - generic [ref=e177]:
+    - generic [ref=e178]:
+      - button "Close drawer panel" [ref=e180] [cursor=pointer]:
+        - generic [ref=e181] [cursor=pointer]: 
+      - paragraph [ref=e184]: New appointment
+    - generic [ref=e189]:
+      - heading "Add appointment" [level=1] [ref=e191]
+      - generic [ref=e192]:
+        - generic [ref=e193]:
+          - generic [ref=e194] [cursor=pointer]:
+            - generic [ref=e197] [cursor=pointer]: "1"
+            - generic [ref=e200] [cursor=pointer]:
+              - generic [ref=e201] [cursor=pointer]: Procedures
+              - generic [ref=e202] [cursor=pointer]:
+                - button "Icon Button" [ref=e204] [cursor=pointer]:
+                  - generic [ref=e205] [cursor=pointer]: 
+                - button "Continue " [ref=e210] [cursor=pointer]:
+                  - generic [ref=e211] [cursor=pointer]:
+                    - text: Continue
+                    - generic [ref=e212] [cursor=pointer]: 
+          - generic [ref=e218]:
+            - generic [ref=e221] [cursor=pointer]:
+              - generic [ref=e223] [cursor=pointer]: 
+              - generic [ref=e224] [cursor=pointer]: Add procedure
+            - generic [ref=e227]:
+              - generic [ref=e228]: Language
+              - generic [ref=e229]:
+                - button "English" [ref=e230] [cursor=pointer]
+                - textbox: en
+                - img
+        - generic [ref=e234]:
+          - generic [ref=e237]: "2"
+          - generic [ref=e241]: Date and time
+        - generic [ref=e245]:
+          - generic [ref=e248]: "3"
+          - generic [ref=e252]: Personal details
+  - generic [ref=e254]: New appointment
+```
