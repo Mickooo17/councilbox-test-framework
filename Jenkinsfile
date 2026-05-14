@@ -12,6 +12,7 @@ pipeline {
     environment {
         CI = 'true'
         TEST_ENV = 'staging'
+        JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8'
         GITHUB_USER = 'Mickooo17'
         GITHUB_REPO = 'councilbox-test-framework'
         PAGES_URL = "https://${GITHUB_USER}.github.io/${GITHUB_REPO}"
