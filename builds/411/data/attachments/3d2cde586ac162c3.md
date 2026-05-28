@@ -1,0 +1,280 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7] [cursor=pointer]: 
+    - generic [ref=e11]:
+      - link " Activity" [ref=e13] [cursor=pointer]:
+        - /url: /company/1112/activity/dashboardCouncils
+        - button " Activity" [ref=e14] [cursor=pointer]:
+          - generic [ref=e16] [cursor=pointer]: 
+          - generic [ref=e17] [cursor=pointer]: Activity
+      - link " Appointments" [ref=e19] [cursor=pointer]:
+        - /url: /company/1112
+        - button " Appointments" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22] [cursor=pointer]: 
+          - generic [ref=e23] [cursor=pointer]: Appointments
+      - link " Processes" [ref=e25] [cursor=pointer]:
+        - /url: /company/1112/managements
+        - button " Processes" [ref=e26] [cursor=pointer]:
+          - generic [ref=e28] [cursor=pointer]: 
+          - generic [ref=e29] [cursor=pointer]: Processes
+      - link " Procedures" [ref=e31] [cursor=pointer]:
+        - /url: /company/1112/procedures
+        - button " Procedures" [ref=e32] [cursor=pointer]:
+          - generic [ref=e34] [cursor=pointer]: 
+          - generic [ref=e35] [cursor=pointer]: Procedures
+      - link " Templates" [ref=e37] [cursor=pointer]:
+        - /url: /company/1112/drafts
+        - button " Templates" [ref=e38] [cursor=pointer]:
+          - generic [ref=e40] [cursor=pointer]: 
+          - generic [ref=e41] [cursor=pointer]: Templates
+      - link " Documents" [ref=e43] [cursor=pointer]:
+        - /url: /company/1112/documentation
+        - button " Documents" [ref=e44] [cursor=pointer]:
+          - generic [ref=e46] [cursor=pointer]: 
+          - generic [ref=e47] [cursor=pointer]: Documents
+      - link " Entities" [ref=e49] [cursor=pointer]:
+        - /url: /company/1112/companies
+        - button " Entities" [ref=e50] [cursor=pointer]:
+          - generic [ref=e52] [cursor=pointer]: 
+          - generic [ref=e53] [cursor=pointer]: Entities
+      - link " Users" [ref=e55] [cursor=pointer]:
+        - /url: /company/1112/users
+        - button " Users" [ref=e56] [cursor=pointer]:
+          - generic [ref=e58] [cursor=pointer]: 
+          - generic [ref=e59] [cursor=pointer]: Users
+    - generic [ref=e61]:
+      - img "CBX white Logo" [ref=e62]
+      - generic [ref=e63]:
+        - generic [ref=e64]: © 2026
+        - text: v
+        - generic [ref=e65]: 8.5.2
+  - generic [ref=e67]:
+    - banner [ref=e68]:
+      - img "logo" [ref=e71] [cursor=pointer]
+      - generic [ref=e76]: QA DEV
+      - generic [ref=e78]:
+        - button "" [ref=e82] [cursor=pointer]:
+          - generic [ref=e83] [cursor=pointer]: 
+        - button "Actions Button" [ref=e88] [cursor=pointer]:
+          - generic [ref=e91] [cursor=pointer]:
+            - img "logo" [ref=e93] [cursor=pointer]
+            - generic [ref=e95] [cursor=pointer]: 
+    - generic [ref=e96]:
+      - button "Actions Button" [ref=e99] [cursor=pointer]:
+        - generic [ref=e100] [cursor=pointer]: 
+      - generic [ref=e103]:
+        - generic [ref=e107]:
+          - button "Icon Button" [ref=e108] [cursor=pointer]:
+            - paragraph [ref=e110] [cursor=pointer]: Video-appointments
+          - button "Icon Button" [ref=e112] [cursor=pointer]:
+            - paragraph [ref=e114] [cursor=pointer]: In-person appointments
+        - generic [ref=e117]:
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e122]:
+                - generic [ref=e125]:
+                  - generic [ref=e126] [cursor=pointer]:
+                    - generic [ref=e128] [cursor=pointer]:
+                      - generic [ref=e129] [cursor=pointer]: 
+                      - generic [ref=e130] [cursor=pointer]: List view
+                    - textbox "Input": "[object Object]"
+                  - group "Input fieldset"
+                - generic [ref=e134]:
+                  - generic [ref=e135]: Status
+                  - generic [ref=e136]:
+                    - button "Confirmed, In progress, Pending report, Completed, In pause" [ref=e137] [cursor=pointer]
+                    - textbox: confirmed,room_opened,act_pending,complete,paused
+                    - img
+                - generic [ref=e139]:
+                  - generic [ref=e140]: Period
+                  - generic [ref=e141]:
+                    - button "This week" [ref=e142] [cursor=pointer]
+                    - textbox: week
+                    - img
+                - button "Icon Button" [ref=e144] [cursor=pointer]:
+                  - generic [ref=e145] [cursor=pointer]: 
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - paragraph [ref=e149]: Search by participant or record
+                  - generic [ref=e152]:
+                    - button "Icon Button" [ref=e154] [cursor=pointer]:
+                      - generic [ref=e155] [cursor=pointer]: 
+                    - textbox "Search" [ref=e157]
+                - button "Icon Button" [ref=e158] [cursor=pointer]:
+                  - generic [ref=e159] [cursor=pointer]: 
+            - generic [ref=e168]:
+              - table [ref=e169]:
+                - rowgroup [ref=e170]:
+                  - row "Date  Ref.  External ID  Record  Documents Entity  Status  " [ref=e171]:
+                    - cell [ref=e172]
+                    - cell "Date " [ref=e173]:
+                      - generic [ref=e174] [cursor=pointer]:
+                        - generic [ref=e175] [cursor=pointer]: Date
+                        - generic [ref=e177] [cursor=pointer]: 
+                    - cell "Ref. " [ref=e178]:
+                      - generic [ref=e179] [cursor=pointer]:
+                        - generic [ref=e180] [cursor=pointer]: Ref.
+                        - generic [ref=e182] [cursor=pointer]: 
+                    - cell "External ID " [ref=e183]:
+                      - generic [ref=e184] [cursor=pointer]:
+                        - generic [ref=e185] [cursor=pointer]: External ID
+                        - generic [ref=e187] [cursor=pointer]: 
+                    - cell "Record " [ref=e188]:
+                      - generic [ref=e189] [cursor=pointer]:
+                        - generic [ref=e190] [cursor=pointer]: Record
+                        - generic [ref=e192] [cursor=pointer]: 
+                    - cell "Documents" [ref=e193]
+                    - cell "Entity " [ref=e194]:
+                      - generic [ref=e195] [cursor=pointer]:
+                        - generic [ref=e196] [cursor=pointer]: Entity
+                        - generic [ref=e198] [cursor=pointer]: 
+                    - cell "Status " [ref=e199]:
+                      - generic [ref=e200] [cursor=pointer]:
+                        - generic [ref=e201] [cursor=pointer]: Status
+                        - generic [ref=e203] [cursor=pointer]: 
+                    - cell "" [ref=e204]:
+                      - generic [ref=e206]:
+                        - button "" [ref=e207] [cursor=pointer]:
+                          - generic [ref=e208] [cursor=pointer]: 
+                        - textbox: date,reference_short,external_id,case_file,documents,entity,state
+                        - img
+                - rowgroup [ref=e209]:
+                  - row " 27/05/2026 17:45  64967 11121112649672026c1244 5 QA DEV Confirmed " [ref=e210] [cursor=pointer]:
+                    - cell [ref=e211] [cursor=pointer]:
+                      - generic [ref=e215] [cursor=pointer]:
+                        - checkbox [ref=e216] [cursor=pointer]
+                        - img [ref=e217] [cursor=pointer]
+                    - cell " 27/05/2026 17:45 " [ref=e219] [cursor=pointer]:
+                      - generic [ref=e220] [cursor=pointer]:
+                        - generic [ref=e223] [cursor=pointer]: 
+                        - generic [ref=e224] [cursor=pointer]:
+                          - generic [ref=e225] [cursor=pointer]: 27/05/2026
+                          - generic [ref=e226] [cursor=pointer]: 17:45
+                        - generic [ref=e229] [cursor=pointer]: 
+                    - cell "64967" [ref=e230] [cursor=pointer]
+                    - cell [ref=e231] [cursor=pointer]
+                    - cell "11121112649672026c1244" [ref=e232] [cursor=pointer]:
+                      - generic [ref=e233] [cursor=pointer]: 11121112649672026c1244
+                    - cell "5" [ref=e234] [cursor=pointer]:
+                      - generic [ref=e236] [cursor=pointer]: "5"
+                    - cell "QA DEV" [ref=e237] [cursor=pointer]:
+                      - generic [ref=e240] [cursor=pointer]: QA DEV
+                    - cell "Confirmed" [ref=e241] [cursor=pointer]:
+                      - generic [ref=e248] [cursor=pointer]: Confirmed
+                    - cell "" [ref=e249] [cursor=pointer]:
+                      - button "" [ref=e252] [cursor=pointer]:
+                        - generic [ref=e254] [cursor=pointer]: 
+                  - row " 27/05/2026 15:30 64962 11121112649622026697f2 1 QA DEV Pending report " [ref=e255] [cursor=pointer]:
+                    - cell [ref=e256] [cursor=pointer]:
+                      - generic [ref=e260] [cursor=pointer]:
+                        - checkbox [ref=e261] [cursor=pointer]
+                        - img [ref=e262] [cursor=pointer]
+                    - cell " 27/05/2026 15:30" [ref=e264] [cursor=pointer]:
+                      - generic [ref=e265] [cursor=pointer]:
+                        - generic [ref=e268] [cursor=pointer]: 
+                        - generic [ref=e269] [cursor=pointer]:
+                          - generic [ref=e270] [cursor=pointer]: 27/05/2026
+                          - generic [ref=e271] [cursor=pointer]: 15:30
+                    - cell "64962" [ref=e272] [cursor=pointer]
+                    - cell [ref=e273] [cursor=pointer]
+                    - cell "11121112649622026697f2" [ref=e274] [cursor=pointer]:
+                      - generic [ref=e275] [cursor=pointer]: 11121112649622026697f2
+                    - cell "1" [ref=e276] [cursor=pointer]:
+                      - generic [ref=e278] [cursor=pointer]: "1"
+                    - cell "QA DEV" [ref=e279] [cursor=pointer]:
+                      - generic [ref=e282] [cursor=pointer]: QA DEV
+                    - cell "Pending report" [ref=e283] [cursor=pointer]:
+                      - generic [ref=e290] [cursor=pointer]: Pending report
+                    - cell "" [ref=e291] [cursor=pointer]:
+                      - button "" [ref=e294] [cursor=pointer]:
+                        - generic [ref=e296] [cursor=pointer]: 
+                  - row " 26/05/2026 15:45  64958 111211126495820261f0a6 6 QA DEV Confirmed " [ref=e297] [cursor=pointer]:
+                    - cell [ref=e298] [cursor=pointer]:
+                      - generic [ref=e302] [cursor=pointer]:
+                        - checkbox [ref=e303] [cursor=pointer]
+                        - img [ref=e304] [cursor=pointer]
+                    - cell " 26/05/2026 15:45 " [ref=e306] [cursor=pointer]:
+                      - generic [ref=e307] [cursor=pointer]:
+                        - generic [ref=e310] [cursor=pointer]: 
+                        - generic [ref=e311] [cursor=pointer]:
+                          - generic [ref=e312] [cursor=pointer]: 26/05/2026
+                          - generic [ref=e313] [cursor=pointer]: 15:45
+                        - generic [ref=e316] [cursor=pointer]: 
+                    - cell "64958" [ref=e317] [cursor=pointer]
+                    - cell [ref=e318] [cursor=pointer]
+                    - cell "111211126495820261f0a6" [ref=e319] [cursor=pointer]:
+                      - generic [ref=e320] [cursor=pointer]: 111211126495820261f0a6
+                    - cell "6" [ref=e321] [cursor=pointer]:
+                      - generic [ref=e323] [cursor=pointer]: "6"
+                    - cell "QA DEV" [ref=e324] [cursor=pointer]:
+                      - generic [ref=e327] [cursor=pointer]: QA DEV
+                    - cell "Confirmed" [ref=e328] [cursor=pointer]:
+                      - generic [ref=e335] [cursor=pointer]: Confirmed
+                    - cell "" [ref=e336] [cursor=pointer]:
+                      - button "" [ref=e339] [cursor=pointer]:
+                        - generic [ref=e341] [cursor=pointer]: 
+                  - row " 25/05/2026 11:45  64942 11121112649422026de7d0 2 QA DEV In progress " [ref=e342] [cursor=pointer]:
+                    - cell [ref=e343] [cursor=pointer]:
+                      - generic [ref=e347] [cursor=pointer]:
+                        - checkbox [ref=e348] [cursor=pointer]
+                        - img [ref=e349] [cursor=pointer]
+                    - cell " 25/05/2026 11:45 " [ref=e351] [cursor=pointer]:
+                      - generic [ref=e352] [cursor=pointer]:
+                        - generic [ref=e355] [cursor=pointer]: 
+                        - generic [ref=e356] [cursor=pointer]:
+                          - generic [ref=e357] [cursor=pointer]: 25/05/2026
+                          - generic [ref=e358] [cursor=pointer]: 11:45
+                        - generic [ref=e361] [cursor=pointer]: 
+                    - cell "64942" [ref=e362] [cursor=pointer]
+                    - cell [ref=e363] [cursor=pointer]
+                    - cell "11121112649422026de7d0" [ref=e364] [cursor=pointer]:
+                      - generic [ref=e365] [cursor=pointer]: 11121112649422026de7d0
+                    - cell "2" [ref=e366] [cursor=pointer]:
+                      - generic [ref=e368] [cursor=pointer]: "2"
+                    - cell "QA DEV" [ref=e369] [cursor=pointer]:
+                      - generic [ref=e372] [cursor=pointer]: QA DEV
+                    - cell "In progress" [ref=e373] [cursor=pointer]:
+                      - generic [ref=e380] [cursor=pointer]: In progress
+                    - cell "" [ref=e381] [cursor=pointer]:
+                      - button "" [ref=e384] [cursor=pointer]:
+                        - generic [ref=e386] [cursor=pointer]: 
+                  - row " 25/05/2026 10:23  64941 11121112649412026220e8 1 QA DEV In progress " [ref=e387] [cursor=pointer]:
+                    - cell [ref=e388] [cursor=pointer]:
+                      - generic [ref=e392] [cursor=pointer]:
+                        - checkbox [ref=e393] [cursor=pointer]
+                        - img [ref=e394] [cursor=pointer]
+                    - cell " 25/05/2026 10:23 " [ref=e396] [cursor=pointer]:
+                      - generic [ref=e397] [cursor=pointer]:
+                        - generic [ref=e400] [cursor=pointer]: 
+                        - generic [ref=e401] [cursor=pointer]:
+                          - generic [ref=e402] [cursor=pointer]: 25/05/2026
+                          - generic [ref=e403] [cursor=pointer]: 10:23
+                        - generic [ref=e406] [cursor=pointer]: 
+                    - cell "64941" [ref=e407] [cursor=pointer]
+                    - cell [ref=e408] [cursor=pointer]
+                    - cell "11121112649412026220e8" [ref=e409] [cursor=pointer]:
+                      - generic [ref=e410] [cursor=pointer]: "11121112649412026220e8"
+                    - cell "1" [ref=e411] [cursor=pointer]:
+                      - generic [ref=e413] [cursor=pointer]: "1"
+                    - cell "QA DEV" [ref=e415] [cursor=pointer]:
+                      - generic [ref=e418] [cursor=pointer]: QA DEV
+                    - cell "In progress" [ref=e419] [cursor=pointer]:
+                      - generic [ref=e426] [cursor=pointer]: In progress
+                    - cell "" [ref=e427] [cursor=pointer]:
+                      - button "" [ref=e430] [cursor=pointer]:
+                        - generic [ref=e432] [cursor=pointer]: 
+              - generic [ref=e435]: 1 - 5 of 5
+          - generic [ref=e437]:
+            - paragraph [ref=e438] [cursor=pointer]: Legal notice and Terms and conditions of use
+            - paragraph [ref=e439] [cursor=pointer]: PRIVACY_POLICY
+          - generic [ref=e440]:
+            - generic [ref=e441]:
+              - generic [ref=e443] [cursor=pointer]: 
+              - generic [ref=e444]: 0 selected
+            - generic [ref=e447] [cursor=pointer]:
+              - generic [ref=e449] [cursor=pointer]: 
+              - generic [ref=e450] [cursor=pointer]: SELECT ALL
+```
