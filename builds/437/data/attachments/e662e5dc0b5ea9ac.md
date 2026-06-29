@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - img "logo" [ref=e7] [cursor=pointer]
+    - generic [ref=e9]:
+      - img "logo" [ref=e11]
+      - button "Button user" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16] [cursor=pointer]: 
+  - generic [ref=e21]:
+    - generic [ref=e23]:
+      - heading "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Back Office" [level=2] [ref=e25]
+      - generic [ref=e28]:
+        - img "Ministerio de Política Territorial" [ref=e29]
+        - img "Plan de Recuperación, Transformación y Resiliencia" [ref=e30]
+        - img "Next Generation EU" [ref=e31]
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Login" [level=2] [ref=e36]
+        - generic [ref=e37]:
+          - generic [ref=e40]:
+            - generic [ref=e42]: Email
+            - textbox [ref=e44]: ammar.micijevic@councilbox.com
+          - generic [ref=e47]:
+            - generic [ref=e49]: Password
+            - generic [ref=e50]:
+              - textbox [ref=e51]: ammarAmmarTest123!1
+              - button "Toggle password visibility" [ref=e53] [cursor=pointer]:
+                - generic [ref=e55] [cursor=pointer]: 
+        - alert [ref=e56]:
+          - img [ref=e58]
+          - generic [ref=e60]: Username or password incorrect. You have 8 attempts remaining.
+        - generic [ref=e61]:
+          - button "Access " [disabled]:
+            - paragraph: Access
+            - generic:
+              - generic: 
+        - generic [ref=e65]:
+          - generic [ref=e66]:
+            - img [ref=e68]
+            - generic [ref=e70]:
+              - paragraph [ref=e71]: Access with
+              - paragraph [ref=e72]: Digital Certificate
+          - generic [ref=e74]: 
+        - link "Password recovery" [ref=e76] [cursor=pointer]:
+          - /url: /forgetPwd
+      - generic [ref=e79]:
+        - generic [ref=e81]:
+          - link "logo councilbox" [ref=e85] [cursor=pointer]:
+            - /url: https://www.councilbox.com
+            - img "logo councilbox" [ref=e86] [cursor=pointer]
+          - generic [ref=e88]:
+            - paragraph [ref=e90]:
+              - text: v
+              - generic [ref=e91]: 8.6.1
+            - generic "Help" [ref=e94] [cursor=pointer]: 
+        - generic [ref=e98]:
+          - generic [ref=e102] [cursor=pointer]: Privacy policy
+          - generic [ref=e106] [cursor=pointer]: Legal notice and Terms and conditions of use
+```
