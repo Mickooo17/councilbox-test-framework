@@ -29,7 +29,8 @@ pipeline {
         timeout(time: 30, unit: 'MINUTES')
     }
 
-    stage('Checkout & Clean Reports') {
+    stages {
+        stage('Checkout & Clean Reports') {
             steps {
                 // Brzinsko brisanje samo foldera sa starim izvještajima, bez diranja koda
                 bat 'if exist playwright-report rmdir /s /q playwright-report'
