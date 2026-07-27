@@ -48,7 +48,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'cmd /c npm ci'
+                bat 'cmd /c npm install'
             }
         }
 
