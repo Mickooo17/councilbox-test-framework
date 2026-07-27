@@ -29,18 +29,16 @@ pipeline {
         timeout(time: 30, unit: 'MINUTES')
     }
 
-    stages {
-        stage('Clean Workspace') {
+    stage('Checkout & Clean Reports') {
             steps {
-                cleanWs()
-            }
-        }
+                // Brzinsko brisanje samo foldera sa starim izvještajima, bez diranja koda
+                bat 'if exist playwright-report rmdir /s /q playwright-report'
+                bat 'if exist test-results rmdir /s /q test-results'
+                bat 'if exist allure-results rmdir /s /q allure-results'
 
-        stage('Checkout') {
-            steps {
-                deleteDir()
+                // Brzi "git pull" preko HTTPS-a (Traje 1-2 sekunde)
                 git(
-                    url: 'git@github.com:Mickooo17/councilbox-test-framework.git',
+                    url: 'https://github.com/Mickooo17/councilbox-test-framework.git',
                     branch: 'main',
                     credentialsId: 'github-ssh'
                 )
