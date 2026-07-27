@@ -126,3 +126,31 @@ f.test.describe('LoginPage - Password Visibility Tests', () => {
     await loginPage.verifyPasswordHidden();
   });
 });
+
+f.test.describe('LoginPage - Language Selection Tests', () => {
+  const languages = [
+    { name: 'Español', code: 'ES', tag: '@XR-3038' },
+    { name: 'Català', code: 'CA', tag: '@regression' },
+    { name: 'Galego', code: 'GL', tag: '@regression' },
+    { name: 'Euskera', code: 'EU', tag: '@regression' },
+    { name: 'English', code: 'EN', tag: '@regression' },
+    { name: 'Valencià', code: 'VA', tag: '@regression' },
+    { name: 'Italiano', code: 'IT', tag: '@regression' },
+  ] as const;
+
+  for (const lang of languages) {
+    f.test(`should select ${lang.name} language on the /login screen and display content properly ${lang.tag}`, async ({ page, loginPage }) => {
+      // Act - Navigate to the /login screen
+      await page.goto('https://qa.ovac.pre.councilbox.com/login');
+
+      // Act - Click globe icon and select language
+      await loginPage.selectLanguage(lang.name);
+
+      // Assert - Verify page content is translated into selected language
+      await loginPage.verifyLanguageSelected(lang.name);
+    });
+  }
+});
+
+
+

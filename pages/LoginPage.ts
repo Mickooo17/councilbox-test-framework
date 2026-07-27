@@ -1,5 +1,7 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 
+export type LanguageOption = 'Español' | 'Català' | 'Galego' | 'Euskera' | 'English' | 'Valencià' | 'Italiano';
+
 export class LoginPage {
   readonly usernameInput: Locator;
   readonly passwordInput: Locator;
@@ -10,6 +12,10 @@ export class LoginPage {
   readonly passwordToggleButton: Locator;
   readonly privacyPolicyLink: Locator;
   readonly legalNoticeLink: Locator;
+  readonly languageDropdownButton: Locator;
+  readonly spanishOption: Locator;
+  readonly catalanOption: Locator;
+  readonly englishOption: Locator;
 
   constructor(private page: Page) {
     this.usernameInput = page.locator('#username');
@@ -21,6 +27,10 @@ export class LoginPage {
     this.passwordToggleButton = page.getByLabel('Toggle password visibility');
     this.privacyPolicyLink = page.getByText('Privacy policy');
     this.legalNoticeLink = page.getByText('Legal notice and Terms and conditions of use');
+    this.languageDropdownButton = page.locator('i.bi-globe, .bi-globe, [class*="bi-globe"], .language-selector, #language-selector').first();
+    this.spanishOption = page.getByRole('option', { name: /Español|Spanish|ES/i }).or(page.getByText(/Español|Spanish|ES/i)).first();
+    this.catalanOption = page.getByRole('option', { name: /Català|Catalan|CA/i }).or(page.getByText(/Català|Catalan|CA/i)).first();
+    this.englishOption = page.getByRole('option', { name: /English|EN/i }).or(page.getByText(/English|EN/i)).first();
   }
 
   async login(username: string, password: string) {
@@ -89,4 +99,43 @@ export class LoginPage {
       await expect(this.legalNoticeLink).toBeVisible();
     });
   }
+
+  async selectLanguage(lang: LanguageOption) {
+    await test.step(`Click globe icon in top right and select language "${lang}"`, async () => {
+      // 1. Click globe icon in top right corner next to OVAC logo
+      const globeIcon = this.page.locator('.ri-global-line, i.ri-global-line, [class*="ri-global"]').first();
+      await globeIcon.click();
+
+      // 2. Click language option from dropdown menu
+      const option = this.page.getByText(lang, { exact: true }).first();
+      await option.click();
+    });
+  }
+
+  async verifyLanguageSelected(lang: LanguageOption) {
+    await test.step(`Verify login page content is translated to "${lang}"`, async () => {
+      const expectedTexts: Record<LanguageOption, RegExp> = {
+        Español: /Acceso|CONTINUAR|Política de privacidad|Aviso legal/i,
+        Català: /Accés|CONTINUAR|Política de privacitat|Avís legal/i,
+        Galego: /Acceso|CONTINUAR|Política de privacidade|Aviso legal/i,
+        Euskera: /Sarrera|JARRAITU|Pribatutasun-politika|Lege-oharra/i,
+        English: /Access|CONTINUE|Privacy policy|Legal notice/i,
+        Valencià: /Accés|CONTINUAR|Política de privacitat|Avís legal/i,
+        Italiano: /Accesso|CONTINUA|Informativa sulla privacy|Note legali/i,
+      };
+
+      const regex = expectedTexts[lang] || /Access|CONTINUE|Privacidad|Privacitat/i;
+      await expect(this.page.locator('body')).toContainText(regex);
+    });
+  }
+
+  async verifySpanishLanguageContent() {
+    await this.verifyLanguageSelected('Español');
+  }
 }
+
+
+
+
+
+
