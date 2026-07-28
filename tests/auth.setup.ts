@@ -17,10 +17,10 @@ setup('authenticate', async ({ page }) => {
   await page.fill('#password', user.password);
   await page.click('button[id="restore-password-button"]');
 
-  // Wait for successful login (redirect to company page)
+  // Wait for successful login
   await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
 
-  // Save authentication state (cookies, localStorage, sessionStorage)
+  // Save cookies, localStorage, and sessionStorage
   await page.context().storageState({ path: authFile });
-  console.log(`[setup] Storage state successfully saved to ${authFile}`);
+  console.log(`[setup] Storage state saved to ${authFile}`);
 });
