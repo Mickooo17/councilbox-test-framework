@@ -29,9 +29,9 @@ export class UsersPage extends BasePage {
         this.phoneInput = page.locator('#user-settings-phone');
         this.idCardInput = page.locator('#user-id-card-type');
         this.emailInput = page.locator('#user-form-email');
-        this.continueButton = page.getByRole('button', { name: 'Continue' });
-        this.addButton = page.getByRole('button', { name: 'Add' });
-        this.searchInput = page.getByRole('textbox', { name: 'Search users' });
+        this.continueButton = page.getByRole('button', { name: /Continue|Continuar/i });
+        this.addButton = page.getByRole('button', { name: /Add|Añadir|Guardar/i });
+        this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
     }
 
     async clickAddUser() {
@@ -145,7 +145,7 @@ export class UsersPage extends BasePage {
             await this.page.waitForTimeout(500);
 
             // Edit form has a single Save button at the top (no Continue step)
-            const saveButton = this.page.getByRole('button', { name: 'Save' });
+            const saveButton = this.page.getByRole('button', { name: /Save|Guardar/i });
             await saveButton.click();
             // In edit mode, the drawer stays open after saving, so we DO NOT wait for it to hide here.
         });
@@ -187,9 +187,8 @@ export class UsersPage extends BasePage {
 
     async cancelUserForm() {
         await test.step('Cancel user form', async () => {
-            // The form drawer has a "Close drawer panel" button
-            const closeButton = this.page.getByRole('button', { name: 'Close drawer panel' });
-            await closeButton.click();
+            await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(800);
         });
     }
 }
