@@ -11,12 +11,12 @@ export class BasePage {
 
     constructor(public page: Page) {
         this.closeModalButton = page.locator('.MuiButtonBase-root.MuiIconButton-root.closeIcon');
-        this.institutionsButton = page.getByRole('button', { name: ' Institutions' });
-        this.templatesButton = page.getByRole('button', { name: ' Templates' });
-        this.documentationButton = page.locator('#documentation-link');
-        this.usersButton = page.getByRole('button', { name: ' Users' });
-        this.governmentIcon = page.locator('.ri-government-line');
-        this.qaDevMenuItem = page.getByRole('menuitem', { name: 'company-logo QA DEV' });
+        this.institutionsButton = page.locator('a[href*="/companies"]').or(page.getByRole('button', { name: /Entities|Institutions|Entidades|Instituciones/i })).first();
+        this.templatesButton = page.locator('a[href*="/drafts"]').or(page.getByRole('button', { name: /Templates|Plantillas/i })).first();
+        this.documentationButton = page.locator('a[href*="/documentation"]').or(page.locator('#documentation-link')).first();
+        this.usersButton = page.locator('a[href*="/users"]').or(page.getByRole('button', { name: /Users|Usuarios/i })).first();
+        this.governmentIcon = page.locator('.ri-government-line, [class*="government"]').first();
+        this.qaDevMenuItem = page.getByRole('menuitem', { name: /company-logo QA DEV|QA DEV/i }).or(page.getByText(/QA DEV/i)).first();
     }
 
     async dismissModal() {

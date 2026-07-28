@@ -43,7 +43,10 @@ export class InstitutionsPage extends BasePage {
         this.languageOptionEnglish = page.getByRole('list').getByText('English');
         this.createButton = page.getByRole('button', { name: ' Create' });
         this.successAlert = page.getByRole('alert');
-        this.searchInput = page.getByRole('textbox', { name: 'Search institution...' });
+        this.searchInput = page.getByRole('textbox', { name: /Search entity|Search institution|Buscar/i })
+            .or(page.locator('input[placeholder*="Search" i]'))
+            .or(page.locator('input[placeholder*="Buscar" i]'))
+            .first();
         this.tableBody = page.locator('tbody');
         this.deleteInstitutionButton = page.getByRole('button', { name: '' });
         this.deleteButton = page.getByRole('button', { name: ' Delete' });
