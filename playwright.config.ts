@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  workers: 1,
+  workers: 7,
   projects: [
     {
       name: 'Chromium',
