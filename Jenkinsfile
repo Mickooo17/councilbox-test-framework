@@ -37,12 +37,20 @@ pipeline {
                 bat 'if exist test-results rmdir /s /q test-results'
                 bat 'if exist allure-results rmdir /s /q allure-results'
 
-                // Brzi "git pull" preko HTTPS-a
-                git(
-                    url: 'https://github.com/Mickooo17/councilbox-test-framework.git',
-                    branch: 'main',
-                    credentialsId: 'github-ssh'
-                )
+                // Shallow clone (depth 1) za ultra-brzi checkout zadnjeg commita
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'github-ssh',
+                        url: 'https://github.com/Mickooo17/councilbox-test-framework.git'
+                    ]]
+                ])
             }
         }
 
