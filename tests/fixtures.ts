@@ -60,12 +60,13 @@ export const test = base.extend<{
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await page.goto(loginUrl, { waitUntil: 'networkidle', timeout: 30000 });
-        break; // success — exit retry loop
+        await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        await page.waitForSelector('#username', { state: 'visible', timeout: 10000 });
+        break; // success — login page elements are visible and ready
       } catch (error) {
         if (attempt === maxAttempts) throw error; // all attempts failed
-        console.warn(`[fixture] Login page did not load (attempt ${attempt}/${maxAttempts}), retrying in 5s...`);
-        await page.waitForTimeout(5000); // longer wait to let rate limit window reset
+        console.warn(`[fixture] Login page / username input did not load (attempt ${attempt}/${maxAttempts}), retrying in 5s...`);
+        await page.waitForTimeout(5000); // wait 5s to let rate limit window / server recover
       }
     }
     await use(page);
