@@ -6,6 +6,7 @@ allure-results/
 test-results/
 playwright-report/
 blob-report/
+playwright/.auth/
 
 # Node.js dependencies
 node_modules/

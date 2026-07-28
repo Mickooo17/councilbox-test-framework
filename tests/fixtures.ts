@@ -77,12 +77,18 @@ export const test = base.extend<{
 test.afterEach(async ({ page }, testInfo) => {
   if (testInfo.status !== testInfo.expectedStatus) {
     // Screenshot
-    const screenshot = await page.screenshot();
-    testInfo.attachments.push({
-      name: 'screenshot',
-      contentType: 'image/png',
-      body: screenshot,
-    });
+    if (page && !page.isClosed()) {
+      try {
+        const screenshot = await page.screenshot();
+        testInfo.attachments.push({
+          name: 'screenshot',
+          contentType: 'image/png',
+          body: screenshot,
+        });
+      } catch (err) {
+        console.warn(`[afterEach] Could not capture screenshot:`, err);
+      }
+    }
 
     // Video (if available)
     const videoPath = testInfo.attachments.find(a => a.name === 'video')?.path;
