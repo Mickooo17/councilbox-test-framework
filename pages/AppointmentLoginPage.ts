@@ -12,10 +12,10 @@ export class AppointmentLoginPage {
 
   constructor(private page: Page) {
     this.userButton = page.getByRole('button', { name: 'Button user' });
-    this.accessAppointmentHeading = page.getByText('Access to the appointment');
+    this.accessAppointmentHeading = page.getByText('Access', { exact: true });
     this.idNumberInput = page.locator('#id-number');
     this.refNumberInput = page.locator('#ref-number');
-    this.continueAppointmentButton = page.getByRole('button', { name: 'Continue ' });
+    this.continueAppointmentButton = page.getByRole('button', { name: 'Continue' });
     this.appointmentIcon = page.locator('i').nth(2);
     // Setting up locators specific to this page exactly as they appear in the test steps
     this.privacyPolicyLink = page.locator('a').filter({ hasText: 'Privacy policy' });
