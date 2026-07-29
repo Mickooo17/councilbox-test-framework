@@ -18,7 +18,11 @@ export class DocumentationPage extends BasePage {
         this.fabNewButton = page.locator('.MuiButtonBase-root.MuiFab-root.MuiFab-primary');
         this.menuUploadFile = page.locator('#company-document-upload-file');
         this.fileInput = page.locator('input[type="file"]').first();
-        this.searchInput = page.locator('#company-document-search-input');
+        this.searchInput = page.locator('#company-document-search-input')
+            .or(page.getByRole('textbox', { name: /Search/i }))
+            .or(page.locator('input[placeholder*="Search" i]'))
+            .or(page.locator('input[placeholder*="Buscar" i]'))
+            .first();
         this.alertAcceptButton = page.locator('#alert-confirm-button-accept');
         this.successUploadAlert = page.locator('.Toastify__toast--success').filter({ hasText: MESSAGES.DOCUMENT_UPLOADED });
         this.successDeleteAlert = page.locator('.Toastify__toast--success').filter({ hasText: MESSAGES.DOCUMENT_DELETED }); // Assuming similar generic toast
@@ -39,14 +43,17 @@ export class DocumentationPage extends BasePage {
 
     async verifyUploadSuccessAlert() {
         await test.step('Verify upload success alert', async () => {
-            // Using generic waitFor to make sure upload passes the backend validation
+            // Wait for any "Uploading files..." / "Subiendo..." indicator to finish
+            await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
             await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
         });
     }
 
     async searchDocument(fileName: string) {
         await test.step(`Search for document: ${fileName}`, async () => {
-            await this.page.waitForTimeout(2000); // Give the DOM time to be fully interactive
+            await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
+            await this.page.waitForTimeout(1500); // Give the DOM time to be fully interactive
             await this.searchInput.fill(fileName);
             await this.page.waitForTimeout(1000); // Give input delay time to trigger search
             await this.page.waitForLoadState('networkidle');
@@ -56,7 +63,8 @@ export class DocumentationPage extends BasePage {
     async verifyDocumentInTable(fileName: string) {
         await test.step(`Verify document ${fileName} is present in the table`, async () => {
             const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
-            await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+            await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
+            await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 15000 });
         });
     }
 
