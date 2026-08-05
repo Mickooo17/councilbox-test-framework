@@ -132,4 +132,20 @@ export class LoginPage {
   async verifySpanishLanguageContent() {
     await this.verifyLanguageSelected('Español');
   }
+
+  async verifyScrollIsRemoved() {
+    await test.step('Verify vertical scroll is removed from login page', async () => {
+      const scrollInfo = await this.page.evaluate(() => {
+        const doc = document.documentElement;
+        const body = document.body;
+        return {
+          scrollHeight: Math.max(doc.scrollHeight, body.scrollHeight),
+          clientHeight: Math.max(doc.clientHeight, window.innerHeight),
+        };
+      });
+
+      const hasVerticalScrollbar = scrollInfo.scrollHeight > scrollInfo.clientHeight + 5;
+      expect(hasVerticalScrollbar, `Login page should not have vertical scrollbar (scrollHeight: ${scrollInfo.scrollHeight}, clientHeight: ${scrollInfo.clientHeight})`).toBe(false);
+    });
+  }
 }

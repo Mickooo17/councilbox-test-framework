@@ -152,5 +152,12 @@ f.test.describe('LoginPage - Language Selection Tests', () => {
   }
 });
 
+f.test.describe('LoginPage - Scroll Tests', () => {
+  f.test('Verify scroll is removed from login page @XR-3083 @smoke @regression', async ({ loginPage }) => {
+    // Assert - Verify login page does not have unnecessary vertical scrollbar
+    await loginPage.verifyScrollIsRemoved();
+  });
+});
+
 
 
