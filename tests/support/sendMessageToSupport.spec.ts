@@ -1,14 +1,8 @@
 import * as f from '../fixtures';
 
 f.test.describe('XR-3086: Send Message to Support - Validation', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, userProfilePage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
-        await homePage.validateHomePageIsOpened();
-        await userProfilePage.dismissModal();
-    });
-
     f.test('Verify user cannot send message to support without populating Name field @XR-3086 @smoke @regression', async ({ supportPage }) => {
-        // Open Support modal
+        // Open Support / Contact modal on login page
         await supportPage.openSupportModal();
 
         // Attempt to send message leaving Name empty
