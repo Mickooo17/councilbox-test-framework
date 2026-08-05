@@ -71,6 +71,7 @@ export class InstitutionsPage extends BasePage {
 
             await this.cityInput.fill(data.city);
 
+            await this.dismissToastOrModal();
             await this.languageDropdown.click();
             await this.languageOptionEnglish.click();
         });

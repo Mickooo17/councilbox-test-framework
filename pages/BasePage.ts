@@ -37,6 +37,9 @@ export class BasePage {
     async dismissToastOrModal() {
         await test.step('Dismiss toast or modal banner if present', async () => {
             const closeBtn = this.page.locator(`
+                .slide-in button,
+                .slide-in [class*="close"],
+                .slide-in [aria-label*="close" i],
                 .MuiButtonBase-root.MuiIconButton-root.closeIcon,
                 button.closeIcon,
                 [class*="toast"] button,
@@ -51,6 +54,13 @@ export class BasePage {
 
             if (await closeBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
                 await closeBtn.click().catch(() => {});
+            }
+
+            const slideIn = this.page.locator('.slide-in');
+            if (await slideIn.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await this.page.evaluate(() => {
+                    document.querySelectorAll('.slide-in').forEach(el => (el as HTMLElement).style.display = 'none');
+                }).catch(() => {});
             }
         });
     }

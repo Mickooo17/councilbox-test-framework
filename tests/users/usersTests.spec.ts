@@ -138,8 +138,8 @@ f.test.describe('Users - Edit User Tests', () => {
         await usersPage.editUser({ name: newName });
         await usersPage.verifyUserEditedAlert();
         
-        // Close the drawer after the edit is successful, to clear the DOM for search
-        await usersPage.cancelUserForm();
+        // Click back button to return to the users table
+        await usersPage.clickBackButton();
 
         // Verify the edited name appears
         const editedFullName = `${newName} ${userData.surname}`;

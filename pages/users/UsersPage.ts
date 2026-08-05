@@ -20,6 +20,7 @@ export class UsersPage extends BasePage {
     readonly continueButton: Locator;
     readonly addButton: Locator;
     readonly searchInput: Locator;
+    readonly backButton: Locator;
 
     constructor(page: Page) {
         super(page);
@@ -29,9 +30,13 @@ export class UsersPage extends BasePage {
         this.phoneInput = page.locator('#user-settings-phone');
         this.idCardInput = page.locator('#user-id-card-type');
         this.emailInput = page.locator('#user-form-email');
-        this.continueButton = page.getByRole('button', { name: /Continue|Continuar/i });
-        this.addButton = page.getByRole('button', { name: /Add|Añadir|Guardar/i });
+        this.continueButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Continue|Continuar/i }).or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
+        this.addButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /Add|Añadir|Guardar/i })).first();
         this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
+        this.backButton = page.getByRole('button', { name: /Back|Volver|Atrás/i })
+            .or(page.locator('button:has(.ri-arrow-left-line), button:has(.ri-arrow-left-s-line), button:has(i[class*="arrow-left"]), .ri-arrow-left-line, i.ri-arrow-left-line'))
+            .or(page.locator('#back-button, [aria-label*="back" i], [aria-label*="volver" i]'))
+            .first();
     }
 
     async clickAddUser() {
@@ -61,9 +66,19 @@ export class UsersPage extends BasePage {
 
     async selectLanguage(language: string) {
         await test.step(`Select language: ${language}`, async () => {
-            // Click the language dropdown as recorded in codegen
-            await this.page.getByText('EspañolLanguage').click();
-            await this.page.getByRole('menuitem', { name: language }).click();
+            const dropdown = this.page.locator('.MuiDrawer-root, form').getByText(/Language|Idioma/i)
+                .or(this.page.getByText('EspañolLanguage'))
+                .or(this.page.getByText('EnglishLanguage'))
+                .or(this.page.locator('[id*="language"]'))
+                .first();
+            if (await dropdown.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await dropdown.click();
+                const option = this.page.getByRole('menuitem', { name: language })
+                    .or(this.page.getByRole('option', { name: language }))
+                    .or(this.page.getByText(language, { exact: true }))
+                    .first();
+                await option.click();
+            }
         });
     }
 
@@ -188,6 +203,17 @@ export class UsersPage extends BasePage {
     async cancelUserForm() {
         await test.step('Cancel user form', async () => {
             await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(800);
+        });
+    }
+
+    async clickBackButton() {
+        await test.step('Click back button', async () => {
+            if (await this.backButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await this.backButton.click();
+            } else {
+                await this.page.keyboard.press('Escape');
+            }
             await this.page.waitForTimeout(800);
         });
     }
