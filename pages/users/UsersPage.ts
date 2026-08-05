@@ -78,13 +78,17 @@ export class UsersPage extends BasePage {
                     .or(this.page.getByText(language, { exact: true }))
                     .first();
                 await option.click();
+                // Ensure dropdown menu popover and backdrop are closed before proceeding
+                await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+                await this.page.waitForTimeout(300);
             }
         });
     }
 
     async submitUserForm() {
         await test.step('Submit user form (Continue → Add)', async () => {
-            // Buffer to allow React state validations to settle before clicking Continue
+            // Wait for any popover or backdrop to clear and state to settle
+            await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
             await this.page.waitForTimeout(500);
             await this.continueButton.click();
 
