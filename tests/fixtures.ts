@@ -1,5 +1,6 @@
 import { test as base, expect, Page } from '@playwright/test';
 import fs from 'fs';
+import path from 'path';
 import envConfig from '../global-env';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
@@ -11,6 +12,7 @@ import { UsersPage } from '../pages/users/UsersPage';
 import { UserProfilePage } from '../pages/users/UserProfilePage';
 import { SupportPage } from '../pages/support/SupportPage';
 import { AppointmentLoginPage } from '../pages/AppointmentLoginPage';
+import { resolveLoginUrl } from '../utils/UrlHelper';
 
 export const adminUser = envConfig.users.admin;
 export const adminProfessionalUser = envConfig.users.adminProfessional;
@@ -18,11 +20,10 @@ export const superadminUser = envConfig.users.superadmin;
 
 export const testUser = adminUser;
 
-import { resolveLoginUrl } from '../utils/UrlHelper';
-
 const loginUrl = resolveLoginUrl();
+const tokensFile = path.join(process.cwd(), 'playwright/.auth/tokens.json');
 
-// Custom fixture always open the login page before each test
+// Custom fixture always injects auth tokens and opens page
 export const test = base.extend<{
   loginPage: LoginPage;
   homePage: HomePage;
@@ -67,6 +68,21 @@ export const test = base.extend<{
     await use(new AppointmentLoginPage(page));
   },
   page: async ({ page }, use) => {
+    // Inject auth tokens into sessionStorage before navigation if tokensFile exists
+    if (fs.existsSync(tokensFile)) {
+      try {
+        const tokens = JSON.parse(fs.readFileSync(tokensFile, 'utf-8'));
+        if (tokens.token && tokens.refreshToken) {
+          await page.addInitScript(({ token, refreshToken }) => {
+            window.sessionStorage.setItem('token', token);
+            window.sessionStorage.setItem('refreshUserToken', refreshToken);
+          }, { token: tokens.token, refreshToken: tokens.refreshToken });
+        }
+      } catch (err) {
+        console.warn(`[fixture:page] Could not inject tokens:`, err);
+      }
+    }
+
     await page.goto(loginUrl);
     await use(page);
   },

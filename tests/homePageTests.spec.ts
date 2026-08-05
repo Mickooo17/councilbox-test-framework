@@ -7,9 +7,7 @@ import { expect } from '@playwright/test';
  */
 
 f.test.describe('HomePage - Navigation Tests', () => {
-  f.test.beforeEach(async ({ loginPage, homePage }) => {
-    // Login before each test in this suite
-    await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
+  f.test.beforeEach(async ({ homePage }) => {
     await homePage.validateHomePageIsOpened();
   });
 
@@ -25,9 +23,7 @@ f.test.describe('HomePage - Navigation Tests', () => {
 });
 
 f.test.describe('HomePage - User Profile Tests', () => {
-  f.test.beforeEach(async ({ loginPage, homePage }) => {
-    // Login before each test in this suite
-    await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
+  f.test.beforeEach(async ({ homePage }) => {
     await homePage.validateHomePageIsOpened();
   });
 

@@ -1,26 +1,64 @@
 import { test as setup, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 import envConfig from '../global-env';
 import { resolveLoginUrl } from '../utils/UrlHelper';
+import { ApiAuthHelper } from '../utils/ApiAuthHelper';
 
 const authFile = 'playwright/.auth/user.json';
+const tokensFile = 'playwright/.auth/tokens.json';
 
-setup('authenticate', async ({ page }) => {
+setup('authenticate', async ({ page, request, context }) => {
   const loginUrl = resolveLoginUrl();
   const user = envConfig.users.adminProfessional || envConfig.users.admin;
 
-  console.log(`[setup] Logging in as ${user.username}...`);
+  console.log(`[setup] Authenticating via API as ${user.username}...`);
 
-  await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.waitForSelector('#username', { state: 'visible', timeout: 15000 });
+  try {
+    // 1. Fetch tokens via GraphQL API
+    const tokens = await ApiAuthHelper.fetchTokens(request, user.username, user.password);
 
-  await page.fill('#username', user.username);
-  await page.fill('#password', user.password);
-  await page.click('button[id="restore-password-button"]');
+    // 2. Ensure .auth dir exists and save tokens.json
+    const authDir = path.dirname(tokensFile);
+    if (!fs.existsSync(authDir)) {
+      fs.mkdirSync(authDir, { recursive: true });
+    }
+    fs.writeFileSync(tokensFile, JSON.stringify(tokens, null, 2));
 
-  // Wait for successful login
-  await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+    // 3. Inject into context
+    await context.addInitScript(({ token, refreshToken }) => {
+      window.sessionStorage.setItem('token', token);
+      window.sessionStorage.setItem('refreshUserToken', refreshToken);
+    }, { token: tokens.token, refreshToken: tokens.refreshToken });
 
-  // Save cookies, localStorage, and sessionStorage
-  await page.context().storageState({ path: authFile });
-  console.log(`[setup] Storage state saved to ${authFile}`);
+    // 4. Navigate to app URL
+    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+    // 5. Verify user is authenticated
+    await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+
+    // 6. Save storage state
+    await page.context().storageState({ path: authFile });
+    console.log(`[setup] API Authentication successful! Tokens saved to ${tokensFile}`);
+  } catch (error) {
+    console.warn(`[setup] API login failed (${error}), falling back to UI login...`);
+
+    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForSelector('#username', { state: 'visible', timeout: 15000 });
+    await page.fill('#username', user.username);
+    await page.fill('#password', user.password);
+    await page.click('button[id="restore-password-button"]');
+
+    await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+    await page.context().storageState({ path: authFile });
+
+    // Extract sessionStorage after UI login and save to tokens.json
+    const sessionTokens = await page.evaluate(() => ({
+      token: window.sessionStorage.getItem('token') || '',
+      refreshToken: window.sessionStorage.getItem('refreshUserToken') || '',
+    }));
+    if (sessionTokens.token) {
+      fs.writeFileSync(tokensFile, JSON.stringify(sessionTokens, null, 2));
+    }
+  }
 });
