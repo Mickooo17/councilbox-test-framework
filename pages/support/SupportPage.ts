@@ -9,7 +9,7 @@ export class SupportPage extends BasePage {
     readonly emailInput: Locator;
     readonly messageInput: Locator;
     readonly sendButton: Locator;
-    readonly nameValidationError: Locator;
+    readonly validationError: Locator;
 
     constructor(page: Page) {
         super(page);
@@ -46,7 +46,7 @@ export class SupportPage extends BasePage {
             .or(page.locator('button[type="submit"]'))
             .first();
 
-        this.nameValidationError = page.getByText(/Required|Obligatorio|Name is required|El nombre es obligatorio/i).first();
+        this.validationError = page.getByText(/Required|Obligatorio|This field is required|Este campo es obligatorio/i).first();
     }
 
     async openSupportModal() {
@@ -88,7 +88,38 @@ export class SupportPage extends BasePage {
             const isModalVisible = await this.supportModal.isVisible().catch(() => false);
             expect(isModalVisible, 'Support modal should remain open when Name field is empty').toBe(true);
 
-            await expect(this.nameValidationError).toBeVisible({ timeout: 5000 });
+            await expect(this.validationError).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    async sendMessageWithoutSurname(name: string, email: string, message: string) {
+        await test.step('Attempt to send support message without populating Surname field', async () => {
+            if (await this.nameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.nameInput.fill(name);
+            }
+
+            if (await this.emailInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.emailInput.fill(email);
+            }
+
+            if (await this.messageInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.messageInput.fill(message);
+            }
+
+            if (await this.surnameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.surnameInput.clear();
+            }
+
+            await this.sendButton.click();
+        });
+    }
+
+    async verifyCannotSendMessageWithoutSurname() {
+        await test.step('Verify message cannot be sent without Surname field', async () => {
+            const isModalVisible = await this.supportModal.isVisible().catch(() => false);
+            expect(isModalVisible, 'Support modal should remain open when Surname field is empty').toBe(true);
+
+            await expect(this.validationError).toBeVisible({ timeout: 5000 });
         });
     }
 }
