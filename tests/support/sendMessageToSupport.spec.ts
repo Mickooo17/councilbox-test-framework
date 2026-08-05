@@ -29,4 +29,18 @@ f.test.describe('Send Message to Support - Validation', () => {
         // Verify message cannot be sent without Surname field
         await supportPage.verifyCannotSendMessageWithoutSurname();
     });
+
+    f.test('Verify user cannot send message to support without populating Email field @XR-3088 @smoke @regression', async ({ supportPage }) => {
+        const testUser = DataGenerator.randomUserData();
+        const testMessage = DataGenerator.randomSupportMessage();
+
+        // Open Support / Contact modal on login page
+        await supportPage.openSupportModal();
+
+        // Attempt to send message leaving Email empty
+        await supportPage.sendMessageWithoutEmail(testUser.name, testUser.surname, testMessage);
+
+        // Verify message cannot be sent without Email field
+        await supportPage.verifyCannotSendMessageWithoutEmail();
+    });
 });

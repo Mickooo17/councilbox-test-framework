@@ -133,4 +133,40 @@ export class SupportPage extends BasePage {
             await expect(this.validationError).toBeVisible({ timeout: 5000 });
         });
     }
+
+    async sendMessageWithoutEmail(name?: string, surname?: string, message?: string) {
+        await test.step('Attempt to send support message without populating Email field', async () => {
+            const user = DataGenerator.randomUserData();
+            const nameVal = name || user.name;
+            const surnameVal = surname || user.surname;
+            const messageVal = message || DataGenerator.randomSupportMessage();
+
+            if (await this.nameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.nameInput.fill(nameVal);
+            }
+
+            if (await this.surnameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.surnameInput.fill(surnameVal);
+            }
+
+            if (await this.messageInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.messageInput.fill(messageVal);
+            }
+
+            if (await this.emailInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.emailInput.clear();
+            }
+
+            await this.sendButton.click();
+        });
+    }
+
+    async verifyCannotSendMessageWithoutEmail() {
+        await test.step('Verify message cannot be sent without Email field', async () => {
+            const isModalVisible = await this.supportModal.isVisible().catch(() => false);
+            expect(isModalVisible, 'Support modal should remain open when Email field is empty').toBe(true);
+
+            await expect(this.validationError).toBeVisible({ timeout: 5000 });
+        });
+    }
 }
