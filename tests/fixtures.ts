@@ -23,7 +23,7 @@ export const testUser = adminUser;
 const loginUrl = resolveLoginUrl();
 const tokensFile = path.join(process.cwd(), 'playwright/.auth/tokens.json');
 
-// Custom fixture always injects auth tokens and opens page
+// Custom fixture always injects or clears auth tokens/cookies appropriately and opens page
 export const test = base.extend<{
   loginPage: LoginPage;
   homePage: HomePage;
@@ -67,9 +67,19 @@ export const test = base.extend<{
   appointmentLoginPage: async ({ page }, use) => {
     await use(new AppointmentLoginPage(page));
   },
-  page: async ({ page }, use) => {
-    // Inject auth tokens into sessionStorage before navigation if tokensFile exists
-    if (fs.existsSync(tokensFile)) {
+  page: async ({ page }, use, testInfo) => {
+    const fileName = (testInfo.file || '').replace(/\\/g, '/');
+    const isUnauthenticatedTest = fileName.includes('auth.setup.ts') || fileName.includes('loginTests.spec.ts') || fileName.includes('sendMessageToSupport.spec.ts');
+
+    if (isUnauthenticatedTest) {
+      // Clear cookies and storage for unauthenticated tests so they stay on login page
+      await page.context().clearCookies().catch(() => {});
+      await page.addInitScript(() => {
+        window.sessionStorage.clear();
+        window.localStorage.clear();
+      });
+    } else if (fs.existsSync(tokensFile)) {
+      // Inject auth tokens into sessionStorage before navigation ONLY for authenticated dashboard tests
       try {
         const tokens = JSON.parse(fs.readFileSync(tokensFile, 'utf-8'));
         if (tokens.token && tokens.refreshToken) {

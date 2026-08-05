@@ -1,5 +1,8 @@
 import * as f from './fixtures';
 
+// Force unauthenticated browser context for login tests
+f.test.use({ storageState: { cookies: [], origins: [] } });
+
 /**
  * Login Page Test Suite
  * Contains all tests related to user login functionality
@@ -26,7 +29,7 @@ f.test.describe('LoginPage - Validation Tests', () => {
     const password = '';
 
     // Act
-    await loginPage.login(username, password);
+    await loginPage.login(username, password, false);
 
     // Assert
     await loginPage.validateErrorMessage();
@@ -38,7 +41,7 @@ f.test.describe('LoginPage - Validation Tests', () => {
     const password = f.adminUser.password;
 
     // Act
-    await loginPage.login(username, password);
+    await loginPage.login(username, password, false);
 
     // Assert
     await loginPage.validateErrorMessage();
@@ -50,7 +53,7 @@ f.test.describe('LoginPage - Validation Tests', () => {
     const password = '';
 
     // Act
-    await loginPage.login(username, password);
+    await loginPage.login(username, password, false);
 
     // Assert
     await loginPage.validateErrorMessage();
@@ -62,7 +65,7 @@ f.test.describe('LoginPage - Validation Tests', () => {
     const password = 'wrongPassword123';
 
     // Act
-    await loginPage.login(username, password);
+    await loginPage.login(username, password, false);
 
     // Assert
     await loginPage.validateErrorMessageForInvalidCredentials();

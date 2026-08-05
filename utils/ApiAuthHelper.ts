@@ -13,6 +13,7 @@ interface CachedTokens extends AuthTokens {
 }
 
 const CACHE_FILE = path.join(process.cwd(), 'playwright/.auth/tokens_cache.json');
+const TOKEN_FILE = path.join(process.cwd(), 'playwright/.auth/tokens.json');
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
 
 export class ApiAuthHelper {
@@ -59,6 +60,24 @@ export class ApiAuthHelper {
         token: cached.token,
         refreshToken: cached.refreshToken,
       };
+    }
+
+    // Check existing tokens.json as secondary cache
+    if (fs.existsSync(TOKEN_FILE)) {
+      try {
+        const fileTokens = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'));
+        if (fileTokens.token && fileTokens.refreshToken) {
+          cache[email] = {
+            token: fileTokens.token,
+            refreshToken: fileTokens.refreshToken,
+            fetchedAt: now,
+          };
+          this.saveCache(cache);
+          return fileTokens;
+        }
+      } catch {
+        // ignore
+      }
     }
 
     // Fetch fresh tokens via GraphQL API

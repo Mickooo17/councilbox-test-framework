@@ -15,8 +15,8 @@ setup('authenticate', async ({ page, request, context }) => {
   console.log(`[setup] Authenticating via API as ${user.username}...`);
 
   try {
-    // 1. Fetch tokens via GraphQL API
-    const tokens = await ApiAuthHelper.fetchTokens(request, user.username, user.password);
+    // 1. Fetch/get cached tokens via ApiAuthHelper (uses 1-hour cache)
+    const tokens = await ApiAuthHelper.getTokensForUser(request, user.username, user.password);
 
     // 2. Ensure .auth dir exists and save tokens.json
     const authDir = path.dirname(tokensFile);
@@ -25,7 +25,7 @@ setup('authenticate', async ({ page, request, context }) => {
     }
     fs.writeFileSync(tokensFile, JSON.stringify(tokens, null, 2));
 
-    // 3. Inject into context
+    // 3. Inject into context ONLY when tokens are valid
     await context.addInitScript(({ token, refreshToken }) => {
       window.sessionStorage.setItem('token', token);
       window.sessionStorage.setItem('refreshUserToken', refreshToken);
@@ -43,11 +43,21 @@ setup('authenticate', async ({ page, request, context }) => {
   } catch (error) {
     console.warn(`[setup] API login failed (${error}), falling back to UI login...`);
 
-    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForSelector('#username', { state: 'visible', timeout: 15000 });
-    await page.fill('#username', user.username);
-    await page.fill('#password', user.password);
-    await page.click('button[id="restore-password-button"]');
+    // Reset cookies and storage for clean UI login fallback
+    await context.clearCookies().catch(() => {});
+    await page.evaluate(() => {
+      window.sessionStorage.clear();
+      window.localStorage.clear();
+    }).catch(() => {});
+
+    // Navigate to direct login URL
+    await page.goto('https://qa.ovac.pre.councilbox.com/login', { waitUntil: 'networkidle', timeout: 30000 });
+
+    const usernameInput = page.locator('#username').or(page.getByPlaceholder(/Username|Email|Usuario/i)).first();
+    await usernameInput.waitFor({ state: 'visible', timeout: 15000 });
+    await usernameInput.fill(user.username);
+    await page.locator('#password').fill(user.password);
+    await page.locator('button[id="restore-password-button"]').click();
 
     await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
     await page.context().storageState({ path: authFile });
@@ -58,7 +68,12 @@ setup('authenticate', async ({ page, request, context }) => {
       refreshToken: window.sessionStorage.getItem('refreshUserToken') || '',
     }));
     if (sessionTokens.token) {
+      const authDir = path.dirname(tokensFile);
+      if (!fs.existsSync(authDir)) {
+        fs.mkdirSync(authDir, { recursive: true });
+      }
       fs.writeFileSync(tokensFile, JSON.stringify(sessionTokens, null, 2));
+      console.log(`[setup] UI Authentication successful! Extracted tokens saved to ${tokensFile}`);
     }
   }
 });

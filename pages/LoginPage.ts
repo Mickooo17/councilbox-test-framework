@@ -33,7 +33,7 @@ export class LoginPage {
     this.englishOption = page.getByRole('option', { name: /English|EN/i }).or(page.getByText(/English|EN/i)).first();
   }
 
-  async login(username: string, password: string) {
+  async login(username: string, password: string, expectSuccess = true) {
     await test.step(`Login as ${username}`, async () => {
       // Check if already on dashboard / authenticated via API session
       const isAlreadyOnDashboard = await this.page.waitForURL(/\/company\b/i, { timeout: 2500 }).then(() => true).catch(() => false);
@@ -52,7 +52,9 @@ export class LoginPage {
       await this.usernameInput.fill(username);
       await this.passwordInput.fill(password);
       await this.submitButton.click();
-      await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+      if (expectSuccess) {
+        await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+      }
     });
   }
 
@@ -117,10 +119,15 @@ export class LoginPage {
 
   async selectLanguage(lang: LanguageOption) {
     await test.step(`Click globe icon in top right and select language "${lang}"`, async () => {
+      if (!this.page.url().endsWith('/login')) {
+        await this.page.goto('https://qa.ovac.pre.councilbox.com/login', { waitUntil: 'domcontentloaded' });
+      }
       const globeIcon = this.page.locator('.ri-global-line, i.ri-global-line, [class*="ri-global"]').first();
+      await globeIcon.waitFor({ state: 'visible', timeout: 10000 });
       await globeIcon.click();
 
       const option = this.page.getByText(lang, { exact: true }).first();
+      await option.waitFor({ state: 'visible', timeout: 5000 });
       await option.click();
     });
   }

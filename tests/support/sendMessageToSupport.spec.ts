@@ -1,6 +1,9 @@
 import * as f from '../fixtures';
 import { DataGenerator } from '../../utils/DataGenerator';
 
+// Force unauthenticated browser context for login-page support modal tests
+f.test.use({ storageState: { cookies: [], origins: [] } });
+
 f.test.describe('Send Message to Support - Validation', () => {
     f.test('Verify user cannot send message to support without populating Name field @XR-3086 @smoke @regression', async ({ supportPage }) => {
         const testUser = DataGenerator.randomUserData();
