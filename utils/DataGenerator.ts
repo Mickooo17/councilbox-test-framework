@@ -21,6 +21,14 @@ export class DataGenerator {
         return result;
     }
 
+    static randomEmail(): string {
+        return `auto_user_${this.randomNumber(6)}@test${this.randomNumber(4)}.com`;
+    }
+
+    static randomSupportMessage(): string {
+        return `Automation Support Message ${this.randomString(20)}`;
+    }
+
     static randomInstitutionName(): string {
         return `Automation Institution ${this.randomNumber(6)}`;
     }

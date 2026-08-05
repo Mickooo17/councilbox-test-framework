@@ -1,5 +1,6 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
+import { DataGenerator } from '../../utils/DataGenerator';
 
 export class SupportPage extends BasePage {
     readonly supportButton: Locator;
@@ -61,18 +62,23 @@ export class SupportPage extends BasePage {
         });
     }
 
-    async sendMessageWithoutName(email: string, message: string) {
+    async sendMessageWithoutName(email?: string, message?: string, surname?: string) {
         await test.step('Attempt to send support message without populating Name field', async () => {
+            const user = DataGenerator.randomUserData();
+            const surnameVal = surname || user.surname;
+            const emailVal = email || user.email;
+            const messageVal = message || DataGenerator.randomSupportMessage();
+
             if (await this.surnameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-                await this.surnameInput.fill('TestSurname');
+                await this.surnameInput.fill(surnameVal);
             }
 
             if (await this.emailInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-                await this.emailInput.fill(email);
+                await this.emailInput.fill(emailVal);
             }
 
             if (await this.messageInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-                await this.messageInput.fill(message);
+                await this.messageInput.fill(messageVal);
             }
 
             if (await this.nameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
@@ -92,18 +98,23 @@ export class SupportPage extends BasePage {
         });
     }
 
-    async sendMessageWithoutSurname(name: string, email: string, message: string) {
+    async sendMessageWithoutSurname(name?: string, email?: string, message?: string) {
         await test.step('Attempt to send support message without populating Surname field', async () => {
+            const user = DataGenerator.randomUserData();
+            const nameVal = name || user.name;
+            const emailVal = email || user.email;
+            const messageVal = message || DataGenerator.randomSupportMessage();
+
             if (await this.nameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-                await this.nameInput.fill(name);
+                await this.nameInput.fill(nameVal);
             }
 
             if (await this.emailInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-                await this.emailInput.fill(email);
+                await this.emailInput.fill(emailVal);
             }
 
             if (await this.messageInput.isVisible({ timeout: 1500 }).catch(() => false)) {
-                await this.messageInput.fill(message);
+                await this.messageInput.fill(messageVal);
             }
 
             if (await this.surnameInput.isVisible({ timeout: 1500 }).catch(() => false)) {
