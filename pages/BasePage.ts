@@ -56,10 +56,11 @@ export class BasePage {
                 await closeBtn.click().catch(() => {});
             }
 
-            const slideIn = this.page.locator('.slide-in');
-            if (await slideIn.isVisible({ timeout: 1000 }).catch(() => false)) {
+            const slideIn = this.page.locator('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation');
+            if (await slideIn.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+                await this.page.keyboard.press('Escape').catch(() => {});
                 await this.page.evaluate(() => {
-                    document.querySelectorAll('.slide-in').forEach(el => (el as HTMLElement).style.display = 'none');
+                    document.querySelectorAll('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation').forEach(el => (el as HTMLElement).style.display = 'none');
                 }).catch(() => {});
             }
         });

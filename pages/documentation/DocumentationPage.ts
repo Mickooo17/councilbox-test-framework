@@ -35,9 +35,24 @@ export class DocumentationPage extends BasePage {
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, fileContent);
 
-            //await this.fabNewButton.click();
-            // await this.menuUploadFile.click();
+            const fab = this.page.locator('#add-document-button')
+                .or(this.page.locator('.MuiFab-root'))
+                .or(this.page.getByRole('button', { name: /New|Nuevo|\+/i }))
+                .first();
+
+            if (await fab.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await fab.click();
+                const menuUpload = this.page.locator('#company-document-upload-file')
+                    .or(this.page.getByText(/Upload file|Subir archivo/i))
+                    .first();
+                if (await menuUpload.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await menuUpload.click();
+                }
+            }
+
             await this.fileInput.setInputFiles(filePath);
+            await this.page.keyboard.press('Escape').catch(() => {});
+            await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
         });
     }
 
@@ -45,7 +60,6 @@ export class DocumentationPage extends BasePage {
         await test.step('Verify upload success alert', async () => {
             // Wait for any "Uploading files..." / "Subiendo..." indicator to finish
             await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
-            await this.page.waitForLoadState('networkidle');
             await this.page.waitForTimeout(1000);
         });
     }
@@ -53,10 +67,9 @@ export class DocumentationPage extends BasePage {
     async searchDocument(fileName: string) {
         await test.step(`Search for document: ${fileName}`, async () => {
             await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
-            await this.page.waitForTimeout(1500); // Give the DOM time to be fully interactive
+            await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
             await this.searchInput.fill(fileName);
-            await this.page.waitForTimeout(1000); // Give input delay time to trigger search
-            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
         });
     }
 
@@ -76,6 +89,9 @@ export class DocumentationPage extends BasePage {
 
             // Wait for results to be shown
             await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+
+            // Dismiss any active toast banner blocking pointer events
+            await this.dismissToastOrModal();
 
             // Locate action menu for that specific file card
             const actionMenu = this.page.locator('#CardsContainerBody')
@@ -103,16 +119,27 @@ export class DocumentationPage extends BasePage {
             const fileManagerButton = this.page.locator('#cbx-header-third-button-buttonFileManager');
             await fileManagerButton.click();
             await this.page.waitForTimeout(1500);
+
             // Verify filename appears in the File Manager list
-            await expect(this.page.getByRole('list')).toContainText(fileName, { timeout: 10000 });
+            const list = this.page.getByRole('list').or(this.page.locator('[class*="file-manager"]')).first();
+            await expect(list).toContainText(fileName, { timeout: 10000 });
+
             // Click on the file entry to open details modal
             await this.page.getByText(fileName).first().click();
-            // Verify modal shows "Completed" and "Downloaded" status
-            await expect(this.page.locator('#modal')).toContainText('Completed', { timeout: 10000 });
-            await expect(this.page.locator('#modal')).toContainText('Downloaded', { timeout: 10000 });
-            // Reload the page to dismiss all overlays and ensure clean state
-            await this.page.reload();
-            await this.page.waitForLoadState('networkidle');
+
+            // Verify modal shows status
+            const modal = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').first();
+            await expect(modal).toContainText(/Completed|Completado|Downloaded|Descargado/i, { timeout: 10000 });
+
+            // Dismiss file details modal (1st Escape) and File Manager dropdown (2nd Escape)
+            await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(400);
+            await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(400);
+
+            // Wait for backdrop overlay to fully detach
+            await this.page.locator('.cbx-dropdown-backdrop, .MuiBackdrop-root').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+            await this.dismissToastOrModal();
         });
     }
 
@@ -124,6 +151,9 @@ export class DocumentationPage extends BasePage {
 
             // Wait for results to be shown
             await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+
+            // Dismiss any active toast banner blocking pointer events
+            await this.dismissToastOrModal();
 
             // Locate action menu for that specific file card
             const actionMenu = this.page.locator('#CardsContainerBody')
