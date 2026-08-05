@@ -34,10 +34,12 @@ export class LoginPage {
   }
 
   async login(username: string, password: string) {
-    await test.step('Login with credentials', async () => {
+    await test.step(`Login as ${username}`, async () => {
+      await this.usernameInput.waitFor({ state: 'visible', timeout: 15000 });
       await this.usernameInput.fill(username);
       await this.passwordInput.fill(password);
       await this.submitButton.click();
+      await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 20000 });
     });
   }
 
@@ -102,11 +104,9 @@ export class LoginPage {
 
   async selectLanguage(lang: LanguageOption) {
     await test.step(`Click globe icon in top right and select language "${lang}"`, async () => {
-      // 1. Click globe icon in top right corner next to OVAC logo
       const globeIcon = this.page.locator('.ri-global-line, i.ri-global-line, [class*="ri-global"]').first();
       await globeIcon.click();
 
-      // 2. Click language option from dropdown menu
       const option = this.page.getByText(lang, { exact: true }).first();
       await option.click();
     });
@@ -133,9 +133,3 @@ export class LoginPage {
     await this.verifyLanguageSelected('Español');
   }
 }
-
-
-
-
-
-

@@ -21,7 +21,16 @@ export class BasePage {
 
     async dismissModal() {
         await test.step('Dismiss modal dialog', async () => {
-            await this.closeModalButton.click();
+            const modal = this.page.locator('#alert-confirm, .MuiDialog-root, #modal');
+            if (await modal.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+                const actionBtn = modal.first().locator('button').first();
+                if (await actionBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+                    await actionBtn.click();
+                } else {
+                    await this.page.keyboard.press('Escape');
+                }
+                await modal.first().waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+            }
         });
     }
 

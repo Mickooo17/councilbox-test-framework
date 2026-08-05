@@ -8,6 +8,7 @@ import { TemplatesPage } from '../pages/templates/TemplatesPage';
 import { TagsPage } from '../pages/templates/TagsPage';
 import { DocumentationPage } from '../pages/documentation/DocumentationPage';
 import { UsersPage } from '../pages/users/UsersPage';
+import { UserProfilePage } from '../pages/users/UserProfilePage';
 import { AppointmentLoginPage } from '../pages/AppointmentLoginPage';
 
 export const adminUser = envConfig.users.admin;
@@ -29,6 +30,7 @@ export const test = base.extend<{
   tagsPage: TagsPage;
   documentationPage: DocumentationPage;
   usersPage: UsersPage;
+  userProfilePage: UserProfilePage;
   appointmentLoginPage: AppointmentLoginPage;
   page: Page;
 }>({
@@ -52,6 +54,9 @@ export const test = base.extend<{
   },
   usersPage: async ({ page }, use) => {
     await use(new UsersPage(page));
+  },
+  userProfilePage: async ({ page }, use) => {
+    await use(new UserProfilePage(page));
   },
   appointmentLoginPage: async ({ page }, use) => {
     await use(new AppointmentLoginPage(page));
