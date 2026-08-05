@@ -5,8 +5,7 @@ import { TagData } from '../../pages/templates/TagsPage';
 f.test.describe('Templates - Tags Tests', () => {
     let tagData: TagData;
 
-    f.test.beforeEach(async ({ loginPage, homePage, tagsPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, tagsPage }) => {
         await homePage.validateHomePageIsOpened();
         await tagsPage.dismissModal();
         await tagsPage.selectQADevCompany();
@@ -31,8 +30,7 @@ f.test.describe('Templates - Tags Tests', () => {
 });
 
 f.test.describe('Templates - Tags Search Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, tagsPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, tagsPage }) => {
         await homePage.validateHomePageIsOpened();
         await tagsPage.dismissModal();
         await tagsPage.selectQADevCompany();
@@ -51,8 +49,7 @@ f.test.describe('Templates - Tags Search Tests', () => {
 f.test.describe('Templates - Tags Edit Tests', () => {
     let tagData: TagData;
 
-    f.test.beforeEach(async ({ loginPage, homePage, tagsPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, tagsPage }) => {
         await homePage.validateHomePageIsOpened();
         await tagsPage.dismissModal();
         await tagsPage.selectQADevCompany();

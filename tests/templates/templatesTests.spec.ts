@@ -5,8 +5,7 @@ import { TemplateData } from '../../pages/templates/TemplatesPage';
 f.test.describe('Templates - Create Template Tests', () => {
     let templateData: TemplateData;
 
-    f.test.beforeEach(async ({ loginPage, homePage, templatesPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, templatesPage }) => {
         await homePage.validateHomePageIsOpened();
         await templatesPage.dismissModal();
         await templatesPage.selectQADevCompany();
@@ -31,8 +30,7 @@ f.test.describe('Templates - Create Template Tests', () => {
 });
 
 f.test.describe('Templates - Search Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, templatesPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, templatesPage }) => {
         await homePage.validateHomePageIsOpened();
         await templatesPage.dismissModal();
         await templatesPage.selectQADevCompany();
@@ -48,8 +46,7 @@ f.test.describe('Templates - Search Tests', () => {
 });
 
 f.test.describe('Templates - Full Lifecycle Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, templatesPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, templatesPage }) => {
         await homePage.validateHomePageIsOpened();
         await templatesPage.dismissModal();
         await templatesPage.selectQADevCompany();

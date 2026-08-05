@@ -34,6 +34,27 @@ export class BasePage {
         });
     }
 
+    async dismissToastOrModal() {
+        await test.step('Dismiss toast or modal banner if present', async () => {
+            const closeBtn = this.page.locator(`
+                .MuiButtonBase-root.MuiIconButton-root.closeIcon,
+                button.closeIcon,
+                [class*="toast"] button,
+                [class*="snackbar"] button,
+                button[aria-label="close" i],
+                button[aria-label="Close" i],
+                .ri-close-line,
+                i.ri-close-line,
+                button:has(.ri-close-line),
+                button:has(i.ri-close-line)
+            `).first();
+
+            if (await closeBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
+                await closeBtn.click().catch(() => {});
+            }
+        });
+    }
+
     async selectQADevCompany() {
         await test.step('Select QA DEV company', async () => {
             await this.governmentIcon.click();

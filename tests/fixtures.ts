@@ -94,6 +94,26 @@ export const test = base.extend<{
     }
 
     await page.goto(loginUrl);
+
+    // Auto-dismiss any bottom toast/banner or overlay modal for authenticated pages
+    if (!isUnauthenticatedTest) {
+      const closeBtn = page.locator(`
+        .MuiButtonBase-root.MuiIconButton-root.closeIcon,
+        button.closeIcon,
+        [class*="toast"] button,
+        [class*="snackbar"] button,
+        button[aria-label="close" i],
+        button[aria-label="Close" i],
+        .ri-close-line,
+        i.ri-close-line,
+        button:has(.ri-close-line),
+        button:has(i.ri-close-line)
+      `).first();
+      if (await closeBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
+        await closeBtn.click().catch(() => {});
+      }
+    }
+
     await use(page);
   },
 });

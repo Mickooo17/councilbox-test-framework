@@ -4,8 +4,7 @@ f.test.describe.serial('Documentation - Upload and Download Document Tests', () 
     let testDocumentName: string;
     let isDocumentUploaded = false;
 
-    f.test.beforeEach(async ({ loginPage, homePage, documentationPage }) => {
-        await loginPage.login(f.adminProfessionalUser.username, f.adminProfessionalUser.password);
+    f.test.beforeEach(async ({ homePage, documentationPage }) => {
         await homePage.validateHomePageIsOpened();
         await documentationPage.dismissModal();
         await documentationPage.selectQADevCompany();

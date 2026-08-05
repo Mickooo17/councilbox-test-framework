@@ -2,8 +2,7 @@ import * as f from '../fixtures';
 import { DataGenerator } from '../../utils/DataGenerator';
 
 f.test.describe('Users - Add User Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, usersPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
         await homePage.validateHomePageIsOpened();
         await usersPage.dismissModal();
         await usersPage.selectQADevCompany();
@@ -53,8 +52,7 @@ f.test.describe('Users - Add User Tests', () => {
 });
 
 f.test.describe('Users - Search Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, usersPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
         await homePage.validateHomePageIsOpened();
         await usersPage.dismissModal();
         await usersPage.selectQADevCompany();
@@ -91,8 +89,7 @@ f.test.describe('Users - Search Tests', () => {
 });
 
 f.test.describe('Users - Validation Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, usersPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
         await homePage.validateHomePageIsOpened();
         await usersPage.dismissModal();
         await usersPage.selectQADevCompany();
@@ -113,8 +110,7 @@ f.test.describe('Users - Validation Tests', () => {
 });
 
 f.test.describe('Users - Edit User Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, usersPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
         await homePage.validateHomePageIsOpened();
         await usersPage.dismissModal();
         await usersPage.selectQADevCompany();

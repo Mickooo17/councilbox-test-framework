@@ -5,8 +5,7 @@ import { InstitutionData } from '../../pages/institutions/InstitutionsPage';
 f.test.describe('Institutions - Create Institution Tests', () => {
     let institutionData: InstitutionData;
 
-    f.test.beforeEach(async ({ loginPage, homePage, institutionsPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, institutionsPage }) => {
         await homePage.validateHomePageIsOpened();
         await institutionsPage.dismissModal();
         await institutionsPage.selectQADevCompany();
@@ -31,8 +30,7 @@ f.test.describe('Institutions - Create Institution Tests', () => {
 });
 
 f.test.describe('Institutions - Search Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, institutionsPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, institutionsPage }) => {
         await homePage.validateHomePageIsOpened();
         await institutionsPage.dismissModal();
         await institutionsPage.selectQADevCompany();
@@ -48,8 +46,7 @@ f.test.describe('Institutions - Search Tests', () => {
 });
 
 f.test.describe('Institutions - Full Lifecycle Tests', () => {
-    f.test.beforeEach(async ({ loginPage, homePage, institutionsPage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, institutionsPage }) => {
         await homePage.validateHomePageIsOpened();
         await institutionsPage.dismissModal();
         await institutionsPage.selectQADevCompany();

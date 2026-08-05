@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  workers: 2,
+  workers: 7,
   retries: 0,
   projects: [
     {

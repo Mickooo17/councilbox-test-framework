@@ -4,8 +4,7 @@ f.test.describe('Password Expiration Settings', () => {
     // Run tests in serial mode so they execute sequentially in the same worker
     f.test.describe.configure({ mode: 'serial' });
 
-    f.test.beforeEach(async ({ loginPage, homePage, userProfilePage }) => {
-        await loginPage.login(f.superadminUser.username, f.superadminUser.password);
+    f.test.beforeEach(async ({ homePage, userProfilePage }) => {
         await homePage.validateHomePageIsOpened();
         await userProfilePage.dismissModal();
     });
