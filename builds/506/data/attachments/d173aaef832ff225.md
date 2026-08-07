@@ -1,0 +1,58 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6] [cursor=pointer]:
+      - generic [ref=e8] [cursor=pointer]: 
+      - paragraph [ref=e10] [cursor=pointer]: Entity 1
+    - generic [ref=e12]:
+      - img "logo" [ref=e14]
+      - button "Button user" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19] [cursor=pointer]: 
+  - generic [ref=e24]:
+    - generic [ref=e26]:
+      - heading "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Back Office" [level=2] [ref=e28]
+      - generic [ref=e31]:
+        - img "Ministerio de Política Territorial" [ref=e32]
+        - img "Plan de Recuperación, Transformación y Resiliencia" [ref=e33]
+        - img "Next Generation EU" [ref=e34]
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - heading "Login" [level=2] [ref=e39]
+        - generic [ref=e40]:
+          - generic [ref=e43]:
+            - generic [ref=e45]: Email
+            - textbox [ref=e47]
+          - generic [ref=e50]:
+            - generic [ref=e52]: Password
+            - generic [ref=e53]:
+              - textbox [ref=e54]
+              - button "Toggle password visibility" [ref=e56] [cursor=pointer]:
+                - generic [ref=e58] [cursor=pointer]: 
+        - button "Access " [ref=e60] [cursor=pointer]:
+          - paragraph [ref=e61] [cursor=pointer]: Access
+          - generic [ref=e62] [cursor=pointer]: 
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - img [ref=e69]
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: Access with
+              - paragraph [ref=e73]: Digital Certificate
+          - generic [ref=e75]: 
+        - link "Password recovery" [ref=e77] [cursor=pointer]:
+          - /url: /forgetPwd
+      - generic [ref=e80]:
+        - generic [ref=e82]:
+          - link "logo councilbox" [ref=e86] [cursor=pointer]:
+            - /url: https://www.councilbox.com
+            - img "logo councilbox" [ref=e87] [cursor=pointer]
+          - generic [ref=e89]:
+            - paragraph [ref=e91]:
+              - text: v
+              - generic [ref=e92]: 8.6.6
+            - generic "Help" [ref=e95] [cursor=pointer]: 
+        - generic [ref=e99]:
+          - generic [ref=e103] [cursor=pointer]: Privacy policy
+          - generic [ref=e107] [cursor=pointer]: Legal notice and Terms and conditions of use
+```
