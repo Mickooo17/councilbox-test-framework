@@ -83,8 +83,6 @@ export class TemplatesPage extends BasePage {
 
     async searchTemplate(name: string) {
         await test.step(`Search for template: ${name}`, async () => {
-            await this.dismissToastOrModal();
-            await this.searchInput.waitFor({ state: 'visible', timeout: 10000 });
             await this.searchInput.fill(name);
         });
     }
@@ -97,7 +95,6 @@ export class TemplatesPage extends BasePage {
 
     async deleteTemplate(name: string) {
         await test.step(`Delete template: ${name}`, async () => {
-            await this.dismissToastOrModal();
             await this.searchTemplate(name);
             // Click the 3-dot actions button on the found row
             const row = this.tableBody.locator('tr', { hasText: name });
@@ -105,7 +102,6 @@ export class TemplatesPage extends BasePage {
             await row.locator('button').first().click();
             await this.deleteButton.waitFor({ state: 'visible', timeout: 5000 });
             await this.deleteButton.click();
-            await this.dismissToastOrModal();
             await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 5000 });
             await this.confirmDeleteButton.click();
         });

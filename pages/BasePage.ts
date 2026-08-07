@@ -1,5 +1,4 @@
 import { Page, Locator, test } from '@playwright/test';
-import envConfig from '../global-env';
 
 export class BasePage {
     readonly closeModalButton: Locator;
@@ -69,21 +68,9 @@ export class BasePage {
 
     async selectQADevCompany() {
         await test.step('Select QA DEV company', async () => {
-            // First try clicking governmentIcon (top-bar company switcher)
-            if (await this.governmentIcon.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await this.governmentIcon.click();
-                if (await this.qaDevMenuItem.isVisible({ timeout: 3000 }).catch(() => false)) {
-                    await this.qaDevMenuItem.click();
-                    await this.page.waitForLoadState('networkidle').catch(() => {});
-                    return;
-                }
-            }
-            // Fallback: click QA DEV card/row if visible on companies page
-            const qaDevCard = this.page.getByText('QA DEV', { exact: true }).first();
-            if (await qaDevCard.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await qaDevCard.click();
-                await this.page.waitForLoadState('networkidle').catch(() => {});
-            }
+            await this.governmentIcon.click();
+            await this.qaDevMenuItem.click();
+            await this.page.waitForLoadState('networkidle');
         });
     }
 
@@ -112,7 +99,7 @@ export class BasePage {
         await test.step('Navigate to Users page', async () => {
             await this.usersButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.usersButton.click();
-            await this.page.waitForLoadState('networkidle').catch(() => {});
+            await this.page.waitForLoadState('networkidle');
         });
     }
 }

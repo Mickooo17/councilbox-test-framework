@@ -87,17 +87,14 @@ export class UsersPage extends BasePage {
 
     async submitUserForm() {
         await test.step('Submit user form (Continue → Add)', async () => {
+            // Wait for any popover or backdrop to clear and state to settle
             await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
-            await this.page.waitForTimeout(300);
-            if (await this.continueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await this.continueButton.click();
-            }
+            await this.page.waitForTimeout(500);
+            await this.continueButton.click();
 
-            const confirmBtn = this.addButton
-                .or(this.page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Add|Añadir|Guardar|Save|Continue|Continuar/i }))
-                .first();
-            await confirmBtn.waitFor({ state: 'visible', timeout: 10000 });
-            await confirmBtn.click();
+            // Wait for step 2 to appear
+            await this.addButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.addButton.click();
         });
     }
 
