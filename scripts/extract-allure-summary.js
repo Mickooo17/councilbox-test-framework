@@ -3,7 +3,7 @@ const path = require('path');
 
 const resultsDir = 'allure-results';
 const testResultsDir = 'test-results';
-let total = 0, passed = 0, failed = 0, skipped = 0;
+let total = 0, passed = 0, failed = 0, broken = 0, skipped = 0;
 const failedTests = [];
 let firstFailedTestName = '';
 let firstFailedTestSteps = '';
@@ -15,55 +15,58 @@ let firstFailedTestDuration = 0;
 let firstFailedTestScreenshotBase64 = '';
 let firstFailedTestErrorContext = '';
 
-fs.readdirSync(resultsDir).forEach(file => {
-  if (file.endsWith('-result.json')) {
-    const content = JSON.parse(fs.readFileSync(path.join(resultsDir, file), 'utf8'));
-    total++;
-    if (content.status === 'passed') passed++;
-    else if (content.status === 'failed') {
-      failed++;
-      failedTests.push(content.name);
+if (fs.existsSync(resultsDir)) {
+  fs.readdirSync(resultsDir).forEach(file => {
+    if (file.endsWith('-result.json')) {
+      const content = JSON.parse(fs.readFileSync(path.join(resultsDir, file), 'utf8'));
+      total++;
+      if (content.status === 'passed') passed++;
+      else if (content.status === 'broken') broken++;
+      else if (content.status === 'failed') {
+        failed++;
+        failedTests.push(content.name);
 
-      // Capture first failed test details
-      if (!firstFailedTestName) {
-        firstFailedTestName = content.name || 'Unknown';
-        firstFailedTestDuration = content.stop - content.start || 0;
+        // Capture first failed test details
+        if (!firstFailedTestName) {
+          firstFailedTestName = content.name || 'Unknown';
+          firstFailedTestDuration = content.stop - content.start || 0;
 
-        // Extract steps from steps array
-        if (content.steps && content.steps.length > 0) {
-          firstFailedTestSteps = content.steps
-            .map(step => `${step.name}${step.status === 'failed' ? ' [FAILED]' : ''}`)
-            .join(' -> ');
+          // Extract steps from steps array
+          if (content.steps && content.steps.length > 0) {
+            firstFailedTestSteps = content.steps
+              .map(step => `${step.name}${step.status === 'failed' ? ' [FAILED]' : ''}`)
+              .join(' -> ');
 
-          // Find the failed step
-          const failedStep = content.steps.find(s => s.status === 'failed');
-          if (failedStep) {
-            firstFailedTestFailedStep = failedStep.name;
-            if (failedStep.statusDetails && failedStep.statusDetails.message) {
-              firstFailedTestFailedStepError = failedStep.statusDetails.message;
+            // Find the failed step
+            const failedStep = content.steps.find(s => s.status === 'failed');
+            if (failedStep) {
+              firstFailedTestFailedStep = failedStep.name;
+              if (failedStep.statusDetails && failedStep.statusDetails.message) {
+                firstFailedTestFailedStepError = failedStep.statusDetails.message;
+              }
             }
+          } else {
+            firstFailedTestSteps = 'No steps recorded';
           }
-        } else {
-          firstFailedTestSteps = 'No steps recorded';
-        }
 
-        // Extract error message from statusDetails
-        if (content.statusDetails && content.statusDetails.message) {
-          firstFailedTestErrorMessage = content.statusDetails.message;
-          firstFailedTestFullError = content.statusDetails.message;
-        } else if (content.statusDetails && content.statusDetails.trace) {
-          const trace = content.statusDetails.trace;
-          firstFailedTestErrorMessage = trace.split('\n')[0];
-          firstFailedTestFullError = trace;
-        } else {
-          firstFailedTestErrorMessage = 'Unknown error';
-          firstFailedTestFullError = 'Unknown error';
+          // Extract error message from statusDetails
+          if (content.statusDetails && content.statusDetails.message) {
+            firstFailedTestErrorMessage = content.statusDetails.message;
+            firstFailedTestFullError = content.statusDetails.message;
+          } else if (content.statusDetails && content.statusDetails.trace) {
+            const trace = content.statusDetails.trace;
+            firstFailedTestErrorMessage = trace.split('\n')[0];
+            firstFailedTestFullError = trace;
+          } else {
+            firstFailedTestErrorMessage = 'Unknown error';
+            firstFailedTestFullError = 'Unknown error';
+          }
         }
       }
+      else if (content.status === 'skipped') skipped++;
     }
-    else if (content.status === 'skipped') skipped++;
-  }
-});
+  });
+}
 
 const htmlList = failedTests.length
   ? `<ul style="margin:0; padding-left:20px;">${failedTests.map(t => `<li>${t}</li>`).join('')}</ul>`
@@ -107,6 +110,7 @@ if (failed > 0 && fs.existsSync(testResultsDir)) {
 fs.writeFileSync('total-tests.txt', total.toString());
 fs.writeFileSync('passed-tests.txt', passed.toString());
 fs.writeFileSync('failed-tests-count.txt', failed.toString());
+fs.writeFileSync('broken-tests.txt', broken.toString());
 fs.writeFileSync('skipped-tests.txt', skipped.toString());
 fs.writeFileSync('failed-tests.html', htmlList);
 
