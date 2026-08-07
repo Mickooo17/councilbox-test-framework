@@ -1,0 +1,111 @@
+name: Playwright E2E Tests & Allure Report
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * 1-5' # Pokreće se svakog radnog dana u 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: 'Specifični fajl za testiranje (ostavi prazno za sve testove)'
+        required: false
+        default: ''
+      test_title:
+        description: 'Filter naslova testa (-g flag)'
+        required: false
+        default: ''
+      send_email:
+        description: 'Pošalji email notifikaciju po završetku'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    name: Run Playwright Tests & Deploy Allure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright Tests
+        env:
+          CI: 'true'
+          TEST_ENV: 'staging'
+          STAGING_ADMIN_PROFESSIONAL_PASSWORD: ${{ secrets.STAGING_ADMIN_PROFESSIONAL_PASSWORD }}
+          STAGING_SUPERADMIN_PASSWORD: ${{ secrets.STAGING_SUPERADMIN_PASSWORD }}
+        run: |
+          FLAGS="--project=Chromium --reporter=line,allure-playwright"
+          if [ -n "${{ github.event.inputs.test_file }}" ]; then
+            FLAGS="${{ github.event.inputs.test_file }} $FLAGS"
+          fi
+          if [ -n "${{ github.event.inputs.test_title }}" ]; then
+            FLAGS="$FLAGS -g \"${{ github.event.inputs.test_title }}\""
+          fi
+          npx playwright test $FLAGS || true
+
+      - name: Extract Allure Summary
+        if: always()
+        run: node scripts/extract-allure-summary.js || true
+
+      - name: Generate Allure Metadata & Report
+        if: always()
+        run: |
+          node generate-allure-meta.js || true
+          npx allure generate allure-results --clean -o allure-report
+
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          destination_dir: builds/${{ github.run_number }}
+          keep_files: true
+
+      - name: Upload Allure Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-build-${{ github.run_number }}
+          path: allure-report/
+          retention-days: 14
+
+      - name: Send Email Notification
+        if: always() && (github.event.inputs.send_email == 'true' || github.event_name != 'workflow_dispatch') && secrets.EMAIL_PASSWORD != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: councilboxautotest@gmail.com
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Councilbox QA Report - Build #${{ github.run_number }} - ${{ job.status }}"
+          to: ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com
+          from: Councilbox Automation <councilboxautotest@gmail.com>
+          html_body: |
+            <h2>Councilbox Test Report - Build #${{ github.run_number }}</h2>
+            <p>Status: <strong>${{ job.status }}</strong></p>
+            <p><a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/">Pogledaj Allure Izveštaj</a></p>
