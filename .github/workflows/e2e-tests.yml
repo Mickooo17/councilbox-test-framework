@@ -178,9 +178,13 @@ jobs:
             PASSED="${{ steps.summary.outputs.passed }}"
             FAILED="${{ steps.summary.outputs.failed }}"
             
-            if [ "$STATUS" = "SUCCESS" ]; then ICON="✅"; else ICON="❌"; fi
+            if [ "$STATUS" = "SUCCESS" ]; then
+              STATUS_BADGE="✅ **SUCCESS**"
+            else
+              STATUS_BADGE="❌ **FAILURE**"
+            fi
 
-            TEXT="📢 *Councilbox QA Report - Build #${{ github.run_number }}* ($ICON $STATUS)\n\n📊 *Summary:*\n• Total: $TOTAL\n• Passed: $PASSED\n• Failed: $FAILED\n\n🔗 [View Allure Report]($REPORT_URL)"
+            TEXT="### 🚀 **Councilbox QA Report** — \`Build #${{ github.run_number }}\`\n---\n**Status:** $STATUS_BADGE  \n**Environment:** \`Staging\`\n\n| Total 📊 | Passed ✅ | Failed ❌ |\n| :---: | :---: | :---: |\n| **$TOTAL** | **$PASSED** | **$FAILED** |\n\n👉 **[Open Allure Test Report]($REPORT_URL)**"
 
             curl -s -X POST "$TEAMS_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
