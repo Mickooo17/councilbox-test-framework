@@ -11,22 +11,27 @@ async function sendTeamsCard() {
   }
 
   const buildNumber = process.env.BUILD_NUMBER || process.env.GITHUB_RUN_NUMBER || '1';
+  const branchName = process.env.GITHUB_REF_NAME || 'main';
+  const testEnv = (process.env.TEST_ENV || 'Staging').charAt(0).toUpperCase() + (process.env.TEST_ENV || 'Staging').slice(1);
   const reportUrl = process.env.REPORT_URL || 'https://mickooo17.github.io/councilbox-test-framework/';
   const githubRunUrl = process.env.GITHUB_RUN_URL || `https://github.com/${process.env.GITHUB_REPOSITORY || 'Mickooo17/councilbox-test-framework'}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`;
+  const durationStr = process.env.BUILD_DURATION || '1m 30s';
 
-  let total = 0, passed = 0, failed = 0;
+  let total = 0, passed = 0, failed = 0, broken = 0, skipped = 0;
   try {
     total = parseInt(fs.readFileSync('total-tests.txt', 'utf8').trim(), 10) || 0;
     passed = parseInt(fs.readFileSync('passed-tests.txt', 'utf8').trim(), 10) || 0;
     failed = parseInt(fs.readFileSync('failed-tests-count.txt', 'utf8').trim(), 10) || 0;
+    broken = parseInt(fs.readFileSync('broken-tests.txt', 'utf8').trim(), 10) || 0;
+    skipped = parseInt(fs.readFileSync('skipped-tests.txt', 'utf8').trim(), 10) || 0;
   } catch {
     // fallback
   }
 
-  const passRate = total > 0 ? Math.round((passed / total) * 100) : (failed === 0 ? 100 : 0);
   const isSuccess = failed === 0;
+  const passRate = total > 0 ? Math.round((passed / total) * 100) : (isSuccess ? 100 : 0);
 
-  const statusText = isSuccess ? '✔ PASSED' : '✖ FAILED';
+  const statusText = isSuccess ? '✔  PASSED' : '✖  FAILED';
   const statusColor = isSuccess ? 'Good' : 'Attention';
   const statusStyle = isSuccess ? 'good' : 'attention';
 
@@ -37,11 +42,27 @@ async function sendTeamsCard() {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: 'UTC'
-  }) + ' UTC';
+  });
 
-  const bannerText = isSuccess
-    ? '🎉 All automated tests completed successfully. No failures detected.'
-    : `⚠️ ${failed} test(s) failed out of ${total}. Check Allure Report for details.`;
+  let bannerIcon = '✅';
+  let bannerText = '';
+  if (isSuccess && broken === 0 && skipped === 0) {
+    bannerText = '🎉 All automated tests completed successfully. No failures detected.';
+  } else if (isSuccess) {
+    const note = [];
+    if (broken > 0) note.push(`${broken} broken`);
+    if (skipped > 0) note.push(`${skipped} skipped`);
+    bannerText = `No failures detected. ${note.join(' and ')} tests may need a quick look before release.`;
+  } else {
+    bannerIcon = '❌';
+    bannerText = `${failed} test(s) failed out of ${total}. Check Allure Report for full failure trace.`;
+  }
+
+  // Progress bar column widths (minimum width 1 if count > 0)
+  const pWidth = passed > 0 ? passed : 0;
+  const bWidth = broken > 0 ? broken : 0;
+  const sWidth = skipped > 0 ? skipped : 0;
+  const fWidth = failed > 0 ? failed : 0;
 
   const cardContent = {
     $schema: 'http://adaptivecards.io/schemas/adaptivecard.json',
@@ -57,9 +78,17 @@ async function sendTeamsCard() {
             verticalContentAlignment: 'Center',
             items: [
               {
-                type: 'TextBlock',
-                text: '🚀',
-                size: 'ExtraLarge'
+                type: 'Container',
+                style: 'accent',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: '🚀',
+                    size: 'Large',
+                    horizontalAlignment: 'Center',
+                    spacing: 'None'
+                  }
+                ]
               }
             ]
           },
@@ -77,7 +106,7 @@ async function sendTeamsCard() {
               },
               {
                 type: 'TextBlock',
-                text: 'councilbox-web · main · Staging',
+                text: 'Automated Test Execution Summary',
                 isSubtle: true,
                 size: 'Small',
                 spacing: 'None'
@@ -92,7 +121,6 @@ async function sendTeamsCard() {
               {
                 type: 'Container',
                 style: statusStyle,
-                bleed: false,
                 items: [
                   {
                     type: 'TextBlock',
@@ -110,11 +138,82 @@ async function sendTeamsCard() {
         ]
       },
       {
-        type: 'TextBlock',
-        text: `Build #${buildNumber}  •  ${dateStr}`,
-        size: 'Small',
-        isSubtle: true,
-        spacing: 'Small'
+        type: 'Container',
+        style: 'default',
+        spacing: 'Medium',
+        items: [
+          {
+            type: 'ColumnSet',
+            columns: [
+              {
+                type: 'Column',
+                width: 'auto',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: `🔧 Build #${buildNumber}`,
+                    size: 'Small',
+                    weight: 'Bolder',
+                    spacing: 'None'
+                  }
+                ]
+              },
+              {
+                type: 'Column',
+                width: 'auto',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: `🌿 ${branchName}`,
+                    size: 'Small',
+                    isSubtle: true,
+                    spacing: 'None'
+                  }
+                ]
+              },
+              {
+                type: 'Column',
+                width: 'auto',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: `🧪 ${testEnv}`,
+                    size: 'Small',
+                    isSubtle: true,
+                    spacing: 'None'
+                  }
+                ]
+              },
+              {
+                type: 'Column',
+                width: 'auto',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: `⏱ ${durationStr}`,
+                    size: 'Small',
+                    isSubtle: true,
+                    spacing: 'None'
+                  }
+                ]
+              },
+              {
+                type: 'Column',
+                width: 'stretch',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: dateStr,
+                    size: 'Small',
+                    isSubtle: true,
+                    horizontalAlignment: 'Right',
+                    spacing: 'None'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       {
         type: 'ColumnSet',
@@ -125,18 +224,26 @@ async function sendTeamsCard() {
             width: 1,
             items: [
               {
-                type: 'TextBlock',
-                text: 'Pass rate',
-                size: 'Small',
-                isSubtle: true,
-                spacing: 'None'
+                type: 'Container',
+                style: 'accent',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
               },
               {
                 type: 'TextBlock',
-                text: `${passRate}%`,
+                text: 'TOTAL',
+                size: 'Small',
+                isSubtle: true,
+                horizontalAlignment: 'Center',
+                spacing: 'Small'
+              },
+              {
+                type: 'TextBlock',
+                text: `${total}`,
                 size: 'ExtraLarge',
                 weight: 'Bolder',
-                color: isSuccess ? 'Good' : 'Attention',
+                horizontalAlignment: 'Center',
                 spacing: 'None'
               }
             ]
@@ -146,20 +253,183 @@ async function sendTeamsCard() {
             width: 1,
             items: [
               {
-                type: 'TextBlock',
-                text: 'Total tests',
-                size: 'Small',
-                isSubtle: true,
+                type: 'Container',
+                style: 'good',
+                height: 'stretch',
                 spacing: 'None',
-                horizontalAlignment: 'Right'
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
               },
               {
                 type: 'TextBlock',
-                text: `${total}`,
+                text: 'PASSED',
+                size: 'Small',
+                color: 'Good',
+                horizontalAlignment: 'Center',
+                spacing: 'Small'
+              },
+              {
+                type: 'TextBlock',
+                text: `${passed}`,
                 size: 'ExtraLarge',
                 weight: 'Bolder',
-                horizontalAlignment: 'Right',
+                color: 'Good',
+                horizontalAlignment: 'Center',
                 spacing: 'None'
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: 1,
+            items: [
+              {
+                type: 'Container',
+                style: 'attention',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
+              },
+              {
+                type: 'TextBlock',
+                text: 'FAILED',
+                size: 'Small',
+                color: 'Attention',
+                horizontalAlignment: 'Center',
+                spacing: 'Small'
+              },
+              {
+                type: 'TextBlock',
+                text: `${failed}`,
+                size: 'ExtraLarge',
+                weight: 'Bolder',
+                color: 'Attention',
+                horizontalAlignment: 'Center',
+                spacing: 'None'
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: 1,
+            items: [
+              {
+                type: 'Container',
+                style: 'warning',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
+              },
+              {
+                type: 'TextBlock',
+                text: 'BROKEN',
+                size: 'Small',
+                color: 'Warning',
+                horizontalAlignment: 'Center',
+                spacing: 'Small'
+              },
+              {
+                type: 'TextBlock',
+                text: `${broken}`,
+                size: 'ExtraLarge',
+                weight: 'Bolder',
+                color: 'Warning',
+                horizontalAlignment: 'Center',
+                spacing: 'None'
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: 1,
+            items: [
+              {
+                type: 'Container',
+                style: 'default',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
+              },
+              {
+                type: 'TextBlock',
+                text: 'SKIPPED',
+                size: 'Small',
+                isSubtle: true,
+                horizontalAlignment: 'Center',
+                spacing: 'Small'
+              },
+              {
+                type: 'TextBlock',
+                text: `${skipped}`,
+                size: 'ExtraLarge',
+                weight: 'Bolder',
+                isSubtle: true,
+                horizontalAlignment: 'Center',
+                spacing: 'None'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: 'TextBlock',
+        text: 'Pass rate',
+        size: 'Small',
+        isSubtle: true,
+        spacing: 'Medium'
+      },
+      {
+        type: 'ColumnSet',
+        spacing: 'Small',
+        columns: [
+          {
+            type: 'Column',
+            width: pWidth,
+            items: [
+              {
+                type: 'Container',
+                style: 'good',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: bWidth,
+            items: [
+              {
+                type: 'Container',
+                style: 'warning',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: sWidth,
+            items: [
+              {
+                type: 'Container',
+                style: 'default',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: fWidth,
+            items: [
+              {
+                type: 'Container',
+                style: 'attention',
+                height: 'stretch',
+                spacing: 'None',
+                items: [{ type: 'TextBlock', text: ' ', size: 'Small', spacing: 'None' }]
               }
             ]
           }
@@ -171,101 +441,68 @@ async function sendTeamsCard() {
         columns: [
           {
             type: 'Column',
-            width: passRate > 0 ? passRate : 1,
-            items: [
-              {
-                type: 'Container',
-                style: statusStyle,
-                height: 'stretch',
-                spacing: 'None',
-                items: [
-                  {
-                    type: 'TextBlock',
-                    text: ' ',
-                    size: 'Small',
-                    spacing: 'None'
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            type: 'Column',
-            width: (100 - passRate) > 0 ? (100 - passRate) : 0,
-            items: [
-              {
-                type: 'Container',
-                style: 'attention',
-                height: 'stretch',
-                items: [
-                  {
-                    type: 'TextBlock',
-                    text: ' ',
-                    size: 'Small',
-                    spacing: 'None'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        type: 'ColumnSet',
-        spacing: 'Medium',
-        columns: [
-          {
-            type: 'Column',
             width: 'auto',
             items: [
               {
                 type: 'TextBlock',
-                text: '🟢  Passed',
-                weight: 'Bolder',
-                size: 'Small'
-              }
-            ]
-          },
-          {
-            type: 'Column',
-            width: 'auto',
-            items: [
-              {
-                type: 'TextBlock',
-                text: `${passed}`,
-                weight: 'Bolder',
+                text: '🟢 Passed',
                 size: 'Small',
-                color: 'Good'
+                isSubtle: true,
+                spacing: 'None'
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: 'auto',
+            items: [
+              {
+                type: 'TextBlock',
+                text: '🟡 Broken',
+                size: 'Small',
+                isSubtle: true,
+                spacing: 'None'
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: 'auto',
+            items: [
+              {
+                type: 'TextBlock',
+                text: '⚪ Skipped',
+                size: 'Small',
+                isSubtle: true,
+                spacing: 'None'
+              }
+            ]
+          },
+          {
+            type: 'Column',
+            width: 'auto',
+            items: [
+              {
+                type: 'TextBlock',
+                text: '🔴 Failed',
+                size: 'Small',
+                isSubtle: true,
+                spacing: 'None'
               }
             ]
           },
           {
             type: 'Column',
             width: 'stretch',
-            items: []
-          },
-          {
-            type: 'Column',
-            width: 'auto',
             items: [
               {
                 type: 'TextBlock',
-                text: '🔴  Failed',
-                weight: 'Bolder',
-                size: 'Small'
-              }
-            ]
-          },
-          {
-            type: 'Column',
-            width: 'auto',
-            items: [
-              {
-                type: 'TextBlock',
-                text: `${failed}`,
-                weight: 'Bolder',
+                text: `${passRate}% passed`,
                 size: 'Small',
-                color: failed > 0 ? 'Attention' : 'Default'
+                weight: 'Bolder',
+                color: statusColor,
+                horizontalAlignment: 'Right',
+                spacing: 'None'
               }
             ]
           }
@@ -277,12 +514,37 @@ async function sendTeamsCard() {
         spacing: 'Medium',
         items: [
           {
-            type: 'TextBlock',
-            text: bannerText,
-            wrap: true,
-            weight: 'Bolder',
-            horizontalAlignment: 'Center',
-            size: 'Small'
+            type: 'ColumnSet',
+            columns: [
+              {
+                type: 'Column',
+                width: 'auto',
+                verticalContentAlignment: 'Center',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: bannerIcon,
+                    size: 'Medium',
+                    spacing: 'None'
+                  }
+                ]
+              },
+              {
+                type: 'Column',
+                width: 'stretch',
+                verticalContentAlignment: 'Center',
+                items: [
+                  {
+                    type: 'TextBlock',
+                    text: bannerText,
+                    wrap: true,
+                    weight: 'Bolder',
+                    size: 'Small',
+                    spacing: 'None'
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -292,7 +554,7 @@ async function sendTeamsCard() {
         actions: [
           {
             type: 'Action.OpenUrl',
-            title: '📊 Allure Report',
+            title: '📊 View Allure Report',
             url: reportUrl,
             style: 'positive'
           },
@@ -342,7 +604,7 @@ async function sendTeamsCard() {
 
     req.on('error', (err) => {
       console.error(`[send-teams-card] Webhook request error: ${err.message}`);
-      resolve(); // Don't throw error to avoid failing workflow
+      resolve();
     });
 
     req.write(payload);
