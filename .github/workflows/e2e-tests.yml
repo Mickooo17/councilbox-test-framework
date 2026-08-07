@@ -94,7 +94,8 @@ jobs:
           retention-days: 14
 
       - name: Send Email Notification
-        if: always() && (github.event.inputs.send_email == 'true' || github.event_name != 'workflow_dispatch') && secrets.EMAIL_PASSWORD != ''
+        if: always() && (github.event.inputs.send_email == 'true' || github.event_name != 'workflow_dispatch')
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
