@@ -93,7 +93,8 @@ export const test = base.extend<{
       }
     }
 
-    await page.goto(loginUrl);
+    const targetUrl = isUnauthenticatedTest ? loginUrl : loginUrl.replace(/\/admin\/?$/i, '/company');
+    await page.goto(targetUrl);
 
     // Auto-dismiss any bottom toast/banner or overlay modal for authenticated pages
     if (!isUnauthenticatedTest) {

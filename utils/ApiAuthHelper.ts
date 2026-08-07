@@ -62,18 +62,21 @@ export class ApiAuthHelper {
       };
     }
 
-    // Check existing tokens.json as secondary cache
+    // Check existing tokens.json as secondary cache ONLY if modified within TTL
     if (fs.existsSync(TOKEN_FILE)) {
       try {
-        const fileTokens = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'));
-        if (fileTokens.token && fileTokens.refreshToken) {
-          cache[email] = {
-            token: fileTokens.token,
-            refreshToken: fileTokens.refreshToken,
-            fetchedAt: now,
-          };
-          this.saveCache(cache);
-          return fileTokens;
+        const stat = fs.statSync(TOKEN_FILE);
+        if (now - stat.mtimeMs < TOKEN_TTL_MS) {
+          const fileTokens = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'));
+          if (fileTokens.token && fileTokens.refreshToken) {
+            cache[email] = {
+              token: fileTokens.token,
+              refreshToken: fileTokens.refreshToken,
+              fetchedAt: stat.mtimeMs,
+            };
+            this.saveCache(cache);
+            return fileTokens;
+          }
         }
       } catch {
         // ignore

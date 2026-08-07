@@ -8,6 +8,9 @@ export class HomePage {
       .or(page.getByRole('button', { name: 'Actions Button' }).first())
       .or(page.locator('header button:has(img)'))
       .or(page.locator('[class*="dropdown-user"]'))
+      .or(page.locator('.ri-user-line, i[class*="user"], [class*="user-icon"]'))
+      .or(page.locator('header [class*="avatar"], header [class*="user"], header [class*="profile"]'))
+      .or(page.locator('.ri-government-line, [class*="government"]'))
       .first();
   }
 
