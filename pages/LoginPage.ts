@@ -36,15 +36,15 @@ export class LoginPage {
   async login(username: string, password: string, expectSuccess = true) {
     await test.step(`Login as ${username}`, async () => {
       // Check if already on dashboard / authenticated via API session
-      const isAlreadyOnDashboard = await this.page.waitForURL(/\/company|\/admin\b/i, { timeout: 2500 }).then(() => true).catch(() => false);
+      const isAlreadyOnDashboard = await this.page.waitForURL(/\/company\b/i, { timeout: 2500 }).then(() => true).catch(() => false);
       if (isAlreadyOnDashboard) {
         console.log(`[login] Page is already authenticated, skipping UI login form.`);
         return;
       }
 
       const isUsernameVisible = await this.usernameInput.isVisible({ timeout: 2000 }).catch(() => false);
-      if (!isUsernameVisible && (this.page.url().includes('/company') || this.page.url().includes('/admin'))) {
-        console.log(`[login] Page is already on company/admin dashboard, skipping UI login form.`);
+      if (!isUsernameVisible && this.page.url().includes('/company')) {
+        console.log(`[login] Page is already on company dashboard, skipping UI login form.`);
         return;
       }
 
@@ -53,7 +53,7 @@ export class LoginPage {
       await this.passwordInput.fill(password);
       await this.submitButton.click();
       if (expectSuccess) {
-        await expect(this.page).toHaveURL(/\/company|\/admin\b/i, { timeout: 20000 });
+        await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 20000 });
       }
     });
   }
