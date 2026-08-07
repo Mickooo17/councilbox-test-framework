@@ -93,6 +93,24 @@ jobs:
           path: allure-report/
           retention-days: 14
 
+      - name: Read Test Summary Metrics
+        if: always()
+        id: summary
+        run: |
+          TOTAL=$(cat total-tests.txt 2>/dev/null || echo "0")
+          PASSED=$(cat passed-tests.txt 2>/dev/null || echo "0")
+          FAILED=$(cat failed-tests-count.txt 2>/dev/null || echo "0")
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          if [ "$FAILED" -gt "0" ]; then
+            echo "status_text=FAILURE" >> $GITHUB_OUTPUT
+            echo "status_color=#e53e3e" >> $GITHUB_OUTPUT
+          else
+            echo "status_text=SUCCESS" >> $GITHUB_OUTPUT
+            echo "status_color=#2eae6f" >> $GITHUB_OUTPUT
+          fi
+
       - name: Send Email Notification
         if: always() && (github.event.inputs.send_email == 'true' || github.event_name != 'workflow_dispatch')
         continue-on-error: true
@@ -103,10 +121,48 @@ jobs:
           secure: true
           username: councilboxautotest@gmail.com
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "Councilbox QA Report - Build #${{ github.run_number }} - ${{ job.status }}"
+          subject: "Councilbox QA Report - Build #${{ github.run_number }} - ${{ steps.summary.outputs.status_text }}"
           to: ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com
           from: Councilbox Automation <councilboxautotest@gmail.com>
           html_body: |
-            <h2>Councilbox Test Report - Build #${{ github.run_number }}</h2>
-            <p>Status: <strong>${{ job.status }}</strong></p>
-            <p><a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/">Pogledaj Allure Izveštaj</a></p>
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px;">
+              <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="background-color: ${{ steps.summary.outputs.status_color }}; padding: 30px 20px; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">${{ steps.summary.outputs.status_text }}</h1>
+                  <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Build #${{ github.run_number }}</p>
+                </div>
+                <div style="padding: 30px;">
+                  <p style="color: #4a5568; font-size: 16px; text-align: center; margin-bottom: 25px;">
+                    Automated tests have completed. Here is the summary:
+                  </p>
+                  <table style="width: 100%; border-collapse: separate; border-spacing: 15px; margin-bottom: 30px;">
+                    <tr>
+                      <td style="text-align: center; padding: 15px; background-color: #f7fafc; border-radius: 6px; width: 33%;">
+                        <div style="font-size: 24px; font-weight: bold; color: #2d3748;">${{ steps.summary.outputs.total }}</div>
+                        <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Total</div>
+                      </td>
+                      <td style="text-align: center; padding: 15px; background-color: #f0fff4; border-radius: 6px; width: 33%;">
+                        <div style="font-size: 24px; font-weight: bold; color: #38a169;">${{ steps.summary.outputs.passed }}</div>
+                        <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Passed</div>
+                      </td>
+                      <td style="text-align: center; padding: 15px; background-color: #fff5f5; border-radius: 6px; width: 33%;">
+                        <div style="font-size: 24px; font-weight: bold; color: #e53e3e;">${{ steps.summary.outputs.failed }}</div>
+                        <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Failed</div>
+                      </td>
+                    </tr>
+                  </table>
+                  <div style="text-align: center;">
+                    <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
+                       style="display: inline-block; background-color: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                       View Full Allure Report
+                    </a>
+                  </div>
+                </div>
+                <div style="background-color: #edf2f7; padding: 15px; text-align: center; font-size: 12px; color: #718096;">
+                  <p style="margin: 0;">Sent by Councilbox Automation &bull; GitHub Actions</p>
+                </div>
+              </div>
+            </body>
+            </html>
