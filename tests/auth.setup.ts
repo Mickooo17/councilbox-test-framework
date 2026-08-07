@@ -51,7 +51,7 @@ setup('authenticate', async ({ page, request, context }) => {
     }).catch(() => {});
 
     // Navigate to direct login URL
-    await page.goto('https://qa.ovac.pre.councilbox.com/login', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     const usernameInput = page.locator('#username').or(page.getByPlaceholder(/Username|Email|Usuario/i)).first();
     await usernameInput.waitFor({ state: 'visible', timeout: 15000 });

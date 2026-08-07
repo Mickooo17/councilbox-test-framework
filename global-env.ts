@@ -17,9 +17,9 @@ const envUpper = env.toUpperCase();
 
 // Inject passwords from environment variables
 const envConfig = config[env];
-envConfig.users.admin.password = process.env[`${envUpper}_ADMIN_PASSWORD`] || '';
-envConfig.users.adminProfessional.password = process.env[`${envUpper}_ADMIN_PROFESSIONAL_PASSWORD`] || '';
-envConfig.users.superadmin.password = process.env[`${envUpper}_SUPERADMIN_PASSWORD`] || '';
+envConfig.users.admin.password = (process.env[`${envUpper}_ADMIN_PASSWORD`] || '').trim();
+envConfig.users.adminProfessional.password = (process.env[`${envUpper}_ADMIN_PROFESSIONAL_PASSWORD`] || '').trim();
+envConfig.users.superadmin.password = (process.env[`${envUpper}_SUPERADMIN_PASSWORD`] || '').trim();
 
 // Export selected environment config for use in tests
 export default envConfig;
