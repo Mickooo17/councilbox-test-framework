@@ -168,7 +168,7 @@ jobs:
             </html>
 
       - name: Send MS Teams Adaptive Card Notification
-        if: always() && secrets.TEAMS_WEBHOOK_URL != ''
+        if: always()
         continue-on-error: true
         run: node scripts/send-teams-card.js
         env:
