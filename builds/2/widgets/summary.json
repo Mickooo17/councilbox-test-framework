@@ -1,1 +1,1 @@
-{"reportName":"Councilbox Playwright Report","testRuns":[],"statistic":{"failed":1,"broken":0,"skipped":43,"passed":0,"unknown":0,"total":44},"time":{"start":1786105767393,"stop":1786105789982,"duration":22589,"minDuration":0,"maxDuration":21216,"sumDuration":21224}}
+{"reportName":"Councilbox Playwright Report","testRuns":[],"statistic":{"failed":3,"broken":4,"skipped":1,"passed":36,"unknown":0,"total":44},"time":{"start":1786110065245,"stop":1786110225097,"duration":159852,"minDuration":0,"maxDuration":43469,"sumDuration":660246}}
