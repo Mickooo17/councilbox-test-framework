@@ -31,9 +31,9 @@ setup('authenticate', async ({ page, request, context }) => {
       window.sessionStorage.setItem('refreshUserToken', refreshToken);
     }, { token: tokens.token, refreshToken: tokens.refreshToken });
 
-    // 4. Navigate to app URL
-    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(2000);
+    // 4. Navigate directly to company dashboard URL
+    const targetUrl = loginUrl.replace(/\/admin\/?$/i, '/company');
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 5. Verify user is authenticated
     await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
