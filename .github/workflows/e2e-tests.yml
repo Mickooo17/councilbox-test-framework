@@ -167,28 +167,12 @@ jobs:
             </body>
             </html>
 
-      - name: Send MS Teams Notification
-        if: always()
+      - name: Send MS Teams Adaptive Card Notification
+        if: always() && secrets.TEAMS_WEBHOOK_URL != ''
         continue-on-error: true
-        run: |
-          if [ -n "$TEAMS_WEBHOOK_URL" ]; then
-            REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
-            STATUS="${{ steps.summary.outputs.status_text }}"
-            TOTAL="${{ steps.summary.outputs.total }}"
-            PASSED="${{ steps.summary.outputs.passed }}"
-            FAILED="${{ steps.summary.outputs.failed }}"
-            
-            if [ "$STATUS" = "SUCCESS" ]; then
-              STATUS_BADGE="✅ **SUCCESS**"
-            else
-              STATUS_BADGE="❌ **FAILURE**"
-            fi
-
-            TEXT="### 🚀 **Councilbox QA Report** — \`Build #${{ github.run_number }}\`\n---\n**Status:** $STATUS_BADGE  \n**Environment:** \`Staging\`\n\n| Total 📊 | Passed ✅ | Failed ❌ |\n| :---: | :---: | :---: |\n| **$TOTAL** | **$PASSED** | **$FAILED** |\n\n👉 **[Open Allure Test Report]($REPORT_URL)**"
-
-            curl -s -X POST "$TEAMS_WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              -d "{\"text\":\"$TEXT\"}" || true
-          fi
+        run: node scripts/send-teams-card.js
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          REPORT_URL: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
+          GITHUB_RUN_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
