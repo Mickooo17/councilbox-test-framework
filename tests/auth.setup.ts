@@ -33,6 +33,7 @@ setup('authenticate', async ({ page, request, context }) => {
 
     // 4. Navigate to app URL
     await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(2000);
 
     // 5. Verify user is authenticated
     await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
@@ -58,6 +59,7 @@ setup('authenticate', async ({ page, request, context }) => {
     await usernameInput.fill(user.username);
     await page.locator('#password').fill(user.password);
     await page.locator('button[id="restore-password-button"]').click();
+    await page.waitForTimeout(2000);
 
     await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
     await page.context().storageState({ path: authFile });
