@@ -82,3 +82,41 @@ jobs:
           name: allure-report-build-${{ github.run_number }}
           path: allure-report/
           retention-days: 14
+
+      - name: Read Test Summary Metrics
+        if: always()
+        id: summary
+        run: |
+          TOTAL=$(cat total-tests.txt 2>/dev/null || echo "0")
+          PASSED=$(cat passed-tests.txt 2>/dev/null || echo "0")
+          FAILED=$(cat failed-tests-count.txt 2>/dev/null || echo "0")
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          if [ "$FAILED" -gt "0" ]; then
+            echo "status_text=FAILURE" >> $GITHUB_OUTPUT
+          else
+            echo "status_text=SUCCESS" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send MS Teams Notification
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+            REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
+            STATUS="${{ steps.summary.outputs.status_text }}"
+            TOTAL="${{ steps.summary.outputs.total }}"
+            PASSED="${{ steps.summary.outputs.passed }}"
+            FAILED="${{ steps.summary.outputs.failed }}"
+            
+            if [ "$STATUS" = "SUCCESS" ]; then ICON="✅"; else ICON="❌"; fi
+
+            TEXT="📢 *Councilbox QA Report - Build #${{ github.run_number }}* ($ICON $STATUS)\n\n📊 *Summary:*\n• Total: $TOTAL\n• Passed: $PASSED\n• Failed: $FAILED\n\n🔗 [View Allure Report]($REPORT_URL)"
+
+            curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"text\":\"$TEXT\"}" || true
+          fi
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}

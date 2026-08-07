@@ -166,3 +166,25 @@ jobs:
               </div>
             </body>
             </html>
+
+      - name: Send MS Teams Notification
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+            REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
+            STATUS="${{ steps.summary.outputs.status_text }}"
+            TOTAL="${{ steps.summary.outputs.total }}"
+            PASSED="${{ steps.summary.outputs.passed }}"
+            FAILED="${{ steps.summary.outputs.failed }}"
+            
+            if [ "$STATUS" = "SUCCESS" ]; then ICON="✅"; else ICON="❌"; fi
+
+            TEXT="📢 *Councilbox QA Report - Build #${{ github.run_number }}* ($ICON $STATUS)\n\n📊 *Summary:*\n• Total: $TOTAL\n• Passed: $PASSED\n• Failed: $FAILED\n\n🔗 [View Allure Report]($REPORT_URL)"
+
+            curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"text\":\"$TEXT\"}" || true
+          fi
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
