@@ -70,20 +70,12 @@ jobs:
         if: always()
         run: node scripts/extract-allure-summary.js || true
 
-      - name: Generate Allure Metadata & Report
+      - name: Generate & Deploy Allure Report to GitHub Pages (Keep Last 5 Builds)
         if: always()
-        run: |
-          node generate-allure-meta.js || true
-          npx allure generate allure-results --clean -o allure-report
-
-      - name: Deploy Allure Report to GitHub Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./allure-report
-          destination_dir: builds/${{ github.run_number }}
-          keep_files: true
+        run: node scripts/deploy-allure-gh-pages.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Upload Allure Report Artifact
         if: always()
