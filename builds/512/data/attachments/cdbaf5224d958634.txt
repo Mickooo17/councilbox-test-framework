@@ -1,0 +1,10 @@
+[setup] API login failed (Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /\/company\b/i
+Received string:  "https://qa.ovac.pre.councilbox.com/admin"
+Timeout: 20000ms
+
+Call log:
+  - Expect "toHaveURL" with timeout 20000ms
+    23 × unexpected value "https://qa.ovac.pre.councilbox.com/admin"
+), falling back to UI login...
