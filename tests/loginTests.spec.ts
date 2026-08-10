@@ -90,6 +90,20 @@ f.test.describe('LoginPage - UI Tests', () => {
     // Assert
     await appointmentLoginPage.verifyAppointmentAccessElementsVisible();
   });
+
+  f.test('Verify user cannot access appointment with invalid ID, reference number or code @XR-2281 @XR-2282 @XR-2284 @regression', async ({ page, appointmentLoginPage }) => {
+    // Act - Fixture opens /admin, so we navigate specifically to /login
+    await page.goto('https://qa.ovac.pre.councilbox.com/login');
+
+    // Act - Fill invalid appointment credentials (invalid DNI/ID & reference number)
+    await appointmentLoginPage.fillAppointmentLoginCredentials('00000000X', 'INVALID_REF_999');
+
+    // Act - Click Continue
+    await appointmentLoginPage.clickContinueButton();
+
+    // Assert - Verify "Invalid credentials" error message is displayed
+    await appointmentLoginPage.verifyInvalidCredentialsErrorMessage();
+  });
 });
 
 f.test.describe('LoginPage - Password Recovery Tests', () => {

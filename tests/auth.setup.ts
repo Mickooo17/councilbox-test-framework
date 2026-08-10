@@ -35,7 +35,7 @@ setup('authenticate', async ({ page, request, context }) => {
     await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 5. Verify user is authenticated
-    await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+    await expect(page).toHaveURL(/\/company|\/admin/i, { timeout: 20000 });
 
     // 6. Save storage state
     await page.context().storageState({ path: authFile });
@@ -59,7 +59,7 @@ setup('authenticate', async ({ page, request, context }) => {
     await page.locator('#password').fill(user.password);
     await page.locator('button[id="restore-password-button"]').click();
 
-    await expect(page).toHaveURL(/\/company\b/i, { timeout: 20000 });
+    await expect(page).toHaveURL(/\/company|\/admin/i, { timeout: 20000 });
     await page.context().storageState({ path: authFile });
 
     // Extract sessionStorage after UI login and save to tokens.json
