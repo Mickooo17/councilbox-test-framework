@@ -1,10 +1,6 @@
 name: Playwright E2E Tests & Allure Report
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   schedule:
     - cron: '0 6 * * 1-5' # Pokreće se svakog radnog dana u 06:00 UTC
   workflow_dispatch:
