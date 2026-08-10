@@ -5,6 +5,11 @@ import { AppointmentDataStore, CreatedAppointmentData } from '../../utils/appoin
 test.describe('OVAC Appointment API Creation & UI Verification Suite', () => {
   test.describe.configure({ mode: 'serial' });
 
+  test.beforeAll(async () => {
+    // Clear data store at the start of test suite run for clean state
+    AppointmentDataStore.clearStore();
+  });
+
   let createdAppointment: CreatedAppointmentData;
 
   test('1. Create appointment via API and save to DataStore @XR-API-APPOINTMENT-CREATE', async ({ request }) => {
