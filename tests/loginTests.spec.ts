@@ -73,15 +73,9 @@ f.test.describe('LoginPage - Validation Tests', () => {
 });
 
 f.test.describe('LoginPage - UI Tests', () => {
-  f.test('should have all required login elements visible @smoke', async ({ loginPage }) => {
-    // Assert
-    const usernameInput = loginPage.usernameInput;
-    const passwordInput = loginPage.passwordInput;
-    const submitButton = loginPage.submitButton;
-
-    await usernameInput.isVisible();
-    await passwordInput.isVisible();
-    await submitButton.isVisible();
+  f.test('Verify that "/login" page contains all fields and buttons @XR-2280 @smoke @regression', async ({ loginPage }) => {
+    // Assert - Verify that login page contains all fields, buttons, and links
+    await loginPage.verifyAllLoginFieldsAndButtonsVisible();
   });
 
   f.test('should verify footer links are present @regression', async ({ loginPage }) => {

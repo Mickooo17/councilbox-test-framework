@@ -16,6 +16,7 @@ export class LoginPage {
   readonly spanishOption: Locator;
   readonly catalanOption: Locator;
   readonly englishOption: Locator;
+  readonly digitalCertificateButton: Locator;
 
   constructor(private page: Page) {
     this.usernameInput = page.locator('#username');
@@ -31,6 +32,7 @@ export class LoginPage {
     this.spanishOption = page.getByRole('option', { name: /Español|Spanish|ES/i }).or(page.getByText(/Español|Spanish|ES/i)).first();
     this.catalanOption = page.getByRole('option', { name: /Català|Catalan|CA/i }).or(page.getByText(/Català|Catalan|CA/i)).first();
     this.englishOption = page.getByRole('option', { name: /English|EN/i }).or(page.getByText(/English|EN/i)).first();
+    this.digitalCertificateButton = page.getByText(/Digital Certificate|Certificado Digital/i).first();
   }
 
   async login(username: string, password: string, expectSuccess = true) {
@@ -114,6 +116,19 @@ export class LoginPage {
     await test.step('Verify footer links are present', async () => {
       await expect(this.privacyPolicyLink).toBeVisible();
       await expect(this.legalNoticeLink).toBeVisible();
+    });
+  }
+
+  async verifyAllLoginFieldsAndButtonsVisible() {
+    await test.step('Verify that "/login" page contains all fields and buttons', async () => {
+      await expect(this.usernameInput, 'Username input field should be visible').toBeVisible();
+      await expect(this.passwordInput, 'Password input field should be visible').toBeVisible();
+      await expect(this.submitButton, 'Access/Submit button should be visible').toBeVisible();
+      await expect(this.passwordRecoveryLink, 'Password recovery link should be visible').toBeVisible();
+      await expect(this.passwordToggleButton, 'Toggle password visibility button should be visible').toBeVisible();
+      await expect(this.privacyPolicyLink, 'Privacy policy link should be visible').toBeVisible();
+      await expect(this.legalNoticeLink, 'Legal notice link should be visible').toBeVisible();
+      await expect(this.digitalCertificateButton, 'Digital Certificate access button should be visible').toBeVisible();
     });
   }
 
