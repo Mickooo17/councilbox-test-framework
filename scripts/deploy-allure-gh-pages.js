@@ -72,9 +72,13 @@ function deployAllure() {
   fs.mkdirSync(newBuildDir, { recursive: true });
   fs.cpSync(path.join(process.cwd(), 'allure-report'), newBuildDir, { recursive: true });
 
-  // Create root index.html if missing to redirect to latest build
+  // Create root index.html to redirect to latest build
   const rootIndex = path.join(tempDir, 'index.html');
   fs.writeFileSync(rootIndex, `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=builds/${buildNumber}/"></head><body>Redirecting to <a href="builds/${buildNumber}/">build #${buildNumber}</a>...</body></html>`);
+
+  // Create .nojekyll file so GitHub Pages does not ignore underscore files in Allure reports
+  const noJekyll = path.join(tempDir, '.nojekyll');
+  fs.writeFileSync(noJekyll, '');
 
   // 5. Cleanup old builds (keep only last `maxBuilds`)
   const allBuilds = fs.readdirSync(buildsDir)
