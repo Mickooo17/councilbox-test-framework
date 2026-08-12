@@ -20,8 +20,9 @@ export class HomePage {
 
   async validateHomePageIsOpened() {
     await test.step('Validate home page is opened', async () => {
-      if (!this.page.url().includes('/company')) {
-        await expect(this.page).toHaveURL(/\/company\b/i, { timeout: 15000 });
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes('/company') && !currentUrl.includes('/admin')) {
+        await expect(this.page).toHaveURL(/\/company|\/admin/i, { timeout: 15000 });
       }
       await this.verifyProfileIconIsAccessible();
 

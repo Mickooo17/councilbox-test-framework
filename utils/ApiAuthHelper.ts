@@ -50,34 +50,16 @@ export class ApiAuthHelper {
     }
   }
 
-  static async getTokensForUser(requestContext: APIRequestContext, email: string, password: string): Promise<AuthTokens> {
+  static async getTokensForUser(requestContext: APIRequestContext, email: string, password: string, forceFresh = false): Promise<AuthTokens> {
     const cache = this.loadCache();
     const cached = cache[email];
     const now = Date.now();
 
-    if (cached && cached.token && cached.refreshToken && (now - cached.fetchedAt < TOKEN_TTL_MS)) {
+    if (!forceFresh && cached && cached.token && cached.refreshToken && (now - cached.fetchedAt < TOKEN_TTL_MS)) {
       return {
         token: cached.token,
         refreshToken: cached.refreshToken,
       };
-    }
-
-    // Check existing tokens.json as secondary cache
-    if (fs.existsSync(TOKEN_FILE)) {
-      try {
-        const fileTokens = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'));
-        if (fileTokens.token && fileTokens.refreshToken) {
-          cache[email] = {
-            token: fileTokens.token,
-            refreshToken: fileTokens.refreshToken,
-            fetchedAt: now,
-          };
-          this.saveCache(cache);
-          return fileTokens;
-        }
-      } catch {
-        // ignore
-      }
     }
 
     // Fetch fresh tokens via GraphQL API

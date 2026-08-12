@@ -15,8 +15,8 @@ setup('authenticate', async ({ page, request, context }) => {
   console.log(`[setup] Authenticating via API as ${user.username}...`);
 
   try {
-    // 1. Fetch/get cached tokens via ApiAuthHelper (uses 1-hour cache)
-    const tokens = await ApiAuthHelper.getTokensForUser(request, user.username, user.password);
+    // 1. Fetch fresh tokens via ApiAuthHelper
+    const tokens = await ApiAuthHelper.getTokensForUser(request, user.username, user.password, true);
 
     // 2. Ensure .auth dir exists and save tokens.json
     const authDir = path.dirname(tokensFile);
