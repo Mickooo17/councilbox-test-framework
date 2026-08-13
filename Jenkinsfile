@@ -115,49 +115,7 @@ pipeline {
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
 
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                            bat """
-                                @echo off
-                                set GIT_TERMINAL_PROMPT=0
-                                if exist gh-pages-temp rmdir /s /q gh-pages-temp
-                                
-                                echo Cloning gh-pages branch (shallow)...
-                                git clone --depth 1 --branch gh-pages --single-branch https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages-temp
-                                
-                                :: --- TREND HISTORY LOGIC ---
-                                set /a PREV_BUILD=%BUILD_NUMBER%-1
-                                if exist gh-pages-temp\\builds\\%PREV_BUILD%\\history (
-                                    echo Previous history found in build %PREV_BUILD%. Copying to results...
-                                    if not exist allure-results\\history mkdir allure-results\\history
-                                    xcopy /s /e /y gh-pages-temp\\builds\\%PREV_BUILD%\\history allure-results\\history\\
-                                ) else (
-                                    echo No previous history found for trend charts.
-                                )
-
-                                echo Generating Allure environment and executor metadata...
-                                node generate-allure-meta.js
-
-                                echo Generating Allure report...
-                                call npx allure generate allure-results --clean -o allure-report
-                                
-                                echo Preparing deployment folder for build %BUILD_NUMBER%...
-                                if not exist gh-pages-temp\\builds mkdir gh-pages-temp\\builds
-                                mkdir gh-pages-temp\\builds\\%BUILD_NUMBER%
-                                
-                                echo Copying new report files...
-                                xcopy /s /e /y allure-report gh-pages-temp\\builds\\%BUILD_NUMBER%\\
-                                
-                                echo Cleaning up old builds (keeping only last 10)...
-                                powershell -Command "if (Test-Path 'gh-pages-temp\\builds') { Get-ChildItem -Path 'gh-pages-temp\\builds' -Directory | Where-Object { \$_ -match '^\\d+\$' } | Sort-Object { [int]\$_.Name } -Descending | Select-Object -Skip 10 | Remove-Item -Recurse -Force }"
-
-                                cd gh-pages-temp
-                                git config user.name "Jenkins Automation"
-                                git config user.email "jenkins@councilbox.com"
-                                
-                                echo Committing and pushing to GitHub Pages...
-                                git add -A
-                                git commit -m "Add Allure report for build ${env.BUILD_NUMBER} and cleanup old reports"
-                                git push https://%GITHUB_TOKEN%@github.com/%GITHUB_USER%/%GITHUB_REPO%.git gh-pages
-                            """
+                            bat 'cmd /c node scripts/deploy-allure-gh-pages.js'
                         }
                         echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
                     }

@@ -38,10 +38,15 @@ function deployAllure() {
     fs.mkdirSync(buildsDir, { recursive: true });
   }
 
+  const getSortedBuildsByTime = () => {
+    if (!fs.existsSync(buildsDir)) return [];
+    return fs.readdirSync(buildsDir)
+      .filter(f => /^\d+$/.test(f) && fs.statSync(path.join(buildsDir, f)).isDirectory())
+      .sort((a, b) => fs.statSync(path.join(buildsDir, b)).mtimeMs - fs.statSync(path.join(buildsDir, a)).mtimeMs);
+  };
+
   // 2. Trend History logic: copy history from latest existing build to allure-results/history
-  const existingBuilds = fs.readdirSync(buildsDir)
-    .filter(f => /^\d+$/.test(f) && fs.statSync(path.join(buildsDir, f)).isDirectory())
-    .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+  const existingBuilds = getSortedBuildsByTime();
 
   if (existingBuilds.length > 0) {
     const latestBuild = existingBuilds[0];
@@ -72,18 +77,8 @@ function deployAllure() {
   fs.mkdirSync(newBuildDir, { recursive: true });
   fs.cpSync(path.join(process.cwd(), 'allure-report'), newBuildDir, { recursive: true });
 
-  // Create root index.html to redirect to latest build
-  const rootIndex = path.join(tempDir, 'index.html');
-  fs.writeFileSync(rootIndex, `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=builds/${buildNumber}/"></head><body>Redirecting to <a href="builds/${buildNumber}/">build #${buildNumber}</a>...</body></html>`);
-
-  // Create .nojekyll file so GitHub Pages does not ignore underscore files in Allure reports
-  const noJekyll = path.join(tempDir, '.nojekyll');
-  fs.writeFileSync(noJekyll, '');
-
-  // 5. Cleanup old builds (keep only last `maxBuilds`)
-  const allBuilds = fs.readdirSync(buildsDir)
-    .filter(f => /^\d+$/.test(f) && fs.statSync(path.join(buildsDir, f)).isDirectory())
-    .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+  // 5. Cleanup old builds (keep only last `maxBuilds` by modification time)
+  const allBuilds = getSortedBuildsByTime();
 
   if (allBuilds.length > maxBuilds) {
     const buildsToRemove = allBuilds.slice(maxBuilds);
@@ -94,6 +89,28 @@ function deployAllure() {
   } else {
     console.log(`[deploy] Total builds: ${allBuilds.length}. Within limit of ${maxBuilds}.`);
   }
+
+  // 6. Create root index.html pointing to the latest available build
+  const remainingBuilds = getSortedBuildsByTime();
+  const latestBuildNum = remainingBuilds.length > 0 ? remainingBuilds[0] : buildNumber;
+
+  const rootIndex = path.join(tempDir, 'index.html');
+  fs.writeFileSync(rootIndex, `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; url=builds/${latestBuildNum}/">
+  <script>window.location.replace("builds/${latestBuildNum}/");</script>
+  <title>Allure Report</title>
+</head>
+<body>
+  Redirecting to <a href="builds/${latestBuildNum}/">build #${latestBuildNum}</a>...
+</body>
+</html>`);
+
+  // Create .nojekyll file so GitHub Pages does not ignore underscore files in Allure reports
+  const noJekyll = path.join(tempDir, '.nojekyll');
+  fs.writeFileSync(noJekyll, '');
 
   // 6. Commit and Push to gh-pages
   console.log(`[deploy] Committing and pushing to gh-pages...`);
