@@ -30,5 +30,11 @@ Thumbs.db
 # Environment files
 .env
 
-# Generated test reports
+# Generated test reports & temporary summary files
+*.txt
+email-body.html
+junit-results/
+.playwright-mcp/
+gh-pages-temp/
+*-details.json
 test-results.json

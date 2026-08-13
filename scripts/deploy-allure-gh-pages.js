@@ -99,7 +99,7 @@ function deployAllure() {
   console.log(`[deploy] Committing and pushing to gh-pages...`);
   run(`git config user.name "GitHub Actions Automation"`, { cwd: tempDir });
   run(`git config user.email "actions@github.com"`, { cwd: tempDir });
-  run(`git add -A`, { cwd: tempDir });
+  run(`git add -A --force`, { cwd: tempDir });
 
   try {
     run(`git commit -m "Add Allure report for build #${buildNumber} and keep last ${maxBuilds} builds"`, { cwd: tempDir });

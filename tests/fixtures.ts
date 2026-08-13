@@ -74,26 +74,33 @@ export const test = base.extend<{
     if (isUnauthenticatedTest) {
       // Clear cookies and storage for unauthenticated tests so they stay on login page
       await page.context().clearCookies().catch(() => {});
-      await page.addInitScript(() => {
-        window.sessionStorage.clear();
-        window.localStorage.clear();
-      });
-    } else if (fs.existsSync(tokensFile)) {
-      // Inject auth tokens into sessionStorage before navigation ONLY for authenticated dashboard tests
-      try {
-        const tokens = JSON.parse(fs.readFileSync(tokensFile, 'utf-8'));
-        if (tokens.token && tokens.refreshToken) {
-          await page.addInitScript(({ token, refreshToken }) => {
-            window.sessionStorage.setItem('token', token);
-            window.sessionStorage.setItem('refreshUserToken', refreshToken);
-          }, { token: tokens.token, refreshToken: tokens.refreshToken });
+      const targetUrl = fileName.includes('appointmentLogin') 
+        ? loginUrl.replace(/\/admin\/?$/i, '/login') 
+        : loginUrl;
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
+      await page.evaluate(() => {
+        try {
+          window.sessionStorage.clear();
+          window.localStorage.clear();
+        } catch {}
+      }).catch(() => {});
+    } else {
+      if (fs.existsSync(tokensFile)) {
+        // Inject auth tokens into sessionStorage before navigation ONLY for authenticated dashboard tests
+        try {
+          const tokens = JSON.parse(fs.readFileSync(tokensFile, 'utf-8'));
+          if (tokens.token && tokens.refreshToken) {
+            await page.addInitScript(({ token, refreshToken }) => {
+              window.sessionStorage.setItem('token', token);
+              window.sessionStorage.setItem('refreshUserToken', refreshToken);
+            }, { token: tokens.token, refreshToken: tokens.refreshToken });
+          }
+        } catch (err) {
+          console.warn(`[fixture:page] Could not inject tokens:`, err);
         }
-      } catch (err) {
-        console.warn(`[fixture:page] Could not inject tokens:`, err);
       }
+      await page.goto(loginUrl);
     }
-
-    await page.goto(loginUrl);
 
     // Auto-dismiss any bottom toast/banner or overlay modal for authenticated pages
     if (!isUnauthenticatedTest) {
