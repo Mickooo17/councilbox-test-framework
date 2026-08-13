@@ -37,18 +37,15 @@ export class LoginPage {
 
   async login(username: string, password: string, expectSuccess = true) {
     await test.step(`Login as ${username}`, async () => {
-      // Check if already on dashboard / authenticated via API session
-      const isAlreadyOnDashboard = await this.page.waitForURL(/\/company|\/admin/i, { timeout: 2500 }).then(() => true).catch(() => false);
-      if (isAlreadyOnDashboard) {
-        console.log(`[login] Page is already authenticated, skipping UI login form.`);
-        return;
-      }
-
-      const isUsernameVisible = await this.usernameInput.isVisible({ timeout: 2000 }).catch(() => false);
-      const url = this.page.url();
-      if (!isUsernameVisible && (url.includes('/company') || url.includes('/admin'))) {
-        console.log(`[login] Page is already on company dashboard, skipping UI login form.`);
-        return;
+      // Check if username input is visible on screen. If visible, we MUST perform UI login.
+      const isUsernameVisible = await this.usernameInput.isVisible({ timeout: 3000 }).catch(() => false);
+      if (!isUsernameVisible) {
+        const isCompanyDashboard = this.page.url().includes('/company');
+        const hasProfileIcon = await this.page.locator('#cbx-header-third-dropdown-user, [class*="dropdown-user"]').isVisible({ timeout: 2000 }).catch(() => false);
+        if (isCompanyDashboard || hasProfileIcon) {
+          console.log(`[login] Page is already authenticated, skipping UI login form.`);
+          return;
+        }
       }
 
       await this.usernameInput.waitFor({ state: 'visible', timeout: 15000 });
