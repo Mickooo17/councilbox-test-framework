@@ -14,8 +14,8 @@ export class AppointmentLoginPage {
   constructor(private page: Page) {
     this.userButton = page.getByRole('button', { name: /Button user|user/i }).or(page.locator('button:has(.ri-user-line)'));
     this.accessAppointmentHeading = page.getByText(/Access|Acceso/i, { exact: false });
-    this.idNumberInput = page.locator('#id-number');
-    this.refNumberInput = page.locator('#ref-number');
+    this.idNumberInput = page.locator('#id-number').or(page.locator('#dni')).or(page.getByPlaceholder(/DNI|NIF|ID|Passport|Identificación/i)).first();
+    this.refNumberInput = page.locator('#ref-number').or(page.locator('#reference')).or(page.getByPlaceholder(/Reference|Referencia|Code|Código/i)).first();
     this.continueAppointmentButton = page.getByRole('button', { name: /Continue|Continuar/i });
     this.appointmentIcon = page.locator('i').nth(2);
     // Setting up locators specific to this page exactly as they appear in the test steps

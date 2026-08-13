@@ -87,9 +87,12 @@ export class UsersPage extends BasePage {
 
     async submitUserForm() {
         await test.step('Submit user form (Continue → Add)', async () => {
-            // Wait for any popover or backdrop to clear and state to settle
+            // Dismiss any open popover backdrop or press Escape
+            await this.page.keyboard.press('Escape').catch(() => {});
             await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
-            await this.page.waitForTimeout(500);
+            await this.page.waitForTimeout(300);
+
+            await this.continueButton.waitFor({ state: 'visible', timeout: 5000 });
             await this.continueButton.click();
 
             // Wait for step 2 to appear
