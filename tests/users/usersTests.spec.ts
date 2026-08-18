@@ -2,6 +2,7 @@ import * as f from '../fixtures';
 import { expect } from '../fixtures';
 import { DataGenerator } from '../../utils/DataGenerator';
 import { UserDataStore } from '../../utils/users/UserDataStore';
+import { UserApiHelper, CreatedUserData } from '../../utils/users/UserApiHelper';
 
 f.test.describe('Users - Add User Tests', () => {
     f.test.beforeEach(async ({ homePage, usersPage }) => {
@@ -257,6 +258,61 @@ f.test.describe('Users - Edit User Tests', () => {
         await usersPage.clickBackButton();
 
         // 6. Cleanup: delete user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+});
+
+f.test.describe('Users - Edit Language Tests', () => {
+    f.test.describe.configure({ mode: 'serial' });
+
+    let sharedUser: CreatedUserData;
+
+    f.test.beforeAll(async ({ request }) => {
+        // Create 1 single Admin Agent user via API for all language tests
+        sharedUser = await UserApiHelper.createAdminAgentUser(request, { preferredLanguage: 'en' });
+        expect(sharedUser).toBeDefined();
+        expect(sharedUser.id).toBeGreaterThan(0);
+    });
+
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
+        await homePage.validateHomePageIsOpened();
+        await usersPage.dismissToastOrModal();
+        if (!usersPage.page.url().includes('/users')) {
+            await usersPage.navigateToUsers();
+        }
+        await usersPage.searchUser(sharedUser.email);
+        await usersPage.verifyUserInTable(sharedUser.fullName);
+    });
+
+    f.test('The user is able to change the Language to Italiano @smoke @regression', async ({ usersPage }) => {
+        await usersPage.editUser({ language: 'Italiano' });
+        await usersPage.verifyUserEditedAlert();
+        await usersPage.verifyLanguageInEditForm('Italiano');
+        await usersPage.clickBackButton();
+    });
+
+    f.test('The user is able to change the Language to Catala @smoke @regression', async ({ usersPage }) => {
+        await usersPage.editUser({ language: 'Catala' });
+        await usersPage.verifyUserEditedAlert();
+        await usersPage.verifyLanguageInEditForm('Catala');
+        await usersPage.clickBackButton();
+    });
+
+    f.test('The user is able to change the Language to Euskera @smoke @regression', async ({ usersPage }) => {
+        await usersPage.editUser({ language: 'Euskera' });
+        await usersPage.verifyUserEditedAlert();
+        await usersPage.verifyLanguageInEditForm('Euskera');
+        await usersPage.clickBackButton();
+    });
+
+    f.test('The user is able to change the Language to Espanol @smoke @regression', async ({ usersPage }) => {
+        await usersPage.editUser({ language: 'Español' });
+        await usersPage.verifyUserEditedAlert();
+        await usersPage.verifyLanguageInEditForm('Español');
+        await usersPage.clickBackButton();
+
+        // Cleanup: delete the shared user
         await usersPage.deleteUser();
         await usersPage.verifyUserDeletedAlert();
     });

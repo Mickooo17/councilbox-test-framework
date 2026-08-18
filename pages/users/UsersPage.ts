@@ -156,9 +156,14 @@ export class UsersPage extends BasePage {
             await langContainer.click();
             await this.page.waitForTimeout(400);
 
-            const option = this.page.getByRole('menuitem', { name: language })
-                .or(this.page.getByRole('option', { name: language }))
-                .or(this.page.locator('.MuiMenuItem-root').filter({ hasText: new RegExp(`^${language}$`, 'i') }))
+            let pattern = language;
+            if (/catala/i.test(language)) pattern = 'Català|Catala';
+            if (/espanol/i.test(language)) pattern = 'Español|Espanol';
+            if (/valencia/i.test(language)) pattern = 'Valencià|Valencia';
+
+            const option = this.page.getByRole('menuitem', { name: new RegExp(`^(${pattern})$`, 'i') })
+                .or(this.page.getByRole('option', { name: new RegExp(`^(${pattern})$`, 'i') }))
+                .or(this.page.locator('.MuiMenuItem-root').filter({ hasText: new RegExp(`^(${pattern})$`, 'i') }))
                 .first();
             await option.click();
             await this.page.waitForTimeout(300);
@@ -184,7 +189,12 @@ export class UsersPage extends BasePage {
 
     async verifyLanguageInEditForm(expectedLanguage: string) {
         await test.step(`Verify language in edit form is: ${expectedLanguage}`, async () => {
-            await expect(this.languageInput).toHaveValue(expectedLanguage, { timeout: 5000 });
+            let pattern = expectedLanguage;
+            if (/catala/i.test(expectedLanguage)) pattern = 'Català|Catala';
+            if (/espanol/i.test(expectedLanguage)) pattern = 'Español|Espanol';
+            if (/valencia/i.test(expectedLanguage)) pattern = 'Valencià|Valencia';
+
+            await expect(this.languageInput).toHaveValue(new RegExp(`^(${pattern})$`, 'i'), { timeout: 5000 });
         });
     }
 
@@ -275,7 +285,8 @@ export class UsersPage extends BasePage {
             } else {
                 await this.page.keyboard.press('Escape');
             }
-            await this.page.waitForTimeout(800);
+            await this.page.waitForTimeout(500);
+            await this.dismissToastOrModal();
         });
     }
 
