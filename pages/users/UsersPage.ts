@@ -1,6 +1,10 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { MESSAGES } from '../../utils/Constants';
+import { UserApiHelper, CreateUserApiOptions, CreatedUserData, UserRole } from '../../utils/users/UserApiHelper';
+import { UserDataStore } from '../../utils/users/UserDataStore';
+
+export { CreateUserApiOptions, CreatedUserData, UserRole, UserDataStore };
 
 export interface UserData {
     name: string;
@@ -8,6 +12,7 @@ export interface UserData {
     phone: string;
     idCard: string;
     email: string;
+    language?: string;
 }
 
 export class UsersPage extends BasePage {
@@ -17,6 +22,7 @@ export class UsersPage extends BasePage {
     readonly phoneInput: Locator;
     readonly idCardInput: Locator;
     readonly emailInput: Locator;
+    readonly languageInput: Locator;
     readonly continueButton: Locator;
     readonly addButton: Locator;
     readonly searchInput: Locator;
@@ -30,6 +36,7 @@ export class UsersPage extends BasePage {
         this.phoneInput = page.locator('#user-settings-phone');
         this.idCardInput = page.locator('#user-id-card-type');
         this.emailInput = page.locator('#user-form-email');
+        this.languageInput = page.locator('#user-settings-language');
         this.continueButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Continue|Continuar/i }).or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
         this.addButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /Add|Añadir|Guardar/i })).first();
         this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
@@ -135,14 +142,62 @@ export class UsersPage extends BasePage {
         });
     }
 
+    async openEditUserForm() {
+        await test.step('Open user edit form', async () => {
+            await this.page.getByRole('cell', { name: 'Icon Button' }).getByLabel('Icon Button').first().click();
+            await this.page.getByRole('button', { name: /Edit|Editar/i }).click();
+            await this.nameInput.waitFor({ state: 'visible', timeout: 10000 });
+        });
+    }
+
+    async selectLanguageInEditForm(language: string) {
+        await test.step(`Select language in edit form: ${language}`, async () => {
+            const langContainer = this.languageInput.locator('..');
+            await langContainer.click();
+            await this.page.waitForTimeout(400);
+
+            const option = this.page.getByRole('menuitem', { name: language })
+                .or(this.page.getByRole('option', { name: language }))
+                .or(this.page.locator('.MuiMenuItem-root').filter({ hasText: new RegExp(`^${language}$`, 'i') }))
+                .first();
+            await option.click();
+            await this.page.waitForTimeout(300);
+        });
+    }
+
+    async saveUserEditForm() {
+        await test.step('Save user edit form', async () => {
+            await this.page.waitForTimeout(400);
+            const saveButton = this.page.getByRole('button', { name: /Save|Guardar/i });
+            await saveButton.click();
+        });
+    }
+
+    async verifyEmailIsDisabled(expectedEmail?: string) {
+        await test.step('Verify email input is disabled/read-only in edit form', async () => {
+            await expect(this.emailInput).toBeDisabled({ timeout: 5000 });
+            if (expectedEmail) {
+                await expect(this.emailInput).toHaveValue(expectedEmail);
+            }
+        });
+    }
+
+    async verifyLanguageInEditForm(expectedLanguage: string) {
+        await test.step(`Verify language in edit form is: ${expectedLanguage}`, async () => {
+            await expect(this.languageInput).toHaveValue(expectedLanguage, { timeout: 5000 });
+        });
+    }
+
+    async verifyPhoneInEditForm(expectedPhone: string) {
+        await test.step(`Verify phone in edit form contains: ${expectedPhone}`, async () => {
+            await expect(this.phoneInput).toHaveValue(expectedPhone, { timeout: 5000 });
+        });
+    }
+
     async editUser(newData: Partial<UserData>) {
         await test.step(`Edit user with new data`, async () => {
             // Click the actions menu (Icon Button) on the first user row
-            await this.page.getByRole('cell', { name: 'Icon Button' }).getByLabel('Icon Button').click();
-            await this.page.getByRole('button', { name: ' Edit' }).click();
-
-            // Wait for edit form to appear
-            await this.nameInput.waitFor({ state: 'visible' });
+            await this.openEditUserForm();
 
             // Fill only the fields that are provided
             if (newData.name) {
@@ -163,13 +218,12 @@ export class UsersPage extends BasePage {
                 await this.nameInput.blur();
             }
 
-            // Buffer to allow React state validations to settle before clicking Save
-            await this.page.waitForTimeout(500);
+            if (newData.language) {
+                await this.selectLanguageInEditForm(newData.language);
+            }
 
-            // Edit form has a single Save button at the top (no Continue step)
-            const saveButton = this.page.getByRole('button', { name: /Save|Guardar/i });
-            await saveButton.click();
-            // In edit mode, the drawer stays open after saving, so we DO NOT wait for it to hide here.
+            // Save form
+            await this.saveUserEditForm();
         });
     }
 
@@ -222,6 +276,25 @@ export class UsersPage extends BasePage {
                 await this.page.keyboard.press('Escape');
             }
             await this.page.waitForTimeout(800);
+        });
+    }
+
+    /**
+     * Creates an Admin Agent user ('professionalAdmin') via GraphQL API.
+     * Can be called directly on usersPage fixture in any test.
+     */
+    async createAdminAgentUserViaApi(options: Omit<CreateUserApiOptions, 'role'> = {}): Promise<CreatedUserData> {
+        return await test.step('Create Admin Agent user via API', async () => {
+            return await UserApiHelper.createAdminAgentUser(this.page.request, options);
+        });
+    }
+
+    /**
+     * Creates any user with specified role and permissions via GraphQL API.
+     */
+    async createUserViaApi(options: CreateUserApiOptions = {}): Promise<CreatedUserData> {
+        return await test.step(`Create user (${options.role || 'professionalAdmin'}) via API`, async () => {
+            return await UserApiHelper.createUser(this.page.request, options);
         });
     }
 }

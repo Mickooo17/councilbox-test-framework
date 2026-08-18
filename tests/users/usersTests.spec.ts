@@ -1,5 +1,7 @@
 import * as f from '../fixtures';
+import { expect } from '../fixtures';
 import { DataGenerator } from '../../utils/DataGenerator';
+import { UserDataStore } from '../../utils/users/UserDataStore';
 
 f.test.describe('Users - Add User Tests', () => {
     f.test.beforeEach(async ({ homePage, usersPage }) => {
@@ -118,35 +120,143 @@ f.test.describe('Users - Edit User Tests', () => {
         await usersPage.navigateToUsers();
     });
 
-    f.test('should edit an existing user name and verify the change @regression', async ({ usersPage }) => {
-        const userData = DataGenerator.randomUserData();
+    f.test('The user is able to change the Name - Users settings section @smoke @regression @XR-1630', async ({ usersPage }) => {
+        // 1. Create Admin Agent user via API (automatically stored in UserDataStore)
+        const user = await usersPage.createAdminAgentUserViaApi();
+        expect(user).toBeDefined();
+        expect(user.id).toBeGreaterThan(0);
 
-        // First create a user to edit
-        await usersPage.clickAddUser();
-        await usersPage.fillUserForm(userData);
-        await usersPage.selectLanguage('English');
-        await usersPage.submitUserForm();
-        await usersPage.verifyUserCreatedAlert();
+        // 2. Search for the user in UI
+        await usersPage.searchUser(user.email);
+        await usersPage.verifyUserInTable(user.fullName);
 
-        // Search for the created user
-        await usersPage.searchUser(userData.name);
-        const originalFullName = `${userData.name} ${userData.surname}`;
-        await usersPage.verifyUserInTable(originalFullName);
-
-        // Edit the user's name
+        // 3. Edit user's name
         const newName = `EDITED_${DataGenerator.randomNumber(6)}`;
         await usersPage.editUser({ name: newName });
         await usersPage.verifyUserEditedAlert();
-        
-        // Click back button to return to the users table
+
+        // 4. Update user object in UserDataStore
+        const updatedUser = UserDataStore.updateUser(user.id, { name: newName });
+        expect(updatedUser?.fullName).toBe(`${newName} ${user.surname}`);
+
+        // 5. Click back button to return to the users table
         await usersPage.clickBackButton();
 
-        // Verify the edited name appears
-        const editedFullName = `${newName} ${userData.surname}`;
+        // 6. Search for updated name and verify new name is in the table
         await usersPage.searchUser(newName);
-        await usersPage.verifyUserInTable(editedFullName);
+        await usersPage.verifyUserInTable(updatedUser!.fullName);
 
-        // Cleanup: delete the edited user
+        // 7. Cleanup: delete the edited user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('The user is able to change the Surname - Users settings section @smoke @regression @XR-1631', async ({ usersPage }) => {
+        // 1. Create Admin Agent user via API (automatically stored in UserDataStore)
+        const user = await usersPage.createAdminAgentUserViaApi();
+        expect(user).toBeDefined();
+        expect(user.id).toBeGreaterThan(0);
+
+        // 2. Search for the user in UI
+        await usersPage.searchUser(user.email);
+        await usersPage.verifyUserInTable(user.fullName);
+
+        // 3. Edit user's surname
+        const newSurname = `EDITED_SURNAME_${DataGenerator.randomNumber(6)}`;
+        await usersPage.editUser({ surname: newSurname });
+        await usersPage.verifyUserEditedAlert();
+
+        // 4. Update user object in UserDataStore
+        const updatedUser = UserDataStore.updateUser(user.id, { surname: newSurname });
+        expect(updatedUser?.fullName).toBe(`${user.name} ${newSurname}`);
+
+        // 5. Click back button to return to the users table
+        await usersPage.clickBackButton();
+
+        // 6. Search for updated surname and verify new surname is in the table
+        await usersPage.searchUser(newSurname);
+        await usersPage.verifyUserInTable(updatedUser!.fullName);
+
+        // 7. Cleanup: delete the edited user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('The user is able to view Email field is disabled - Users settings section @smoke @regression @XR-1632', async ({ usersPage }) => {
+        // 1. Create Admin Agent user via API
+        const user = await usersPage.createAdminAgentUserViaApi();
+        expect(user).toBeDefined();
+        expect(user.id).toBeGreaterThan(0);
+
+        // 2. Search for the user in UI
+        await usersPage.searchUser(user.email);
+        await usersPage.verifyUserInTable(user.fullName);
+
+        // 3. Open user edit form
+        await usersPage.openEditUserForm();
+
+        // 4. Verify email is populated from user object and is disabled/read-only
+        await usersPage.verifyEmailIsDisabled(user.email);
+
+        // 5. Click back button
+        await usersPage.clickBackButton();
+
+        // 6. Cleanup
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('The user is able to change the Phone - Users settings section @smoke @regression @XR-1633', async ({ usersPage }) => {
+        // 1. Create Admin Agent user via API
+        const user = await usersPage.createAdminAgentUserViaApi();
+        expect(user).toBeDefined();
+        expect(user.id).toBeGreaterThan(0);
+
+        // 2. Search for the user in UI
+        await usersPage.searchUser(user.email);
+        await usersPage.verifyUserInTable(user.fullName);
+
+        // 3. Edit phone number
+        const newPhone = `6${DataGenerator.randomNumber(7)}`;
+        await usersPage.editUser({ phone: newPhone });
+        await usersPage.verifyUserEditedAlert();
+
+        // 4. Update user object in UserDataStore
+        const updatedUser = UserDataStore.updateUser(user.id, { phone: newPhone });
+        expect(updatedUser?.phone).toBe(newPhone);
+
+        // 5. Verify the updated phone value in the edit form
+        await usersPage.verifyPhoneInEditForm(newPhone);
+
+        // 6. Click back button to return to table
+        await usersPage.clickBackButton();
+
+        // 7. Cleanup: delete the edited user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('The user is able to change the Language to English - Users settings section @smoke @regression @XR-1634', async ({ usersPage }) => {
+        // 1. Create Admin Agent user via API with Spanish as default language ('es')
+        const user = await usersPage.createAdminAgentUserViaApi({ preferredLanguage: 'es' });
+        expect(user).toBeDefined();
+        expect(user.id).toBeGreaterThan(0);
+
+        // 2. Search for the user in UI
+        await usersPage.searchUser(user.email);
+        await usersPage.verifyUserInTable(user.fullName);
+
+        // 3. Edit language to English
+        await usersPage.editUser({ language: 'English' });
+        await usersPage.verifyUserEditedAlert();
+
+        // 4. Verify language changed to English in the edit form
+        await usersPage.verifyLanguageInEditForm('English');
+
+        // 5. Click back button to return to table
+        await usersPage.clickBackButton();
+
+        // 6. Cleanup: delete user
         await usersPage.deleteUser();
         await usersPage.verifyUserDeletedAlert();
     });
