@@ -285,28 +285,28 @@ f.test.describe('Users - Edit Language Tests', () => {
         await usersPage.verifyUserInTable(sharedUser.fullName);
     });
 
-    f.test('The user is able to change the Language to Italiano @smoke @regression', async ({ usersPage }) => {
+    f.test('The user is able to change the Language to Italiano @smoke @regression @XR-2540', async ({ usersPage }) => {
         await usersPage.editUser({ language: 'Italiano' });
         await usersPage.verifyUserEditedAlert();
         await usersPage.verifyLanguageInEditForm('Italiano');
         await usersPage.clickBackButton();
     });
 
-    f.test('The user is able to change the Language to Catala @smoke @regression', async ({ usersPage }) => {
+    f.test('The user is able to change the Language to Catala @smoke @regression @XR-2541', async ({ usersPage }) => {
         await usersPage.editUser({ language: 'Catala' });
         await usersPage.verifyUserEditedAlert();
         await usersPage.verifyLanguageInEditForm('Catala');
         await usersPage.clickBackButton();
     });
 
-    f.test('The user is able to change the Language to Euskera @smoke @regression', async ({ usersPage }) => {
+    f.test('The user is able to change the Language to Euskera @smoke @regression @XR-2542', async ({ usersPage }) => {
         await usersPage.editUser({ language: 'Euskera' });
         await usersPage.verifyUserEditedAlert();
         await usersPage.verifyLanguageInEditForm('Euskera');
         await usersPage.clickBackButton();
     });
 
-    f.test('The user is able to change the Language to Espanol @smoke @regression', async ({ usersPage }) => {
+    f.test('The user is able to change the Language to Espanol @smoke @regression @XR-2543', async ({ usersPage }) => {
         await usersPage.editUser({ language: 'Español' });
         await usersPage.verifyUserEditedAlert();
         await usersPage.verifyLanguageInEditForm('Español');

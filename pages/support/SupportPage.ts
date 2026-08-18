@@ -12,6 +12,9 @@ export class SupportPage extends BasePage {
     readonly sendButton: Locator;
     readonly validationError: Locator;
 
+    readonly userAccountDropdown: Locator;
+    readonly supportMenuItem: Locator;
+
     constructor(page: Page) {
         super(page);
         
@@ -21,9 +24,21 @@ export class SupportPage extends BasePage {
             .or(page.getByRole('button', { name: /support|soporte|help|ayuda/i }))
             .first();
 
+        // User account dropdown in dashboard header
+        this.userAccountDropdown = page.locator('#cbx-header-third-dropdown-user')
+            .or(page.getByRole('button', { name: 'Actions Button' }))
+            .or(page.locator('header button:has(img)'))
+            .first();
+
+        // Support option in account dropdown
+        this.supportMenuItem = page.locator('#user-settings-contact-support')
+            .or(page.getByRole('menuitem', { name: /^Support$|^Soporte$/i }))
+            .or(page.locator('.cbx-dropdown-presentation').getByText(/^Support$|^Soporte$/i))
+            .first();
+
         // Contact / Support modal drawer
-        this.supportModal = page.locator('div:has(h6:has-text("Contact")), div:has(h6:has-text("Support")), .MuiDrawer-paperAnchorRight, .MuiDrawer-paper, .MuiDialog-paper, [role="dialog"]')
-            .filter({ has: page.getByRole('heading', { name: /Contact|Support|Soporte|Contacto/i }) })
+        this.supportModal = page.locator('div:has(h6:has-text("Contact")), div:has(h6:has-text("Support")), .MuiDrawer-paperAnchorRight, .MuiDrawer-paper, .MuiDialog-paper, [role="dialog"], .cbx-drawerPanel-container')
+            .filter({ has: page.getByRole('heading', { name: /Contact|Support|Soporte|Contacto/i }).or(page.getByText(/Support|Soporte|Contact/i)) })
             .first();
 
         // Input fields in Contact modal (Name = input 0, Surname = input 1, Email = input 2)
@@ -39,15 +54,62 @@ export class SupportPage extends BasePage {
             .or(page.locator('input[name="email"], input#email, input[type="email"]'))
             .first();
 
-        this.messageInput = this.supportModal.locator('textarea')
-            .or(page.locator('textarea[name="message"], #support-contact-message'))
+        this.messageInput = page.locator('#support-contact-message')
+            .or(this.supportModal.locator('textarea'))
+            .or(page.locator('textarea[name="message"], textarea'))
             .first();
 
         this.sendButton = this.supportModal.locator('button').filter({ hasText: /Send|Enviar/i })
+            .or(page.locator('button').filter({ hasText: /^Send$|^Enviar$/i }))
             .or(page.locator('button[type="submit"]'))
             .first();
 
         this.validationError = page.getByText(/Required|Obligatorio|This field is required|Este campo es obligatorio/i).first();
+    }
+
+    async openSupportModalFromUserMenu() {
+        await test.step('Open Support modal from user account menu', async () => {
+            await this.dismissToastOrModal();
+            await this.userAccountDropdown.waitFor({ state: 'visible', timeout: 15000 });
+            await this.userAccountDropdown.click();
+            await this.supportMenuItem.waitFor({ state: 'visible', timeout: 10000 });
+            await this.supportMenuItem.click();
+            await this.messageInput.waitFor({ state: 'visible', timeout: 10000 });
+        });
+    }
+
+    async fillMessage(message: string) {
+        await test.step(`Fill message in support modal (length: ${message.length})`, async () => {
+            await this.messageInput.waitFor({ state: 'visible', timeout: 5000 });
+            await this.messageInput.fill(message);
+        });
+    }
+
+    async verifyMessageCharacterLimit(maxAllowedLength: number = 500) {
+        await test.step(`Verify message input does not exceed ${maxAllowedLength} characters`, async () => {
+            const value = await this.messageInput.inputValue();
+            expect(value.length, `Message length (${value.length}) exceeded allowed maximum (${maxAllowedLength})`).toBeLessThanOrEqual(maxAllowedLength);
+
+            const maxLengthAttr = await this.messageInput.getAttribute('maxlength');
+            if (maxLengthAttr) {
+                expect(Number(maxLengthAttr)).toBe(maxAllowedLength);
+            }
+        });
+    }
+
+    async verifyCharacterCounter(expectedCounter: string = '500/500') {
+        await test.step(`Verify character counter displays "${expectedCounter}"`, async () => {
+            const counterRegex = new RegExp(expectedCounter.replace('/', '\\s*\\/\\s*'));
+            const counter = this.page.getByText(counterRegex).first();
+            await expect(counter).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    async closeSupportModal() {
+        await test.step('Close Support modal', async () => {
+            await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(500);
+        });
     }
 
     async openSupportModal() {
