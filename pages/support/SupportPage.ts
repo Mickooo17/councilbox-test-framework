@@ -1,6 +1,7 @@
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { DataGenerator } from '../../utils/DataGenerator';
+import { MESSAGES } from '../../utils/Constants';
 
 export class SupportPage extends BasePage {
     readonly supportButton: Locator;
@@ -102,6 +103,26 @@ export class SupportPage extends BasePage {
             const counterRegex = new RegExp(expectedCounter.replace('/', '\\s*\\/\\s*'));
             const counter = this.page.getByText(counterRegex).first();
             await expect(counter).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    async clickSendButton() {
+        await test.step('Click Send button in support modal', async () => {
+            await this.sendButton.waitFor({ state: 'visible', timeout: 5000 });
+            await this.sendButton.click();
+        });
+    }
+
+    async verifyMessageSentAlert() {
+        await test.step('Verify support message sent success alert', async () => {
+            await expect(this.page.getByRole('alert')).toContainText(MESSAGES.SUPPORT_MESSAGE_SENT, { timeout: 10000 });
+        });
+    }
+
+    async sendSupportMessage(message: string) {
+        await test.step(`Send support message: "${message}"`, async () => {
+            await this.fillMessage(message);
+            await this.clickSendButton();
         });
     }
 

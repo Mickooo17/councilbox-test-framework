@@ -11,4 +11,5 @@ export const MESSAGES = {
     USER_DELETE_CONFIRMATION: 'Are you sure you want to delete the selected user?',
     DOCUMENT_UPLOADED: 'File uploaded',
     DOCUMENT_DELETED: 'Document deleted',
+    SUPPORT_MESSAGE_SENT: /The message has been successfully sent|El mensaje se ha enviado correctamente/i,
 };
