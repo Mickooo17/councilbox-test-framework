@@ -154,4 +154,28 @@ export class TagsPage extends BasePage {
             await this.saveButton.click();
         });
     }
+
+    async verifyTagNotInTable(key: string) {
+        await test.step(`Verify tag "${key}" is NOT in the table`, async () => {
+            await this.page.waitForTimeout(1000);
+            const tbodyCount = await this.tableBody.count();
+            if (tbodyCount > 0) {
+                await expect(this.tableBody).not.toContainText(key, { timeout: 5000 });
+            } else {
+                await expect(this.page.getByText('No content found. Please review your selection and try again.')).toBeVisible({ timeout: 5000 });
+            }
+        });
+    }
+
+    async verifyCreateTagFormVisible() {
+        await test.step('Verify create tag form dialog is visible', async () => {
+            await expect(this.page.getByRole('dialog')).toBeVisible();
+        });
+    }
+
+    async verifyFieldRequiredError() {
+        await test.step('Verify required field validation error is visible', async () => {
+            await expect(this.page.getByText(/required|obligatorio/i).first()).toBeVisible({ timeout: 5000 });
+        });
+    }
 }
