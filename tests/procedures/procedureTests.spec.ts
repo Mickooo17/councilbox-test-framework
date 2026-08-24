@@ -1,9 +1,8 @@
 import { test, expect } from '../fixtures';
 import { DataGenerator } from '../../utils/DataGenerator';
 
-test.describe('Procedures - Documentation Tab Tests', () => {
+test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
     let procedureData: { name: string; description: string };
-    const folderTitle = `Auto Folder ${Math.floor(1000 + Math.random() * 9000)}`;
 
     test.beforeEach(async ({ homePage, proceduresPage }) => {
         procedureData = DataGenerator.randomProcedureData();
@@ -25,6 +24,7 @@ test.describe('Procedures - Documentation Tab Tests', () => {
 
     test('Verify that the name of file is not clickable but downloadable via 3-dots menu - Documentation tab - Video appointment procedure creation @XR-2291 @regression', async ({ proceduresPage }) => {
         test.slow();
+        const folderTitle = `Auto Folder ${Math.floor(1000 + Math.random() * 9000)}`;
         console.log('[TEST] Starting procedure creation with name:', procedureData.name);
 
         // 1. Open create procedure drawer
@@ -71,6 +71,32 @@ test.describe('Procedures - Documentation Tab Tests', () => {
         console.log('[TEST] Step 9: Downloaded file name:', downloadedFileName);
         expect(downloadedFileName).toBeTruthy();
         expect(downloadedFileName.toLowerCase()).toContain(attachedDocName.toLowerCase());
-        console.log('[TEST] Test passed successfully!');
+        console.log('[TEST] Test XR-2291 passed successfully!');
+    });
+
+    test('Verify that all elements are displayed in Configuration tab - Video appointment procedure creation @XR-2298 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        console.log('[TEST] Starting procedure creation for XR-2298 with name:', procedureData.name);
+
+        // 1. Open create procedure drawer
+        console.log('[TEST] Step 1: Opening create procedure drawer...');
+        await proceduresPage.openCreateProcedureDrawer();
+
+        // 2. Select Video-appointment procedure type
+        console.log('[TEST] Selecting Video-appointment...');
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 3. Fill procedure details and continue
+        console.log('[TEST] Step 2: Filling procedure details...');
+        await proceduresPage.fillProcedureDetails(procedureData);
+
+        // 4. Navigate to Configuration tab
+        console.log('[TEST] Step 3: Navigating to Configuration tab...');
+        await proceduresPage.navigateToConfigurationTab();
+
+        // 5. Verify all sections and elements in Configuration tab
+        console.log('[TEST] Step 4: Verifying all Configuration elements (General, Appointments, Security)...');
+        await proceduresPage.verifyAllConfigurationElements();
+        console.log('[TEST] Test XR-2298 passed successfully!');
     });
 });

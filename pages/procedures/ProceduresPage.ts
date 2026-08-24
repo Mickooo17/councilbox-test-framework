@@ -12,11 +12,69 @@ export class ProceduresPage extends BasePage {
     readonly procedureNameInput: Locator;
     readonly procedureDescriptionEditor: Locator;
     readonly continueButton: Locator;
+    readonly previousButton: Locator;
     readonly documentationTab: Locator;
     readonly addFolderButton: Locator;
     readonly folderTitleInput: Locator;
     readonly searchProceduresInput: Locator;
     readonly tableBody: Locator;
+
+    // Configuration - General Section
+    readonly generalHeading: Locator;
+    readonly languagesHeading: Locator;
+    readonly languagesDescription: Locator;
+    readonly languageOptionEspanol: Locator;
+    readonly languageOptionEnglish: Locator;
+    readonly languageOptionGalego: Locator;
+    readonly languageOptionValencia: Locator;
+    readonly languageOptionCatala: Locator;
+    readonly languageOptionItaliano: Locator;
+    readonly languageOptionEuskera: Locator;
+
+    readonly consentsHeading: Locator;
+    readonly consentsReorderLabel: Locator;
+    readonly consentsEditingLabel: Locator;
+
+    readonly noticesHeading: Locator;
+    readonly notificationsToggleLabel: Locator;
+    readonly noticeEmailCheckbox: Locator;
+    readonly noticeSmsCheckbox: Locator;
+    readonly noticeWhatsappCheckbox: Locator;
+    readonly defaultMethodLabel: Locator;
+
+    // Configuration - Appointments Section
+    readonly appointmentsHeading: Locator;
+    readonly optionsHeading: Locator;
+    readonly representativeToggleLabel: Locator;
+    readonly requestAndRescheduleToggleLabel: Locator;
+    readonly minApplicationPeriodLabel: Locator;
+    readonly maxApplicationPeriodLabel: Locator;
+    readonly automaticCancellationToggleLabel: Locator;
+    readonly cancelAppointmentToggleLabel: Locator;
+    readonly internalNotesRequiredCheckbox: Locator;
+    readonly conclusionsSignatureCheckbox: Locator;
+
+    readonly agendaHeading: Locator;
+    readonly timeAllocatedLabel: Locator;
+
+    readonly evidenceHeading: Locator;
+    readonly recordingLabel: Locator;
+    readonly typeOfRecordingLabel: Locator;
+
+    readonly biometricHeading: Locator;
+    readonly biometricAutoRadio: Locator;
+    readonly biometricManualValidationRadio: Locator;
+
+    // Configuration - Security Section
+    readonly securityHeading: Locator;
+    readonly secureAccessHeading: Locator;
+    readonly personalIdentificationText: Locator;
+    readonly appointmentsCompletedText: Locator;
+    readonly accessRolesLabel: Locator;
+
+    readonly documentsAndReportsHeading: Locator;
+    readonly signatureVisibilityToggleLabel: Locator;
+    readonly automaticReportToggleLabel: Locator;
 
     constructor(page: Page) {
         super(page);
@@ -25,11 +83,69 @@ export class ProceduresPage extends BasePage {
         this.procedureNameInput = page.locator('#procedure-name-input').or(page.getByPlaceholder(/Name of the procedure/i)).first();
         this.procedureDescriptionEditor = page.locator('.ql-editor').first();
         this.continueButton = page.locator('#procedure-editor-next').or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
+        this.previousButton = page.locator('#procedure-editor-prev').or(page.getByRole('button', { name: /Previous|Anterior/i })).first();
         this.documentationTab = page.locator('[role="tab"], .MuiTab-root, button, p, div').filter({ hasText: /^Documentation$|^Documentación$/i }).first();
         this.addFolderButton = page.locator('#default-page-button, .MuiFab-root, button[aria-label*="Add" i]').or(page.getByRole('button', { name: /Add|Añadir/i })).first();
         this.folderTitleInput = page.locator('#document-editor-title-input').or(page.getByLabel(/Title/i)).first();
         this.searchProceduresInput = page.getByPlaceholder('Search for procedures').or(page.locator('input[placeholder*="Search" i]')).first();
         this.tableBody = page.locator('tbody');
+
+        // Configuration - General
+        this.generalHeading = page.getByRole('heading', { name: /General/i }).or(page.getByText(/^General$/i)).first();
+        this.languagesHeading = page.getByRole('heading', { name: /Languages|Idiomas/i }).or(page.getByText(/^LANGUAGES$|^IDIOMAS$/i)).first();
+        this.languagesDescription = page.getByText(/Languages available for the procedure|Idiomas disponibles/i).first();
+        this.languageOptionEspanol = page.getByText('Español').first();
+        this.languageOptionEnglish = page.getByText('English').first();
+        this.languageOptionGalego = page.getByText('Galego').first();
+        this.languageOptionValencia = page.getByText('Valencià').first();
+        this.languageOptionCatala = page.getByText('Català').first();
+        this.languageOptionItaliano = page.getByText('Italiano').first();
+        this.languageOptionEuskera = page.getByText('Euskera').first();
+
+        this.consentsHeading = page.getByRole('heading', { name: /Consents|Consentimientos/i }).or(page.getByText(/^CONSENTS$|^CONSENTIMIENTOS$/i)).first();
+        this.consentsReorderLabel = page.getByText(/Reorder|Reordenar/i).first();
+        this.consentsEditingLabel = page.getByText(/Editing after meeting call|Edición tras convocatoria/i).first();
+
+        this.noticesHeading = page.getByRole('heading', { name: /Notices|Avisos/i }).or(page.getByText(/^NOTICES$|^AVISOS$/i)).first();
+        this.notificationsToggleLabel = page.getByText(/Notifications|Notificaciones/i).first();
+        this.noticeEmailCheckbox = page.getByLabel(/E-mail|Email/i).or(page.getByText(/^E-mail$|^Email$/i)).first();
+        this.noticeSmsCheckbox = page.getByLabel('SMS').or(page.getByText(/^SMS$/i)).first();
+        this.noticeWhatsappCheckbox = page.getByLabel(/WhatsApp/i).or(page.getByText(/^WhatsApp$/i)).first();
+        this.defaultMethodLabel = page.getByText(/Default method|Método por defecto/i).first();
+
+        // Configuration - Appointments
+        this.appointmentsHeading = page.getByRole('heading', { name: /Appointments|Citas/i }).or(page.getByText(/^Appointments$|^Citas$/i)).first();
+        this.optionsHeading = page.getByText(/^OPTIONS:|^OPCIONES:/i).first();
+        this.representativeToggleLabel = page.getByText(/Representative|Representante/i).first();
+        this.requestAndRescheduleToggleLabel = page.getByText(/Request and reschedule appointment|Solicitar y reprogramar cita/i).first();
+        this.minApplicationPeriodLabel = page.getByText(/Minimum application period|Plazo mínimo de solicitud/i).first();
+        this.maxApplicationPeriodLabel = page.getByText(/Maximum application period|Plazo máximo de solicitud/i).first();
+        this.automaticCancellationToggleLabel = page.getByText(/Automatic cancellation|Cancelación automática/i).first();
+        this.cancelAppointmentToggleLabel = page.getByText(/Cancel appointment|Cancelar cita/i).first();
+        this.internalNotesRequiredCheckbox = page.getByText(/Required to complete the appointment|Obligatorio para completar la cita/i).first();
+        this.conclusionsSignatureCheckbox = page.getByText(/Require participants' signature|Requerir firma de los participantes/i).first();
+
+        this.agendaHeading = page.getByRole('heading', { name: /Agenda/i }).or(page.getByText(/^AGENDA$/i)).first();
+        this.timeAllocatedLabel = page.getByText(/Time allocated to each appointment|Tiempo asignado a cada cita/i).first();
+
+        this.evidenceHeading = page.getByRole('heading', { name: /Evidence|Evidencias/i }).or(page.getByText(/^EVIDENCE$|^EVIDENCIAS$/i)).first();
+        this.recordingLabel = page.getByText(/^Recording$|^Grabación$/i).first();
+        this.typeOfRecordingLabel = page.getByText(/Type of recording|Tipo de grabación/i).first();
+
+        this.biometricHeading = page.getByRole('heading', { name: /Biometric identification|Identificación biométrica/i }).or(page.getByText(/^BIOMETRIC IDENTIFICATION$|^IDENTIFICACIÓN BIOMÉTRICA$/i)).first();
+        this.biometricAutoRadio = page.getByText(/Automatic biometric identification\.|Identificación biométrica automática\./i).first();
+        this.biometricManualValidationRadio = page.getByText(/Automatic biometric identification with manual validation\.|Identificación biométrica automática con validación manual\./i).first();
+
+        // Configuration - Security
+        this.securityHeading = page.getByRole('heading', { name: /Security|Seguridad/i }).or(page.getByText(/^Security$|^Seguridad$/i)).first();
+        this.secureAccessHeading = page.getByRole('heading', { name: /Secure access|Acceso seguro/i }).or(page.getByText(/^SECURE ACCESS$|^ACCESO SEGURO$/i)).first();
+        this.personalIdentificationText = page.getByText(/Personal identification number or Passport|Documento de identidad o Pasaporte/i).first();
+        this.appointmentsCompletedText = page.getByText(/Appointments completed|Citas finalizadas/i).first();
+        this.accessRolesLabel = page.getByText(/Access roles|Roles de acceso/i).first();
+
+        this.documentsAndReportsHeading = page.getByRole('heading', { name: /Documents and reports|Documentos e informes/i }).or(page.getByText(/^DOCUMENTS AND REPORTS$|^DOCUMENTOS E INFORMES$/i)).first();
+        this.signatureVisibilityToggleLabel = page.getByText(/Signature visibility|Visibilidad de firma/i).first();
+        this.automaticReportToggleLabel = page.getByText(/Automatic report|Informe automático/i).first();
     }
 
     async openCreateProcedureDrawer() {
@@ -70,6 +186,95 @@ export class ProceduresPage extends BasePage {
             await this.documentationTab.click();
             await this.page.waitForTimeout(1000);
             await this.addFolderButton.waitFor({ state: 'visible', timeout: 15000 });
+        });
+    }
+
+    async navigateToConfigurationTab() {
+        await test.step('Navigate to Configuration tab in procedure creation', async () => {
+            await this.dismissToastOrModal();
+
+            // Advance through wizard steps until reaching /configuration URL
+            for (let i = 0; i < 6; i++) {
+                if (this.page.url().includes('/configuration')) break;
+
+                const nextBtn = this.page.locator('#procedure-editor-next').or(this.page.getByRole('button', { name: /Continue|Continuar/i })).first();
+                if (await nextBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+                    await nextBtn.click();
+                    await this.page.waitForTimeout(1000);
+                }
+            }
+
+            await this.page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+            await this.languagesHeading.waitFor({ state: 'visible', timeout: 15000 });
+        });
+    }
+
+    async verifyAllConfigurationElements() {
+        await test.step('Verify all elements in Configuration tab (General, Appointments, Security)', async () => {
+            // 1. General Section & Subsections
+            await expect(this.generalHeading).toBeVisible();
+            await expect(this.languagesHeading).toBeVisible();
+            await expect(this.languagesDescription).toBeVisible();
+
+            // Languages
+            await expect(this.languageOptionEspanol).toBeVisible();
+            await expect(this.languageOptionEnglish).toBeVisible();
+            await expect(this.languageOptionGalego).toBeVisible();
+            await expect(this.languageOptionValencia).toBeVisible();
+            await expect(this.languageOptionCatala).toBeVisible();
+            await expect(this.languageOptionItaliano).toBeVisible();
+            await expect(this.languageOptionEuskera).toBeVisible();
+
+            // Consents
+            await expect(this.consentsHeading).toBeVisible();
+            await expect(this.consentsReorderLabel).toBeVisible();
+            await expect(this.consentsEditingLabel).toBeVisible();
+
+            // Notices
+            await expect(this.noticesHeading).toBeVisible();
+            await expect(this.notificationsToggleLabel).toBeVisible();
+            await expect(this.noticeEmailCheckbox).toBeVisible();
+            await expect(this.noticeSmsCheckbox).toBeVisible();
+            await expect(this.noticeWhatsappCheckbox).toBeVisible();
+            await expect(this.defaultMethodLabel).toBeVisible();
+
+            // 2. Appointments Section & Subsections
+            await expect(this.appointmentsHeading).toBeVisible();
+            await expect(this.optionsHeading).toBeVisible();
+            await expect(this.representativeToggleLabel).toBeVisible();
+            await expect(this.requestAndRescheduleToggleLabel).toBeVisible();
+            await expect(this.minApplicationPeriodLabel).toBeVisible();
+            await expect(this.maxApplicationPeriodLabel).toBeVisible();
+            await expect(this.automaticCancellationToggleLabel).toBeVisible();
+            await expect(this.cancelAppointmentToggleLabel).toBeVisible();
+            await expect(this.internalNotesRequiredCheckbox).toBeVisible();
+            await expect(this.conclusionsSignatureCheckbox).toBeVisible();
+
+            // Agenda
+            await expect(this.agendaHeading).toBeVisible();
+            await expect(this.timeAllocatedLabel).toBeVisible();
+
+            // Evidence
+            await expect(this.evidenceHeading).toBeVisible();
+            await expect(this.recordingLabel).toBeVisible();
+            await expect(this.typeOfRecordingLabel).toBeVisible();
+
+            // Biometric Identification
+            await expect(this.biometricHeading).toBeVisible();
+            await expect(this.biometricAutoRadio).toBeVisible();
+            await expect(this.biometricManualValidationRadio).toBeVisible();
+
+            // 3. Security Section & Subsections
+            await expect(this.securityHeading).toBeVisible();
+            await expect(this.secureAccessHeading).toBeVisible();
+            await expect(this.personalIdentificationText).toBeVisible();
+            await expect(this.appointmentsCompletedText).toBeVisible();
+            await expect(this.accessRolesLabel).toBeVisible();
+
+            // Documents and Reports
+            await expect(this.documentsAndReportsHeading).toBeVisible();
+            await expect(this.signatureVisibilityToggleLabel).toBeVisible();
+            await expect(this.automaticReportToggleLabel).toBeVisible();
         });
     }
 
