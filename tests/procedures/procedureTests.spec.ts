@@ -99,4 +99,51 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.verifyAllConfigurationElements();
         console.log('[TEST] Test XR-2298 passed successfully!');
     });
+
+    test('Using the toggle switch on the procedure, the administrator can make consent as required @XR-2706 @regression', async ({ proceduresPage, request }) => {
+        test.slow();
+        const consentTitle = `Consent ${Math.floor(1000 + Math.random() * 9000)}`;
+        const consentDesc = `Description for ${consentTitle}`;
+
+        // 1. Create procedure via API
+        console.log('[TEST] Step 1: Creating procedure via GraphQL API...');
+        const createdProcedure = await proceduresPage.createProcedureViaApi(request, {
+            title: procedureData.name,
+            description: procedureData.description,
+            companyId: 1112,
+        });
+        console.log('[TEST] Procedure created via API with ID:', createdProcedure.id);
+
+        // 2. Open procedure's Consents tab in UI
+        console.log('[TEST] Step 2: Navigating to Consents tab for procedure:', createdProcedure.id);
+        await proceduresPage.navigateToProcedureConsents(createdProcedure.id, createdProcedure.companyId);
+
+        // 3. Add consent with initial optional status
+        console.log('[TEST] Step 3: Adding consent:', consentTitle);
+        await proceduresPage.addConsent(consentTitle, consentDesc, false);
+
+        // 4. Verify consent initial state is Optional (switch not checked)
+        console.log('[TEST] Step 4: Verifying consent is initially Optional...');
+        await proceduresPage.verifyConsentRequiredState(consentTitle, false);
+
+        // 5. Toggle switch to make consent Required
+        console.log('[TEST] Step 5: Toggling Required switch ON...');
+        await proceduresPage.toggleConsentRequiredOnCard(consentTitle, true);
+
+        // 6. Verify consent is now Required (switch checked)
+        console.log('[TEST] Step 6: Verifying consent is now Required...');
+        await proceduresPage.verifyConsentRequiredState(consentTitle, true);
+
+        // 7. Toggle switch back to Optional
+        console.log('[TEST] Step 7: Toggling Required switch OFF...');
+        await proceduresPage.toggleConsentRequiredOnCard(consentTitle, false);
+        await proceduresPage.verifyConsentRequiredState(consentTitle, false);
+
+        // 8. Toggle back to Required
+        console.log('[TEST] Step 8: Toggling Required switch ON again...');
+        await proceduresPage.toggleConsentRequiredOnCard(consentTitle, true);
+        await proceduresPage.verifyConsentRequiredState(consentTitle, true);
+
+        console.log('[TEST] Test XR-2706 passed successfully!');
+    });
 });

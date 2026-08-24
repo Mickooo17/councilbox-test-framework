@@ -1,5 +1,6 @@
-import { Page, Locator, expect, test, Download } from '@playwright/test';
+import { Page, Locator, expect, test, Download, APIRequestContext } from '@playwright/test';
 import { BasePage } from '../BasePage';
+import { ProcedureApiHelper, CreateProcedureApiOptions, CreatedProcedureData } from '../../utils/procedures/ProcedureApiHelper';
 
 export interface ProcedureData {
     name: string;
@@ -14,8 +15,11 @@ export class ProceduresPage extends BasePage {
     readonly continueButton: Locator;
     readonly previousButton: Locator;
     readonly documentationTab: Locator;
+    readonly consentsTab: Locator;
     readonly addFolderButton: Locator;
+    readonly addConsentButton: Locator;
     readonly folderTitleInput: Locator;
+    readonly consentTitleInput: Locator;
     readonly searchProceduresInput: Locator;
     readonly tableBody: Locator;
 
@@ -85,8 +89,11 @@ export class ProceduresPage extends BasePage {
         this.continueButton = page.locator('#procedure-editor-next').or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
         this.previousButton = page.locator('#procedure-editor-prev').or(page.getByRole('button', { name: /Previous|Anterior/i })).first();
         this.documentationTab = page.locator('[role="tab"], .MuiTab-root, button, p, div').filter({ hasText: /^Documentation$|^Documentación$/i }).first();
+        this.consentsTab = page.locator('[role="tab"], .MuiTab-root, button, p, div').filter({ hasText: /^Consents$|^Consentimientos$/i }).first();
         this.addFolderButton = page.locator('#default-page-button, .MuiFab-root, button[aria-label*="Add" i]').or(page.getByRole('button', { name: /Add|Añadir/i })).first();
+        this.addConsentButton = page.getByRole('button', { name: /^Add$|^Añadir$/i }).or(page.locator('.MuiFab-root, button.MuiFab-primary')).first();
         this.folderTitleInput = page.locator('#document-editor-title-input').or(page.getByLabel(/Title/i)).first();
+        this.consentTitleInput = page.locator('#agenda-editor-title-input').or(page.getByLabel(/Title/i)).first();
         this.searchProceduresInput = page.getByPlaceholder('Search for procedures').or(page.locator('input[placeholder*="Search" i]')).first();
         this.tableBody = page.locator('tbody');
 
@@ -106,6 +113,7 @@ export class ProceduresPage extends BasePage {
         this.consentsReorderLabel = page.getByText(/Reorder|Reordenar/i).first();
         this.consentsEditingLabel = page.getByText(/Editing after meeting call|Edición tras convocatoria/i).first();
 
+        // Notices
         this.noticesHeading = page.getByRole('heading', { name: /Notices|Avisos/i }).or(page.getByText(/^NOTICES$|^AVISOS$/i)).first();
         this.notificationsToggleLabel = page.getByText(/Notifications|Notificaciones/i).first();
         this.noticeEmailCheckbox = page.getByLabel(/E-mail|Email/i).or(page.getByText(/^E-mail$|^Email$/i)).first();
@@ -125,13 +133,16 @@ export class ProceduresPage extends BasePage {
         this.internalNotesRequiredCheckbox = page.getByText(/Required to complete the appointment|Obligatorio para completar la cita/i).first();
         this.conclusionsSignatureCheckbox = page.getByText(/Require participants' signature|Requerir firma de los participantes/i).first();
 
+        // Agenda
         this.agendaHeading = page.getByRole('heading', { name: /Agenda/i }).or(page.getByText(/^AGENDA$/i)).first();
         this.timeAllocatedLabel = page.getByText(/Time allocated to each appointment|Tiempo asignado a cada cita/i).first();
 
+        // Evidence
         this.evidenceHeading = page.getByRole('heading', { name: /Evidence|Evidencias/i }).or(page.getByText(/^EVIDENCE$|^EVIDENCIAS$/i)).first();
         this.recordingLabel = page.getByText(/^Recording$|^Grabación$/i).first();
         this.typeOfRecordingLabel = page.getByText(/Type of recording|Tipo de grabación/i).first();
 
+        // Biometric Identification
         this.biometricHeading = page.getByRole('heading', { name: /Biometric identification|Identificación biométrica/i }).or(page.getByText(/^BIOMETRIC IDENTIFICATION$|^IDENTIFICACIÓN BIOMÉTRICA$/i)).first();
         this.biometricAutoRadio = page.getByText(/Automatic biometric identification\.|Identificación biométrica automática\./i).first();
         this.biometricManualValidationRadio = page.getByText(/Automatic biometric identification with manual validation\.|Identificación biométrica automática con validación manual\./i).first();
@@ -139,13 +150,109 @@ export class ProceduresPage extends BasePage {
         // Configuration - Security
         this.securityHeading = page.getByRole('heading', { name: /Security|Seguridad/i }).or(page.getByText(/^Security$|^Seguridad$/i)).first();
         this.secureAccessHeading = page.getByRole('heading', { name: /Secure access|Acceso seguro/i }).or(page.getByText(/^SECURE ACCESS$|^ACCESO SEGURO$/i)).first();
-        this.personalIdentificationText = page.getByText(/Personal identification number or Passport|Documento de identidad o Pasaporte/i).first();
+        this.personalIdentificationText = page.getByText(/Personal identification number or Passport|Documento de identity o Pasaporte/i).first();
         this.appointmentsCompletedText = page.getByText(/Appointments completed|Citas finalizadas/i).first();
         this.accessRolesLabel = page.getByText(/Access roles|Roles de acceso/i).first();
 
+        // Documents and Reports
         this.documentsAndReportsHeading = page.getByRole('heading', { name: /Documents and reports|Documentos e informes/i }).or(page.getByText(/^DOCUMENTS AND REPORTS$|^DOCUMENTOS E INFORMES$/i)).first();
         this.signatureVisibilityToggleLabel = page.getByText(/Signature visibility|Visibilidad de firma/i).first();
-        this.automaticReportToggleLabel = page.getByText(/Automatic report|Informe automático/i).first();
+        this.automaticReportToggleLabel = page.getByText(/Automatic report|Informe automatico/i).first();
+    }
+
+    /**
+     * Creates a procedure via API using GraphQL mutation
+     */
+    async createProcedureViaApi(requestContext: APIRequestContext, options?: CreateProcedureApiOptions): Promise<CreatedProcedureData> {
+        return await test.step('Create procedure via API', async () => {
+            return await ProcedureApiHelper.createProcedure(requestContext, options);
+        });
+    }
+
+    async navigateToProcedureConsents(procedureId: string | number, companyId: number = 1112) {
+        await test.step(`Navigate to Consents tab of procedure ${procedureId}`, async () => {
+            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/procedures/${procedureId}/consents`);
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    async addConsent(title: string, description: string, isRequired: boolean = false) {
+        await test.step(`Add consent: ${title} (Required: ${isRequired})`, async () => {
+            await this.dismissToastOrModal();
+            await this.page.waitForTimeout(500);
+
+            // Click ADD button on Consents tab
+            const addBtn = this.page.getByRole('button', { name: /^Add$|^Añadir$/i }).or(this.page.locator('.MuiFab-root, button.MuiFab-primary')).first();
+            await addBtn.waitFor({ state: 'visible', timeout: 15000 });
+            await addBtn.click({ force: true });
+            await this.page.waitForTimeout(1000);
+
+            // Click on "Consents" type card in the Add consent drawer
+            const consentsCard = this.page.locator('.MuiCard-root').filter({ hasText: /Consents|Consentimientos/i }).first();
+            await consentsCard.waitFor({ state: 'visible', timeout: 15000 });
+            await consentsCard.click({ force: true });
+            await this.page.waitForTimeout(1000);
+
+            // Target the active consent detail drawer
+            const titleInput = this.page.locator('#agenda-editor-title-input').or(this.page.getByLabel(/Title/i)).first();
+            await titleInput.waitFor({ state: 'visible', timeout: 15000 });
+            await titleInput.fill(title);
+
+            const descEditor = this.page.locator('.ql-editor').first();
+            await descEditor.waitFor({ state: 'visible', timeout: 15000 });
+            await descEditor.fill(description);
+
+            // If required toggle is requested
+            if (isRequired) {
+                const reqSwitchToggle = this.page.locator('.cbx-switch span').last();
+                const reqSwitchInput = this.page.locator('.cbx-switch input').last();
+                const isChecked = await reqSwitchInput.isChecked();
+                if (!isChecked) {
+                    await reqSwitchToggle.click({ force: true });
+                    await this.page.waitForTimeout(500);
+                }
+            }
+
+            // Click SAVE button in drawer
+            const saveBtn = this.page.locator('#-button-accept, button').filter({ hasText: /^SAVE$|^Guardar$/i }).first();
+            await saveBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await saveBtn.click({ force: true });
+            await titleInput.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+            await this.page.waitForTimeout(2000);
+        });
+    }
+
+    async toggleConsentRequiredOnCard(title: string, targetRequired?: boolean) {
+        await test.step(`Toggle Required switch for consent: "${title}"`, async () => {
+            const card = this.page.locator('.MuiAccordion-root').filter({ hasText: title }).first();
+            await card.waitFor({ state: 'visible', timeout: 20000 });
+
+            const switchToggle = card.locator('.cbx-switch span').first();
+            const switchInput = card.locator('.cbx-switch input').first();
+            await switchToggle.waitFor({ state: 'visible', timeout: 10000 });
+            const currentState = await switchInput.isChecked();
+
+            if (targetRequired === undefined || targetRequired !== currentState) {
+                await switchToggle.click({ force: true });
+                await this.page.waitForTimeout(1000);
+            }
+        });
+    }
+
+    async verifyConsentRequiredState(title: string, expectedRequired: boolean) {
+        await test.step(`Verify consent "${title}" Required state is ${expectedRequired}`, async () => {
+            const card = this.page.locator('.MuiAccordion-root').filter({ hasText: title }).first();
+            await card.waitFor({ state: 'visible', timeout: 20000 });
+
+            const switchInput = card.locator('.cbx-switch input').first();
+            if (expectedRequired) {
+                await expect(switchInput).toBeChecked();
+            } else {
+                await expect(switchInput).not.toBeChecked();
+            }
+        });
     }
 
     async openCreateProcedureDrawer() {
