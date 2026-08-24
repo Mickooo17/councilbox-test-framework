@@ -2,6 +2,7 @@ import { InstitutionData } from '../pages/institutions/InstitutionsPage';
 import { TemplateData } from '../pages/templates/TemplatesPage';
 import { TagData } from '../pages/templates/TagsPage';
 import { UserData } from '../pages/users/UsersPage';
+import { ProcedureData } from '../pages/procedures/ProceduresPage';
 
 export class DataGenerator {
     static randomNumber(length: number): string {
@@ -104,6 +105,17 @@ export class DataGenerator {
             phone: `6${this.randomNumber(7)}`,
             idCard: `${dniNumbers}${validLetter}`,
             email: `auto_user_${id}@test${this.randomNumber(4)}.com`,
+        };
+    }
+
+    static randomProcedureName(): string {
+        return `Automation Procedure ${this.randomNumber(6)}`;
+    }
+
+    static randomProcedureData(): ProcedureData {
+        return {
+            name: this.randomProcedureName(),
+            description: `Automation Procedure Description ${this.randomString(40)}`,
         };
     }
 }

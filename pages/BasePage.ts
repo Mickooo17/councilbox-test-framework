@@ -4,6 +4,7 @@ export class BasePage {
     readonly closeModalButton: Locator;
     readonly institutionsButton: Locator;
     readonly templatesButton: Locator;
+    readonly proceduresButton: Locator;
     readonly documentationButton: Locator;
     readonly usersButton: Locator;
     readonly governmentIcon: Locator;
@@ -13,6 +14,7 @@ export class BasePage {
         this.closeModalButton = page.locator('.MuiButtonBase-root.MuiIconButton-root.closeIcon');
         this.institutionsButton = page.locator('a[href*="/companies"]').or(page.getByRole('button', { name: /Entities|Institutions|Entidades|Instituciones/i })).first();
         this.templatesButton = page.locator('a[href*="/drafts"]').or(page.getByRole('button', { name: /Templates|Plantillas/i })).first();
+        this.proceduresButton = page.locator('a[href*="/procedures"]').or(page.getByRole('button', { name: /Procedures|Procedimientos/i })).first();
         this.documentationButton = page.locator('a[href*="/documentation"]').or(page.locator('#documentation-link')).first();
         this.usersButton = page.locator('a[href*="/users"]').or(page.getByRole('button', { name: /Users|Usuarios/i })).first();
         this.governmentIcon = page.locator('.ri-government-line, [class*="government"]').first();
@@ -45,24 +47,16 @@ export class BasePage {
                 [class*="toast"] button,
                 [class*="snackbar"] button,
                 button[aria-label="close" i],
-                button[aria-label="Close" i],
-                .ri-close-line,
-                i.ri-close-line,
-                button:has(.ri-close-line),
-                button:has(i.ri-close-line)
+                button[aria-label="Close" i]
             `).first();
 
-            if (await closeBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
+            if (await closeBtn.isVisible({ timeout: 500 }).catch(() => false)) {
                 await closeBtn.click().catch(() => {});
             }
 
-            const slideIn = this.page.locator('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation');
-            if (await slideIn.first().isVisible({ timeout: 1000 }).catch(() => false)) {
-                await this.page.keyboard.press('Escape').catch(() => {});
-                await this.page.evaluate(() => {
-                    document.querySelectorAll('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation').forEach(el => (el as HTMLElement).style.display = 'none');
-                }).catch(() => {});
-            }
+            await this.page.evaluate(() => {
+                document.querySelectorAll('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation, [class*="Toastify__toast"], #modal.cbx-Modal-container, .cbx-Modal-backdrop').forEach(el => (el as HTMLElement).remove());
+            }).catch(() => {});
         });
     }
 
@@ -70,7 +64,7 @@ export class BasePage {
         await test.step('Select QA DEV company', async () => {
             await this.governmentIcon.click();
             await this.qaDevMenuItem.click();
-            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
         });
     }
 
@@ -88,6 +82,14 @@ export class BasePage {
         });
     }
 
+    async navigateToProcedures() {
+        await test.step('Navigate to Procedures page', async () => {
+            await this.proceduresButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.proceduresButton.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
     async navigateToDocumentation() {
         await test.step('Navigate to Documentation page', async () => {
             await this.documentationButton.waitFor({ state: 'visible', timeout: 10000 });
@@ -99,7 +101,7 @@ export class BasePage {
         await test.step('Navigate to Users page', async () => {
             await this.usersButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.usersButton.click();
-            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
         });
     }
 }

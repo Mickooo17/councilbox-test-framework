@@ -12,6 +12,7 @@ import { UsersPage } from '../pages/users/UsersPage';
 import { UserProfilePage } from '../pages/users/UserProfilePage';
 import { SupportPage } from '../pages/support/SupportPage';
 import { AppointmentLoginPage } from '../pages/AppointmentLoginPage';
+import { ProceduresPage } from '../pages/procedures/ProceduresPage';
 import { resolveLoginUrl } from '../utils/UrlHelper';
 
 export const adminUser = envConfig.users.admin;
@@ -31,6 +32,7 @@ export const test = base.extend<{
   templatesPage: TemplatesPage;
   tagsPage: TagsPage;
   documentationPage: DocumentationPage;
+  proceduresPage: ProceduresPage;
   usersPage: UsersPage;
   userProfilePage: UserProfilePage;
   supportPage: SupportPage;
@@ -54,6 +56,9 @@ export const test = base.extend<{
   },
   documentationPage: async ({ page }, use) => {
     await use(new DocumentationPage(page));
+  },
+  proceduresPage: async ({ page }, use) => {
+    await use(new ProceduresPage(page));
   },
   usersPage: async ({ page }, use) => {
     await use(new UsersPage(page));
