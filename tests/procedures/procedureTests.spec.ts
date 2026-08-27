@@ -146,4 +146,114 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
 
         console.log('[TEST] Test XR-2706 passed successfully!');
     });
+
+    test('The administrator can create a “Linear" navigation procedure @XR-2705 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        console.log('[TEST] Starting procedure creation with Linear navigation, name:', procedureData.name);
+
+        // 1. Open create procedure drawer
+        console.log('[TEST] Step 1: Opening create procedure drawer...');
+        await proceduresPage.openCreateProcedureDrawer();
+
+        // 2. Select Video-appointment procedure type
+        console.log('[TEST] Step 2: Selecting Video-appointment procedure...');
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 3. Fill procedure details (Details tab)
+        console.log('[TEST] Step 3: Filling procedure details...');
+        await proceduresPage.fillProcedureDetails(procedureData);
+
+        // 4. Continue from Details to Entities tab
+        console.log('[TEST] Step 4: Continuing to Entities tab...');
+        await proceduresPage.clickContinue();
+
+        // 5. Continue from Entities to Consents tab
+        console.log('[TEST] Step 5: Continuing to Consents tab...');
+        await proceduresPage.clickContinue();
+
+        // 6. Select "Linear" navigation type from dropdown
+        console.log('[TEST] Step 6: Selecting "Linear" navigation type...');
+        await proceduresPage.selectNavigationType('Linear');
+
+        // 7. Verify "Linear" navigation is selected
+        console.log('[TEST] Step 7: Verifying "Linear" navigation is selected...');
+        await proceduresPage.verifyNavigationType('Linear');
+
+        // 8. Advance through wizard to Review tab
+        console.log('[TEST] Step 8: Advancing wizard to Review tab...');
+        await proceduresPage.advanceToReviewTab();
+
+        // 9. Publish the procedure and confirm
+        console.log('[TEST] Step 9: Publishing the procedure...');
+        await proceduresPage.publishProcedure();
+
+        // 10. Open the published procedure from procedures list
+        console.log('[TEST] Step 10: Opening published procedure from list:', procedureData.name);
+        await proceduresPage.openProcedureFromList(procedureData.name);
+
+        // 11. Click on Consents step/tab
+        console.log('[TEST] Step 11: Navigating to Consents tab of published procedure...');
+        await proceduresPage.clickConsentsTabInWizardOrEdit();
+
+        // 12. Verify Navigation type is preserved as "Linear"
+        console.log('[TEST] Step 12: Verifying navigation type remains "Linear"...');
+        await proceduresPage.verifyNavigationType('Linear');
+
+        console.log('[TEST] Test XR-2705 passed successfully!');
+    });
+
+    test('The administrator can create a "Free" navigation procedure @XR-2704 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        console.log('[TEST] Starting procedure creation with Free navigation, name:', procedureData.name);
+
+        // 1. Open create procedure drawer
+        console.log('[TEST] Step 1: Opening create procedure drawer...');
+        await proceduresPage.openCreateProcedureDrawer();
+
+        // 2. Select Video-appointment procedure type
+        console.log('[TEST] Step 2: Selecting Video-appointment procedure...');
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 3. Fill procedure details (Details tab)
+        console.log('[TEST] Step 3: Filling procedure details...');
+        await proceduresPage.fillProcedureDetails(procedureData);
+
+        // 4. Continue from Details to Entities tab
+        console.log('[TEST] Step 4: Continuing to Entities tab...');
+        await proceduresPage.clickContinue();
+
+        // 5. Continue from Entities to Consents tab
+        console.log('[TEST] Step 5: Continuing to Consents tab...');
+        await proceduresPage.clickContinue();
+
+        // 6. Select "Free" navigation type from dropdown
+        console.log('[TEST] Step 6: Selecting "Free" navigation type...');
+        await proceduresPage.selectNavigationType('Free');
+
+        // 7. Verify "Free" navigation is selected
+        console.log('[TEST] Step 7: Verifying "Free" navigation is selected...');
+        await proceduresPage.verifyNavigationType('Free');
+
+        // 8. Advance through wizard to Review tab
+        console.log('[TEST] Step 8: Advancing wizard to Review tab...');
+        await proceduresPage.advanceToReviewTab();
+
+        // 9. Publish the procedure and confirm
+        console.log('[TEST] Step 9: Publishing the procedure...');
+        await proceduresPage.publishProcedure();
+
+        // 10. Open the published procedure from procedures list
+        console.log('[TEST] Step 10: Opening published procedure from list:', procedureData.name);
+        await proceduresPage.openProcedureFromList(procedureData.name);
+
+        // 11. Click on Consents step/tab
+        console.log('[TEST] Step 11: Navigating to Consents tab of published procedure...');
+        await proceduresPage.clickConsentsTabInWizardOrEdit();
+
+        // 12. Verify Navigation type is preserved as "Free"
+        console.log('[TEST] Step 12: Verifying navigation type remains "Free"...');
+        await proceduresPage.verifyNavigationType('Free');
+
+        console.log('[TEST] Test XR-2704 passed successfully!');
+    });
 });

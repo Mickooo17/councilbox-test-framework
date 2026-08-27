@@ -171,10 +171,10 @@ export class ProceduresPage extends BasePage {
 
     async navigateToProcedureConsents(procedureId: string | number, companyId: number = 1112) {
         await test.step(`Navigate to Consents tab of procedure ${procedureId}`, async () => {
-            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/procedures/${procedureId}/consents`);
+            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/procedures/${procedureId}/consents`, { waitUntil: 'domcontentloaded' });
             await this.page.waitForLoadState('networkidle');
             await this.dismissToastOrModal();
-            await this.page.waitForTimeout(1000);
+            await this.page.waitForTimeout(1500);
         });
     }
 
@@ -191,6 +191,10 @@ export class ProceduresPage extends BasePage {
 
             // Click on "Consents" type card in the Add consent drawer
             const consentsCard = this.page.locator('.MuiCard-root').filter({ hasText: /Consents|Consentimientos/i }).first();
+            if (!await consentsCard.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await addBtn.click({ force: true });
+                await this.page.waitForTimeout(1000);
+            }
             await consentsCard.waitFor({ state: 'visible', timeout: 15000 });
             await consentsCard.click({ force: true });
             await this.page.waitForTimeout(1000);
@@ -475,7 +479,8 @@ export class ProceduresPage extends BasePage {
             const docRow = this.page.locator('div[style*="height: 44px"]').filter({ has: docElement }).first();
             const threeDotsButton = docRow.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button').first();
             await threeDotsButton.waitFor({ state: 'visible', timeout: 5000 });
-            await threeDotsButton.click();
+            await threeDotsButton.click({ force: true });
+            await this.page.waitForTimeout(500);
 
             // Set up download listener
             const downloadPromise = this.page.waitForEvent('download');
@@ -484,11 +489,96 @@ export class ProceduresPage extends BasePage {
             const downloadMenuItem = this.page.locator('li[id^="download"], .cbx-menuItem:has-text("Download")').or(
                 this.page.getByRole('menuitem', { name: /Download|Descargar/i })
             ).first();
-            await downloadMenuItem.waitFor({ state: 'visible', timeout: 5000 });
-            await downloadMenuItem.click();
+            if (!await downloadMenuItem.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await threeDotsButton.click({ force: true });
+                await this.page.waitForTimeout(500);
+            }
+            await downloadMenuItem.waitFor({ state: 'visible', timeout: 10000 });
+            await downloadMenuItem.click({ force: true });
 
             const download = await downloadPromise;
             return download;
+        });
+    }
+
+    async selectNavigationType(type: 'Linear' | 'Free') {
+        await test.step(`Select Navigation type: ${type}`, async () => {
+            const select = this.page.locator('#mui-component-select-Navigation, [aria-labelledby="mui-component-select-Navigation"]').first();
+            await select.waitFor({ state: 'visible', timeout: 10000 });
+            await select.click({ force: true });
+            await this.page.waitForTimeout(500);
+
+            const option = this.page.locator('li[role="option"], .MuiMenuItem-root').filter({ hasText: new RegExp(`^${type}$`, 'i') }).first();
+            await option.waitFor({ state: 'visible', timeout: 5000 });
+            await option.click({ force: true });
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    async verifyNavigationType(expectedType: 'Linear' | 'Free') {
+        await test.step(`Verify Navigation type is ${expectedType}`, async () => {
+            const select = this.page.locator('#mui-component-select-Navigation, [aria-labelledby="mui-component-select-Navigation"]').first();
+            await select.waitFor({ state: 'visible', timeout: 10000 });
+            await expect(select).toHaveText(new RegExp(expectedType, 'i'));
+        });
+    }
+
+    async advanceToReviewTab() {
+        await test.step('Advance wizard to Review tab', async () => {
+            for (let i = 0; i < 6; i++) {
+                if (this.page.url().includes('/review')) break;
+                const nextBtn = this.page.locator('#procedure-editor-next').or(this.page.getByRole('button', { name: /Continue|Continuar/i })).first();
+                if (await nextBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+                    await nextBtn.click({ force: true });
+                    await this.page.waitForTimeout(1000);
+                }
+            }
+            await this.page.waitForURL(/.*\/review/i, { timeout: 15000 });
+        });
+    }
+
+    async publishProcedure() {
+        await test.step('Publish procedure from Review tab', async () => {
+            const publishBtn = this.page.locator('#council-editor-publish, button:has-text("PUBLISH"), button:has-text("PUBLICAR")').first();
+            await publishBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await publishBtn.click({ force: true });
+            await this.page.waitForTimeout(1000);
+
+            // Confirm publish in modal dialog
+            const acceptBtn = this.page.locator('#modal-button-accept, #modal button.cbx-primary, #alert-confirm button').first();
+            if (await acceptBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+                await acceptBtn.click({ force: true });
+            }
+
+            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(2000);
+        });
+    }
+
+    async openProcedureFromList(name: string) {
+        await test.step(`Open procedure from list: "${name}"`, async () => {
+            await this.navigateToProcedures();
+            const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
+            await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+            await searchInput.fill(name);
+            await this.page.waitForTimeout(1000);
+
+            const row = this.tableBody.locator('tr').filter({ hasText: name }).first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+            await row.click({ force: true });
+            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1500);
+        });
+    }
+
+    async clickConsentsTabInWizardOrEdit() {
+        await test.step('Click Consents tab/step in wizard or procedure view', async () => {
+            const consentsStep = this.page.locator('.cbx-stepper-item-text').filter({ hasText: /^Consents$|^Consentimientos$/i }).or(
+                this.page.locator('[role="tab"], .MuiTab-root').filter({ hasText: /^Consents$|^Consentimientos$/i })
+            ).first();
+            await consentsStep.waitFor({ state: 'visible', timeout: 10000 });
+            await consentsStep.click({ force: true });
+            await this.page.waitForTimeout(1000);
         });
     }
 
