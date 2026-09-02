@@ -304,6 +304,21 @@ export class ProceduresPage extends BasePage {
         });
     }
 
+    async editProcedureDetails(data: { name?: string; description?: string }) {
+        await test.step(`Edit procedure details${data.name ? ` (New Name: "${data.name}")` : ''}`, async () => {
+            if (data.name) {
+                await this.procedureNameInput.waitFor({ state: 'visible', timeout: 10000 });
+                await this.procedureNameInput.fill(data.name);
+            }
+            if (data.description) {
+                await this.procedureDescriptionEditor.waitFor({ state: 'visible', timeout: 10000 });
+                await this.procedureDescriptionEditor.fill(data.description);
+            }
+            await this.clickContinue();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
     async clickContinue() {
         await test.step('Click Continue button', async () => {
             await this.continueButton.click();

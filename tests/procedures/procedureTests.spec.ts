@@ -176,4 +176,35 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // Clean up reference so afterEach does not re-attempt deletion
         procedureData.name = '';
     });
+
+    test('The user is able to Edit already existing procedure - Procedures @XR-1611 @regression', async ({ proceduresPage, request }) => {
+        test.slow();
+        const editedName = `Edited ${procedureData.name}`;
+        const editedDescription = `Updated description for ${editedName}`;
+
+        // 1. Create procedure via API
+        const createdProcedure = await proceduresPage.createProcedureViaApi(request, {
+            title: procedureData.name,
+            description: procedureData.description,
+            companyId: 1112,
+        });
+        console.log(`[API Test] Successfully created Procedure ID: ${createdProcedure.id}, Title: "${procedureData.name}"`);
+
+        // 2. Open procedure from list in UI
+        await proceduresPage.openProcedureFromList(procedureData.name);
+
+        // 3. Edit procedure name and description
+        await proceduresPage.editProcedureDetails({
+            name: editedName,
+            description: editedDescription,
+        });
+
+        // 4. Update tracking variable so afterEach cleans up the edited name
+        procedureData.name = editedName;
+
+        // 5. Navigate back to Procedures page and verify updated procedure is displayed
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.searchProcedure(editedName);
+        await proceduresPage.verifyProcedureInTable(editedName);
+    });
 });
