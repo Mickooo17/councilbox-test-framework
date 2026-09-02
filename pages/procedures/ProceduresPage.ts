@@ -695,7 +695,6 @@ export class ProceduresPage extends BasePage {
 
                 // If menu didn't open on initial click, retry with hover + direct click
                 if (!await deleteMenuItem.isVisible({ timeout: 2000 }).catch(() => false)) {
-                    console.log('[DEBUG] Dropdown not visible, attempting second click on 3-dots...');
                     await actionButton.hover();
                     await actionButton.click();
                     await this.page.waitForTimeout(500);
@@ -703,7 +702,6 @@ export class ProceduresPage extends BasePage {
 
                 // If still not visible, dispatch click event directly
                 if (!await deleteMenuItem.isVisible({ timeout: 2000 }).catch(() => false)) {
-                    console.log('[DEBUG] Dropdown still not visible, dispatching click event...');
                     await actionButton.dispatchEvent('click');
                     await this.page.waitForTimeout(500);
                 }
