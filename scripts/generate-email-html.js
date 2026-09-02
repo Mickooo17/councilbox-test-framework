@@ -36,7 +36,15 @@ function generateEmailHtml() {
     timeZone: 'UTC'
   });
 
-  const durationStr = process.env.BUILD_DURATION || '1m 30s';
+  let durationStr = process.env.BUILD_DURATION || '';
+  if (!durationStr && fs.existsSync('build-duration.txt')) {
+    try {
+      durationStr = fs.readFileSync('build-duration.txt', 'utf8').trim();
+    } catch {}
+  }
+  if (!durationStr) {
+    durationStr = 'N/A';
+  }
 
   const statusBadgeText = isSuccess ? '✔ PASSED' : '✖ FAILED';
   const statusBadgeBg = isSuccess ? 'rgba(255,255,255,0.15)' : 'rgba(239,68,68,0.3)';

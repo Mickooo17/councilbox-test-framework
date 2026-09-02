@@ -88,9 +88,11 @@ jobs:
           TOTAL=$(cat total-tests.txt 2>/dev/null || echo "0")
           PASSED=$(cat passed-tests.txt 2>/dev/null || echo "0")
           FAILED=$(cat failed-tests-count.txt 2>/dev/null || echo "0")
+          DURATION=$(cat build-duration.txt 2>/dev/null || echo "0s")
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
           if [ "$FAILED" -gt "0" ]; then
             echo "status_text=FAILURE" >> $GITHUB_OUTPUT
             echo "status_color=#e53e3e" >> $GITHUB_OUTPUT
@@ -105,6 +107,7 @@ jobs:
         env:
           BUILD_NUMBER: ${{ github.run_number }}
           TEST_ENV: 'staging'
+          BUILD_DURATION: ${{ steps.summary.outputs.duration }}
           REPORT_URL: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
           GITHUB_RUN_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
@@ -130,5 +133,6 @@ jobs:
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
           BUILD_NUMBER: ${{ github.run_number }}
+          BUILD_DURATION: ${{ steps.summary.outputs.duration }}
           REPORT_URL: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/builds/${{ github.run_number }}/"
           GITHUB_RUN_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"

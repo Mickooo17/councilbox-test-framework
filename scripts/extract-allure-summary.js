@@ -4,6 +4,7 @@ const path = require('path');
 const resultsDir = 'allure-results';
 const testResultsDir = 'test-results';
 let total = 0, passed = 0, failed = 0, broken = 0, skipped = 0;
+let minStart = Infinity, maxStop = 0;
 const failedTests = [];
 let firstFailedTestName = '';
 let firstFailedTestSteps = '';
@@ -20,6 +21,12 @@ if (fs.existsSync(resultsDir)) {
     if (file.endsWith('-result.json')) {
       const content = JSON.parse(fs.readFileSync(path.join(resultsDir, file), 'utf8'));
       total++;
+      if (typeof content.start === 'number' && content.start > 0 && content.start < minStart) {
+        minStart = content.start;
+      }
+      if (typeof content.stop === 'number' && content.stop > 0 && content.stop > maxStop) {
+        maxStop = content.stop;
+      }
       if (content.status === 'passed') passed++;
       else if (content.status === 'broken') broken++;
       else if (content.status === 'failed') {
@@ -125,6 +132,20 @@ fs.writeFileSync('failed-test-duration.txt', firstFailedTestDuration.toString())
 fs.writeFileSync('failed-test-screenshot-base64.txt', firstFailedTestScreenshotBase64);
 fs.writeFileSync('failed-test-error-context.txt', firstFailedTestErrorContext);
 
+function formatDuration(ms) {
+  if (!ms || ms <= 0 || !isFinite(ms)) return '0s';
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes === 0) return `${seconds}s`;
+  return `${minutes}m ${seconds}s`;
+}
+
+const totalDurationMs = (maxStop > minStart && isFinite(minStart)) ? (maxStop - minStart) : 0;
+const formattedDuration = formatDuration(totalDurationMs);
+fs.writeFileSync('build-duration.txt', formattedDuration);
+
 console.log(`\nSummary: ${total} total, ${passed} passed, ${failed} failed, ${skipped} skipped`);
+console.log(`Execution duration: ${formattedDuration}`);
 console.log(`Screenshot base64: ${firstFailedTestScreenshotBase64 ? 'YES' : 'NO'}`);
 console.log(`Error context: ${firstFailedTestErrorContext ? 'YES' : 'NO'}`);

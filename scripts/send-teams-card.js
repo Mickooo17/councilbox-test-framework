@@ -15,7 +15,15 @@ async function sendTeamsCard() {
   const testEnv = (process.env.TEST_ENV || 'Staging').charAt(0).toUpperCase() + (process.env.TEST_ENV || 'Staging').slice(1);
   const reportUrl = process.env.REPORT_URL || 'https://mickooo17.github.io/councilbox-test-framework/';
   const githubRunUrl = process.env.GITHUB_RUN_URL || `https://github.com/${process.env.GITHUB_REPOSITORY || 'Mickooo17/councilbox-test-framework'}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`;
-  const durationStr = process.env.BUILD_DURATION || '1m 30s';
+  let durationStr = process.env.BUILD_DURATION || '';
+  if (!durationStr && fs.existsSync('build-duration.txt')) {
+    try {
+      durationStr = fs.readFileSync('build-duration.txt', 'utf8').trim();
+    } catch {}
+  }
+  if (!durationStr) {
+    durationStr = 'N/A';
+  }
 
   let total = 0, passed = 0, failed = 0, broken = 0, skipped = 0;
   try {

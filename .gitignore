@@ -33,6 +33,7 @@ Thumbs.db
 # Generated test reports & temporary summary files
 *.txt
 email-body.html
+failed-tests.html
 junit-results/
 .playwright-mcp/
 gh-pages-temp/
