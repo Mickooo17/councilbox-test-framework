@@ -98,6 +98,21 @@ export class UserDataStore {
   }
 
   /**
+   * Removes a user from the store by ID or Email.
+   */
+  static removeUser(identifier: number | string): void {
+    const idStr = String(identifier);
+    this.inMemoryStore = this.inMemoryStore.filter(
+      (u) => String(u.id) !== idStr && u.email !== idStr
+    );
+    const fromFile = this.loadFromFile();
+    const updated = fromFile.filter(
+      (u) => String(u.id) !== idStr && u.email !== idStr
+    );
+    this.saveToFile(updated);
+  }
+
+  /**
    * Clears saved users.
    */
   static clearStore(): void {

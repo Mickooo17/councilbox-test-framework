@@ -309,4 +309,22 @@ export class UsersPage extends BasePage {
             return await UserApiHelper.createUser(this.page.request, options);
         });
     }
+
+    /**
+     * Deletes a user by ID via GraphQL API.
+     */
+    async deleteUserViaApi(userId: number | string): Promise<boolean> {
+        return await test.step(`Delete user #${userId} via API`, async () => {
+            return await UserApiHelper.deleteUser(this.page.request, userId);
+        });
+    }
+
+    /**
+     * Deletes user(s) by email via GraphQL API.
+     */
+    async deleteUserByEmailViaApi(email: string): Promise<boolean> {
+        return await test.step(`Delete user by email "${email}" via API`, async () => {
+            return await UserApiHelper.deleteUserByEmail(this.page.request, email);
+        });
+    }
 }
