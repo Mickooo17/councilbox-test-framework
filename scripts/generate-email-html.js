@@ -5,7 +5,7 @@ function generateEmailHtml() {
   const branchName = process.env.GITHUB_REF_NAME || 'main';
   const testEnv = (process.env.TEST_ENV || 'Staging').charAt(0).toUpperCase() + (process.env.TEST_ENV || 'Staging').slice(1);
   const reportUrl = process.env.REPORT_URL || 'https://mickooo17.github.io/councilbox-test-framework/';
-  const githubRunUrl = process.env.GITHUB_RUN_URL || `https://github.com/${process.env.GITHUB_REPOSITORY || 'Mickooo17/councilbox-test-framework'}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`;
+  const githubRunUrl = process.env.GITHUB_RUN_URL || process.env.BUILD_URL || `https://github.com/${process.env.GITHUB_REPOSITORY || 'Mickooo17/councilbox-test-framework'}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`;
 
   let total = 0, passed = 0, failed = 0, broken = 0, skipped = 0;
   try {
@@ -214,7 +214,7 @@ function generateEmailHtml() {
                     <a href="${reportUrl}" style="display:block; background-color:#4338ca; color:#ffffff; font-size:13px; font-weight:700; text-decoration:none; padding:12px 0; border-radius:8px; text-align:center;">📊 View Allure Report</a>
                   </td>
                   <td align="center" style="padding-left:8px;" width="50%">
-                    <a href="${githubRunUrl}" style="display:block; background-color:#ffffff; color:#374151; font-size:13px; font-weight:700; text-decoration:none; padding:12px 0; border-radius:8px; text-align:center; border:1px solid #e5e7eb;">🐙 GitHub Actions</a>
+                    <a href="${githubRunUrl}" style="display:block; background-color:#ffffff; color:#374151; font-size:13px; font-weight:700; text-decoration:none; padding:12px 0; border-radius:8px; text-align:center; border:1px solid #e5e7eb;">${process.env.JENKINS_URL || process.env.BUILD_URL ? '🏗️ Jenkins Build' : '🐙 GitHub Actions'}</a>
                   </td>
                 </tr>
               </table>

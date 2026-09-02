@@ -14,7 +14,7 @@ async function sendTeamsCard() {
   const branchName = process.env.GITHUB_REF_NAME || 'main';
   const testEnv = (process.env.TEST_ENV || 'Staging').charAt(0).toUpperCase() + (process.env.TEST_ENV || 'Staging').slice(1);
   const reportUrl = process.env.REPORT_URL || 'https://mickooo17.github.io/councilbox-test-framework/';
-  const githubRunUrl = process.env.GITHUB_RUN_URL || `https://github.com/${process.env.GITHUB_REPOSITORY || 'Mickooo17/councilbox-test-framework'}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`;
+  const githubRunUrl = process.env.GITHUB_RUN_URL || process.env.BUILD_URL || `https://github.com/${process.env.GITHUB_REPOSITORY || 'Mickooo17/councilbox-test-framework'}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`;
   const durationStr = process.env.BUILD_DURATION || '1m 30s';
 
   let total = 0, passed = 0, failed = 0, broken = 0, skipped = 0;

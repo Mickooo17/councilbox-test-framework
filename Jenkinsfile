@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Check to send an email notification after the build completes')
+        choice(name: 'TEST_ENV', choices: ['staging', 'dev', 'prod'], description: 'Select test environment')
+        string(name: 'TEST_FILE', defaultValue: '', description: 'Specific test file path (leave empty for all tests)')
+        string(name: 'TEST_TITLE', defaultValue: '', description: 'Test title filter (-g flag, leave empty for all)')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send email notification after build completes')
+        booleanParam(name: 'SEND_TEAMS', defaultValue: true, description: 'Send MS Teams notification after build completes')
     }
 
     tools {
@@ -11,7 +15,7 @@ pipeline {
 
     environment {
         CI = 'true'
-        TEST_ENV = 'staging'
+        TEST_ENV = "${params.TEST_ENV ?: 'staging'}"
         JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8'
         GITHUB_USER = 'Mickooo17'
         GITHUB_REPO = 'councilbox-test-framework'
@@ -32,12 +36,14 @@ pipeline {
     stages {
         stage('Checkout & Clean Reports') {
             steps {
-                // Brzinsko brisanje samo foldera sa starim izvještajima, bez diranja koda
+                // Clean old reports and temporary files
                 bat 'if exist playwright-report rmdir /s /q playwright-report'
                 bat 'if exist test-results rmdir /s /q test-results'
                 bat 'if exist allure-results rmdir /s /q allure-results'
+                bat 'if exist junit-results rmdir /s /q junit-results'
+                bat 'if exist email-body.html del /f /q email-body.html'
 
-                // Brzi "git pull" preko HTTPS-a
+                // Git pull main branch
                 git(
                     url: 'https://github.com/Mickooo17/councilbox-test-framework.git',
                     branch: 'main',
@@ -48,24 +54,33 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                // Ubrzana instalacija bez sigurnosnih provjera i fund poruka
                 bat 'cmd /c npm install --no-audit --no-fund --prefer-offline'
             }
         }
 
         stage('Install Playwright Browsers') {
             steps {
-                bat 'cmd /c npx playwright install --with-deps'
+                bat 'cmd /c npx playwright install --with-deps chromium'
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat '''
-                  @echo off
-                  chcp 65001 >NUL
-                  npx playwright test --project=Chromium --reporter=line,allure-playwright || exit 0
-                '''
+                script {
+                    def testFlags = "--project=Chromium --reporter=line,allure-playwright,junit:junit-results/results.xml"
+                    if (params.TEST_FILE?.trim()) {
+                        testFlags = "${params.TEST_FILE.trim()} ${testFlags}"
+                    }
+                    if (params.TEST_TITLE?.trim()) {
+                        testFlags = "${testFlags} -g \"${params.TEST_TITLE.trim()}\""
+                    }
+
+                    bat """
+                      @echo off
+                      chcp 65001 >NUL
+                      npx playwright test ${testFlags} || exit 0
+                    """
+                }
             }
             post {
                 always {
@@ -78,20 +93,12 @@ pipeline {
             steps {
                 bat 'cmd /c node scripts/extract-allure-summary.js'
                 script {
-                    env.TOTAL_TESTS = readFile('total-tests.txt').trim()
-                    env.PASSED_TESTS = readFile('passed-tests.txt').trim()
-                    env.FAILED_TESTS_COUNT = readFile('failed-tests-count.txt').trim()
-                    env.SKIPPED_TESTS = readFile('skipped-tests.txt').trim()
-                    env.FAILED_TEST_NAME = readFile('failed-test-name.txt').trim()
-                    env.TEST_STEPS = readFile('failed-test-steps.txt').trim()
-                    env.ERROR_MESSAGE = readFile('failed-test-error.txt').trim()
-                    env.FULL_ERROR = readFile('failed-test-full-error.txt').trim()
-                    env.FAILED_STEP = readFile('failed-test-failed-step.txt').trim()
-                    env.FAILED_STEP_ERROR = readFile('failed-test-failed-step-error.txt').trim()
-                    env.ERROR_CONTEXT = readFile('failed-test-error-context.txt').trim()
-                    
-                    env.HAS_SCREENSHOT = fileExists('failed-test-screenshot-base64.txt') ? 'true' : 'false'
-                    
+                    env.TOTAL_TESTS        = fileExists('total-tests.txt') ? readFile('total-tests.txt').trim() : '0'
+                    env.PASSED_TESTS       = fileExists('passed-tests.txt') ? readFile('passed-tests.txt').trim() : '0'
+                    env.FAILED_TESTS_COUNT = fileExists('failed-tests-count.txt') ? readFile('failed-tests-count.txt').trim() : '0'
+                    env.SKIPPED_TESTS      = fileExists('skipped-tests.txt') ? readFile('skipped-tests.txt').trim() : '0'
+                    env.BROKEN_TESTS       = fileExists('broken-tests.txt') ? readFile('broken-tests.txt').trim() : '0'
+
                     def failedCount = env.FAILED_TESTS_COUNT.toInteger()
                     def skippedCount = env.SKIPPED_TESTS.toInteger()
 
@@ -101,7 +108,7 @@ pipeline {
                     } else {
                         env.BUILD_STATUS = 'SUCCESS'
                     }
-                    
+
                     env.BUILD_DURATION = currentBuild.durationString
                 }
             }
@@ -115,9 +122,34 @@ pipeline {
                         env.FINAL_REPORT_URL = "${env.PAGES_URL}/${reportPath}/"
 
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                            bat 'cmd /c node scripts/deploy-allure-gh-pages.js'
+                            withEnv([
+                                "BUILD_NUMBER=${env.BUILD_NUMBER}",
+                                "GITHUB_TOKEN=${env.GITHUB_TOKEN}"
+                            ]) {
+                                bat 'cmd /c node scripts/deploy-allure-gh-pages.js'
+                            }
                         }
                         echo "✅ Report successfully deployed to: ${env.FINAL_REPORT_URL}"
+                    }
+                }
+            }
+        }
+
+        stage('Generate HTML Email Report') {
+            steps {
+                script {
+                    if (env.FINAL_REPORT_URL == null) {
+                        env.FINAL_REPORT_URL = "${env.PAGES_URL}/builds/${env.BUILD_NUMBER}/"
+                    }
+
+                    withEnv([
+                        "BUILD_NUMBER=${env.BUILD_NUMBER}",
+                        "TEST_ENV=${env.TEST_ENV}",
+                        "REPORT_URL=${env.FINAL_REPORT_URL}",
+                        "GITHUB_RUN_URL=${env.BUILD_URL ?: env.FINAL_REPORT_URL}",
+                        "BUILD_DURATION=${env.BUILD_DURATION}"
+                    ]) {
+                        bat 'cmd /c node scripts/generate-email-html.js'
                     }
                 }
             }
@@ -127,123 +159,47 @@ pipeline {
     post {
         always {
             script {
-                if (env.FINAL_REPORT_URL == null) { env.FINAL_REPORT_URL = "N/A" }
+                if (env.FINAL_REPORT_URL == null) {
+                    env.FINAL_REPORT_URL = "${env.PAGES_URL}/builds/${env.BUILD_NUMBER}/"
+                }
 
                 archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
 
-                // --- EMAIL NOTIFICATION ---
-                if (params.SEND_EMAIL) {
-                    echo "📧 Sending email notification..."
-                    def statusText = currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE'
-                    def statusColor = currentBuild.currentResult == 'SUCCESS' ? '#2eae6f' : '#e53e3e'
+                // --- 1. EMAIL NOTIFICATION (Identical to GitHub Actions) ---
+                if (params.SEND_EMAIL && fileExists('email-body.html')) {
+                    echo "📧 Sending HTML email notification..."
+                    def statusText = (currentBuild.currentResult == 'SUCCESS') ? 'SUCCESS' : 'FAILURE'
+                    def emailBodyHtml = readFile('email-body.html')
 
                     emailext(
                         subject: "Councilbox QA Report - Build #${env.BUILD_NUMBER} - ${statusText}",
                         from: 'Councilbox Automation <councilboxautotest@gmail.com>',
                         to: 'ammar.micijevic@councilbox.com, dzenan.dzakmic@councilbox.com, muhamed.adzamija@councilbox.com, almir.demirovic@councilbox.com, emiliano.ribaudo@councilbox.com',
                         mimeType: 'text/html; charset=UTF-8',
-                        body: """
-                            <!DOCTYPE html>
-                            <html>
-                            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px;">
-                              <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-
-                                <div style="background-color: ${statusColor}; padding: 30px 20px; text-align: center;">
-                                  <h1 style="color: white; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">${statusText}</h1>
-                                  <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Build #${env.BUILD_NUMBER}</p>
-                                </div>
-
-                                <div style="padding: 30px;">
-                                  <p style="color: #4a5568; font-size: 16px; text-align: center; margin-bottom: 25px;">
-                                    Automated tests have completed. Here is the summary:
-                                  </p>
-
-                                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
-                                    <div style="text-align: center; padding: 15px; background-color: #f7fafc; border-radius: 6px;">
-                                      <div style="font-size: 24px; font-weight: bold; color: #2d3748;">${env.TOTAL_TESTS}</div>
-                                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Total</div>
-                                    </div>
-                                    <div style="text-align: center; padding: 15px; background-color: #f0fff4; border-radius: 6px;">
-                                      <div style="font-size: 24px; font-weight: bold; color: #38a169;">${env.PASSED_TESTS}</div>
-                                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Passed</div>
-                                    </div>
-                                    <div style="text-align: center; padding: 15px; background-color: #fff5f5; border-radius: 6px;">
-                                      <div style="font-size: 24px; font-weight: bold; color: #e53e3e;">${env.FAILED_TESTS_COUNT}</div>
-                                      <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Failed</div>
-                                    </div>
-                                  </div>
-
-                                  <div style="text-align: center;">
-                                    <a href="${env.FINAL_REPORT_URL}"
-                                       style="display: inline-block; background-color: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
-                                       View Full Allure Report
-                                    </a>
-                                  </div>
-                                </div>
-
-                                <div style="background-color: #edf2f7; padding: 15px; text-align: center; font-size: 12px; color: #718096;">
-                                  <p style="margin: 0;">Sent by Councilbox Automation &bull; Jenkins</p>
-                                </div>
-                              </div>
-                            </body>
-                            </html>
-                        """
+                        body: emailBodyHtml
                     )
                 }
 
-                // --- n8n WEBHOOK ---
-                powershell(returnStatus: true, script: """
+                // --- 2. MS TEAMS ADAPTIVE CARD (Identical to GitHub Actions) ---
+                if (params.SEND_TEAMS) {
+                    echo "📢 Sending MS Teams Adaptive Card notification..."
                     try {
-                        function Read-SafeFile(\$filePath) {
-                            if (Test-Path \$filePath) {
-                                \$content = Get-Content \$filePath -Raw -ErrorAction SilentlyContinue
-                                if (\$content) { return \$content.Trim().Replace('"', "'") }
+                        withCredentials([string(credentialsId: 'TEAMS_WEBHOOK_URL', variable: 'TEAMS_WEBHOOK_URL')]) {
+                            withEnv([
+                                "TEAMS_WEBHOOK_URL=${env.TEAMS_WEBHOOK_URL}",
+                                "BUILD_NUMBER=${env.BUILD_NUMBER}",
+                                "REPORT_URL=${env.FINAL_REPORT_URL}",
+                                "GITHUB_RUN_URL=${env.BUILD_URL ?: env.FINAL_REPORT_URL}",
+                                "TEST_ENV=${env.TEST_ENV}",
+                                "BUILD_DURATION=${env.BUILD_DURATION}"
+                            ]) {
+                                bat 'cmd /c node scripts/send-teams-card.js'
                             }
-                            return 'N/A'
                         }
-
-                        \$cleanTestName      = Read-SafeFile 'failed-test-name.txt'
-                        \$cleanSteps         = Read-SafeFile 'failed-test-steps.txt'
-                        \$cleanError         = Read-SafeFile 'failed-test-error.txt'
-                        \$cleanFullError     = Read-SafeFile 'failed-test-full-error.txt'
-                        \$cleanFailedStep    = Read-SafeFile 'failed-test-failed-step.txt'
-                        \$cleanFailedStepErr = Read-SafeFile 'failed-test-failed-step-error.txt'
-                        \$cleanErrorContext  = Read-SafeFile 'failed-test-error-context.txt'
-                        \$screenshotBase64   = Read-SafeFile 'failed-test-screenshot-base64.txt'
-
-                        \$body = @{
-                            status           = "${env.BUILD_STATUS}"
-                            env              = "staging"
-                            build            = "${env.BUILD_NUMBER}"
-                            duration         = "${env.BUILD_DURATION}"
-                            total            = "${env.TOTAL_TESTS}"
-                            passed           = "${env.PASSED_TESTS}"
-                            failed           = "${env.FAILED_TESTS_COUNT}"
-                            skipped          = "${env.SKIPPED_TESTS}"
-                            failedTestName   = \$cleanTestName
-                            testSteps        = \$cleanSteps
-                            errorMessage     = \$cleanError
-                            fullError        = \$cleanFullError
-                            failedStep       = \$cleanFailedStep
-                            failedStepError  = \$cleanFailedStepErr
-                            errorContext     = \$cleanErrorContext
-                            screenshotBase64 = \$screenshotBase64
-                            reportUrl        = "${env.FINAL_REPORT_URL}"
-                        } | ConvertTo-Json -Depth 5
-
-                        Invoke-RestMethod `
-                            -Uri "http://localhost:5678/webhook/playwright-results" `
-                            -Method Post `
-                            -Body \$body `
-                            -ContentType "application/json; charset=utf-8"
-
-                        Write-Host "Webhook sent successfully"
+                    } catch (Exception e) {
+                        echo "⚠️ MS Teams notification skipped or failed: ${e.message}"
                     }
-                    catch {
-                        Write-Host "Webhook failed but build will continue"
-                        Write-Host \$_.Exception.Message
-                    }
-                """)
+                }
             }
         }
     }
