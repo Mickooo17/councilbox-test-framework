@@ -1,2 +1,0 @@
-[AppointmentDataStore] Saved appointment ID #66719 (1112111266719202677c2e)
-[API Test] Successfully created Appointment ID: 66719, Case: 1112111266719202677c2e
