@@ -207,4 +207,25 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.searchProcedure(editedName);
         await proceduresPage.verifyProcedureInTable(editedName);
     });
+
+    test('Verify that all elements are displayed in Configuration tab - Video appointment procedure edit @regression', async ({ proceduresPage, request }) => {
+        test.slow();
+
+        // 1. Create procedure via API
+        const createdProcedure = await proceduresPage.createProcedureViaApi(request, {
+            title: procedureData.name,
+            description: procedureData.description,
+            companyId: 1112,
+        });
+        console.log(`[API Test] Successfully created Procedure ID: ${createdProcedure.id}, Title: "${procedureData.name}"`);
+
+        // 2. Open procedure from list in UI
+        await proceduresPage.openProcedureFromList(procedureData.name);
+
+        // 3. Navigate to Configuration tab in edit view
+        await proceduresPage.clickConfigurationTabInWizardOrEdit();
+
+        // 4. Verify all elements in Configuration tab (General, Appointments, Security)
+        await proceduresPage.verifyAllConfigurationElements();
+    });
 });

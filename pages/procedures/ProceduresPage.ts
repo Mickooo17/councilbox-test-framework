@@ -617,6 +617,18 @@ export class ProceduresPage extends BasePage {
         });
     }
 
+    async clickConfigurationTabInWizardOrEdit() {
+        await test.step('Click Configuration tab/step in wizard or procedure view', async () => {
+            const configStep = this.page.locator('.cbx-stepper-item-text').filter({ hasText: /^Configuration$|^Configuración$/i }).or(
+                this.page.locator('[role="tab"], .MuiTab-root, p, div').filter({ hasText: /^Configuration$|^Configuración$/i })
+            ).first();
+            await configStep.waitFor({ state: 'visible', timeout: 10000 });
+            await configStep.click({ force: true });
+            await this.page.waitForTimeout(1000);
+            await this.generalHeading.waitFor({ state: 'visible', timeout: 15000 });
+        });
+    }
+
     async searchProcedure(name: string) {
         await test.step(`Search procedure: "${name}"`, async () => {
             const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
