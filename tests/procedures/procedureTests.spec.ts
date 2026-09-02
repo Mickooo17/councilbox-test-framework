@@ -15,10 +15,19 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         console.log('[TEST] Procedures page loaded');
     });
 
-    test.afterEach(async ({ proceduresPage }) => {
+    test.afterEach(async ({ proceduresPage, request }) => {
         if (procedureData && procedureData.name) {
-            console.log('[TEST] Cleaning up procedure:', procedureData.name);
-            await proceduresPage.deleteProcedure(procedureData.name).catch(() => {});
+            console.log('[TEST] Cleaning up procedure via API:', procedureData.name);
+            const deleted = await proceduresPage.deleteProcedureByNameViaApi(request, procedureData.name).catch((err) => {
+                console.warn('[TEST] API cleanup error:', err);
+                return false;
+            });
+            if (!deleted) {
+                console.log('[TEST] Procedure was not deleted via API, trying UI cleanup fallback...');
+                await proceduresPage.deleteProcedure(procedureData.name).catch(() => {});
+            } else {
+                console.log('[TEST] Procedure successfully cleaned up via API:', procedureData.name);
+            }
         }
     });
 
@@ -256,4 +265,46 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
 
         console.log('[TEST] Test XR-2704 passed successfully!');
     });
+
+    test('The user is able to Delete already existing procedure - Procedures @XR-1612 @regression', async ({ proceduresPage, request }) => {
+        test.slow();
+        console.log('[TEST] Starting XR-1612 - Delete procedure with name:', procedureData.name);
+
+        // 1. Create procedure via API
+        console.log('[TEST] Step 1: Creating procedure via GraphQL API...');
+        const createdProcedure = await proceduresPage.createProcedureViaApi(request, {
+            title: procedureData.name,
+            description: procedureData.description,
+            companyId: 1112,
+        });
+        console.log('[TEST] Procedure created via API with ID:', createdProcedure.id);
+
+        // 2. Navigate to Procedures page and verify procedure in table
+        console.log('[TEST] Step 2: Navigating to Procedures page and verifying created procedure exists in list...');
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.searchProcedure(procedureData.name);
+        await proceduresPage.verifyProcedureInTable(procedureData.name);
+
+        // 3. Scroll horizontally to 3-dots action button
+        console.log('[TEST] Step 3: Scrolling horizontally to 3-dots action button...');
+        await proceduresPage.scrollToProcedureActions(procedureData.name);
+
+        // 4. Delete procedure via UI
+        console.log('[TEST] Step 4: Deleting procedure via UI...');
+        await proceduresPage.deleteProcedure(procedureData.name, 'test something');
+
+        // 5. Verify delete success alert
+        console.log('[TEST] Step 5: Verifying delete success alert...');
+        await proceduresPage.verifyDeleteSuccessAlert();
+
+        // 6. Verify procedure is no longer displayed in the table
+        console.log('[TEST] Step 6: Verifying procedure no longer appears in table...');
+        await proceduresPage.searchProcedure(procedureData.name);
+        await proceduresPage.verifyProcedureNotInTable(procedureData.name);
+
+        // Clean up reference so afterEach does not re-attempt deletion
+        procedureData.name = '';
+        console.log('[TEST] Test XR-1612 passed successfully!');
+    });
 });
+

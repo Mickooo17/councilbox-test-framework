@@ -1,6 +1,7 @@
 import { Page, Locator, expect, test, Download, APIRequestContext } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { ProcedureApiHelper, CreateProcedureApiOptions, CreatedProcedureData } from '../../utils/procedures/ProcedureApiHelper';
+import { MESSAGES } from '../../utils/Constants';
 
 export interface ProcedureData {
     name: string;
@@ -166,6 +167,24 @@ export class ProceduresPage extends BasePage {
     async createProcedureViaApi(requestContext: APIRequestContext, options?: CreateProcedureApiOptions): Promise<CreatedProcedureData> {
         return await test.step('Create procedure via API', async () => {
             return await ProcedureApiHelper.createProcedure(requestContext, options);
+        });
+    }
+
+    /**
+     * Deletes procedures by IDs via GraphQL API mutation
+     */
+    async deleteProceduresByIdsViaApi(requestContext: APIRequestContext, statuteIds: (number | string)[], reason?: string): Promise<boolean> {
+        return await test.step(`Delete procedures via API: [${statuteIds.join(', ')}]`, async () => {
+            return await ProcedureApiHelper.deleteProceduresByIds(requestContext, statuteIds, reason);
+        });
+    }
+
+    /**
+     * Finds a procedure by name and deletes it via GraphQL API
+     */
+    async deleteProcedureByNameViaApi(requestContext: APIRequestContext, name: string, companyId: number = 1112, reason?: string): Promise<boolean> {
+        return await test.step(`Delete procedure "${name}" via API`, async () => {
+            return await ProcedureApiHelper.deleteProcedureByName(requestContext, name, companyId, reason);
         });
     }
 
@@ -582,46 +601,140 @@ export class ProceduresPage extends BasePage {
         });
     }
 
-    async deleteProcedure(name: string) {
-        await test.step(`Delete procedure: ${name}`, async () => {
-            await this.page.keyboard.press('Escape').catch(() => {});
-            await this.dismissToastOrModal();
-
-            await this.page.evaluate(() => {
-                document.querySelectorAll('.cbx-drawerPanel-container, .cbx-drawerPanel-backdrop, .MuiDialog-root, .MuiBackdrop-root').forEach(el => el.remove());
-            }).catch(() => {});
-
-            await this.navigateToProcedures().catch(() => {});
-            await this.page.waitForTimeout(1000);
-
+    async searchProcedure(name: string) {
+        await test.step(`Search procedure: "${name}"`, async () => {
             const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
-            if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
-                await searchInput.fill(name);
+            await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+            await searchInput.fill(name);
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    async verifyProcedureInTable(name: string) {
+        await test.step(`Verify procedure "${name}" is displayed in table`, async () => {
+            const row = this.tableBody.locator('tr').filter({ hasText: name }).first();
+            await expect(row).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    async verifyProcedureNotInTable(name: string) {
+        await test.step(`Verify procedure "${name}" is NOT displayed in table`, async () => {
+            await this.page.waitForTimeout(1000);
+            const row = this.tableBody.locator('tr').filter({ hasText: name });
+            await expect(row).toHaveCount(0, { timeout: 5000 });
+        });
+    }
+
+    async scrollToProcedureActions(name: string) {
+        await test.step(`Scroll horizontally to 3-dots action button for procedure: "${name}"`, async () => {
+            const row = this.page.getByRole('row', { name: new RegExp(name, 'i') }).or(
+                this.tableBody.locator('tr').filter({ hasText: name })
+            ).first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+
+            // Hover row to ensure actions are active
+            await row.hover().catch(() => {});
+
+            // Locate the 3-dots action button
+            const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').or(
+                row.getByRole('button')
+            ).first();
+
+            await actionButton.scrollIntoViewIfNeeded();
+            await this.page.waitForTimeout(500);
+        });
+    }
+
+    async deleteProcedure(name: string, reason: string = 'test something') {
+        await test.step(`Delete procedure: ${name}`, async () => {
+            const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
+
+            // Only navigate if search input is not already on screen
+            if (!await searchInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await this.navigateToProcedures().catch(() => {});
                 await this.page.waitForTimeout(1000);
+            }
 
-                const row = this.tableBody.locator('tr').filter({ hasText: name }).first();
-                if (await row.isVisible({ timeout: 5000 }).catch(() => false)) {
-                    const actionButton = row.locator('button').last();
-                    await actionButton.click({ force: true });
-                    await this.page.waitForTimeout(500);
-
-                    const deleteMenuItem = this.page.getByRole('menuitem', { name: /Delete|Eliminar/i }).or(
-                        this.page.getByText(/Delete|Eliminar/i)
-                    ).first();
-                    await deleteMenuItem.click({ force: true });
-                    await this.page.waitForTimeout(500);
-
-                    const reasonInput = this.page.locator('.MuiDialog-root input, .MuiDialog-root textarea, #reason, [placeholder*="Reason" i]').first();
-                    if (await reasonInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-                        await reasonInput.fill('Automated test cleanup');
-                        await this.page.waitForTimeout(300);
-                    }
-
-                    const confirmButton = this.page.getByRole('button', { name: /Accept|Delete|Confirm|Yes|Aceptar/i }).last();
-                    await confirmButton.click({ force: true });
+            if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+                const currentSearch = await searchInput.inputValue().catch(() => '');
+                if (!currentSearch.includes(name)) {
+                    await searchInput.fill(name);
                     await this.page.waitForTimeout(1000);
                 }
+
+                const row = this.page.getByRole('row', { name: new RegExp(name, 'i') }).or(
+                    this.tableBody.locator('tr').filter({ hasText: name })
+                ).first();
+                await row.waitFor({ state: 'visible', timeout: 10000 });
+
+                // Hover over the row so the button is interactive
+                await row.hover().catch(() => {});
+
+                // Target the 3-dots action button
+                const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').or(
+                    row.getByRole('button')
+                ).first();
+
+                // Scroll horizontally into view
+                await actionButton.scrollIntoViewIfNeeded();
+                await this.page.waitForTimeout(400);
+
+                // Normal click (allows real browser mouse/pointer events to trigger dropdown)
+                await actionButton.click();
+                await this.page.waitForTimeout(500);
+
+                // Menu item locator
+                const deleteMenuItem = this.page.getByRole('button', { name: ' Delete' }).or(
+                    this.page.getByRole('button', { name: /Delete|Eliminar/i })
+                ).or(
+                    this.page.getByRole('menuitem', { name: /Delete|Eliminar/i })
+                ).or(
+                    this.page.getByText(/^Delete$|^Eliminar$/i)
+                ).first();
+
+                // If menu didn't open on initial click, retry with hover + direct click
+                if (!await deleteMenuItem.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    console.log('[DEBUG] Dropdown not visible, attempting second click on 3-dots...');
+                    await actionButton.hover();
+                    await actionButton.click();
+                    await this.page.waitForTimeout(500);
+                }
+
+                // If still not visible, dispatch click event directly
+                if (!await deleteMenuItem.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    console.log('[DEBUG] Dropdown still not visible, dispatching click event...');
+                    await actionButton.dispatchEvent('click');
+                    await this.page.waitForTimeout(500);
+                }
+
+                await deleteMenuItem.waitFor({ state: 'visible', timeout: 5000 });
+                await deleteMenuItem.click();
+                await this.page.waitForTimeout(500);
+
+                // Fill reason in textarea
+                const reasonInput = this.page.locator('#id-reason-text-area').or(
+                    this.page.locator('.MuiDialog-root textarea, .MuiDialog-root input, #reason, [placeholder*="Reason" i]')
+                ).first();
+                if (await reasonInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+                    await reasonInput.click();
+                    await reasonInput.fill(reason);
+                    await this.page.waitForTimeout(300);
+                }
+
+                // Confirm deletion button inside modal
+                const confirmButton = this.page.getByRole('button', { name: 'Delete' }).or(
+                    this.page.getByRole('button', { name: /^Delete$|^Eliminar$|^Aceptar$|^Accept$/i })
+                ).last();
+                await confirmButton.waitFor({ state: 'visible', timeout: 5000 });
+                await confirmButton.click();
             }
+        });
+    }
+
+    async verifyDeleteSuccessAlert() {
+        await test.step('Verify procedure deleted success alert', async () => {
+            const alert = this.page.getByRole('alert');
+            await expect(alert).toContainText(MESSAGES.PROCEDURE_DELETED, { timeout: 10000 });
         });
     }
 }

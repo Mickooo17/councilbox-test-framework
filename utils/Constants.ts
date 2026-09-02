@@ -12,4 +12,6 @@ export const MESSAGES = {
     DOCUMENT_UPLOADED: 'File uploaded',
     DOCUMENT_DELETED: 'Document deleted',
     SUPPORT_MESSAGE_SENT: /The message has been successfully sent|El mensaje se ha enviado correctamente/i,
+    PROCEDURE_DELETED: 'The procedure was deleted successfully',
 };
+

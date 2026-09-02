@@ -38,3 +38,6 @@ junit-results/
 gh-pages-temp/
 *-details.json
 test-results.json
+
+# Local tools & MCP servers
+tools/
