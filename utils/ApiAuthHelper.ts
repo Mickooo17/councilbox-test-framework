@@ -1,7 +1,7 @@
-import { APIRequestContext, BrowserContext, Page } from '@playwright/test';
+import type { APIRequestContext, BrowserContext, Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
-import envConfig from '../global-env';
+import { resolveLoginUrl, resolveOriginUrl } from './UrlHelper';
 
 export interface AuthTokens {
   token: string;
@@ -13,12 +13,11 @@ interface CachedTokens extends AuthTokens {
 }
 
 const CACHE_FILE = path.join(process.cwd(), 'playwright/.auth/tokens_cache.json');
-const TOKEN_FILE = path.join(process.cwd(), 'playwright/.auth/tokens.json');
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
 
 export class ApiAuthHelper {
   static getGraphqlUrl(): string {
-    const baseUrl = envConfig.baseUrl || 'https://qa.ovac.pre.councilbox.com/admin';
+    const baseUrl = resolveLoginUrl();
     const url = new URL(baseUrl);
     const hostParts = url.hostname.split('.');
     if (hostParts.length >= 4 && hostParts[0] === 'qa') {
@@ -75,8 +74,7 @@ export class ApiAuthHelper {
 
   static async fetchTokens(requestContext: APIRequestContext, email: string, password: string): Promise<AuthTokens> {
     const graphqlUrl = this.getGraphqlUrl();
-    const baseUrl = envConfig.baseUrl || 'https://qa.ovac.pre.councilbox.com/admin';
-    const origin = new URL(baseUrl).origin;
+    const origin = resolveOriginUrl();
 
     const response = await requestContext.post(graphqlUrl, {
       data: {
@@ -123,7 +121,7 @@ export class ApiAuthHelper {
   static async loginViaApi(page: Page, requestContext: APIRequestContext, email: string, password: string): Promise<AuthTokens> {
     const tokens = await this.getTokensForUser(requestContext, email, password);
 
-    await page.addInitScript(({ token, refreshToken }) => {
+    await page.addInitScript(({ token, refreshToken }: { token: string; refreshToken: string }) => {
       window.sessionStorage.setItem('token', token);
       window.sessionStorage.setItem('refreshUserToken', refreshToken);
     }, { token: tokens.token, refreshToken: tokens.refreshToken });
@@ -134,7 +132,7 @@ export class ApiAuthHelper {
   static async setupContextApiAuth(context: BrowserContext, requestContext: APIRequestContext, email: string, password: string): Promise<AuthTokens> {
     const tokens = await this.getTokensForUser(requestContext, email, password);
 
-    await context.addInitScript(({ token, refreshToken }) => {
+    await context.addInitScript(({ token, refreshToken }: { token: string; refreshToken: string }) => {
       window.sessionStorage.setItem('token', token);
       window.sessionStorage.setItem('refreshUserToken', refreshToken);
     }, { token: tokens.token, refreshToken: tokens.refreshToken });

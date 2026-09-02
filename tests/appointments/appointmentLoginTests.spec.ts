@@ -1,4 +1,5 @@
 import * as f from '../fixtures';
+import { resolvePublicLoginUrl } from '../../utils/UrlHelper';
 
 // Force unauthenticated browser context for appointment login tests
 f.test.use({ storageState: { cookies: [], origins: [] } });
@@ -12,7 +13,7 @@ f.test.use({ storageState: { cookies: [], origins: [] } });
 f.test.describe('Appointment Login - Access Validation Tests', () => {
   f.test.beforeEach(async ({ page }) => {
     // Navigate specifically to /login page for appointment access
-    await page.goto('https://qa.ovac.pre.councilbox.com/login');
+    await page.goto(resolvePublicLoginUrl());
   });
 
   f.test('Verify user cannot access appointment with invalid ID @XR-2281 @smoke @regression', async ({ appointmentLoginPage }) => {

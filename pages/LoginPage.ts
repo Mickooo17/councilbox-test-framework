@@ -1,4 +1,5 @@
 import { Page, Locator, expect, test } from '@playwright/test';
+import { resolvePublicLoginUrl } from '../utils/UrlHelper';
 
 export type LanguageOption = 'Español' | 'Català' | 'Galego' | 'Euskera' | 'English' | 'Valencià' | 'Italiano';
 
@@ -23,7 +24,7 @@ export class LoginPage {
     this.passwordInput = page.locator('#password');
     this.submitButton = page.locator('button[id="restore-password-button"]');
     this.loginErrorMessage = page.getByText('This field is required.');
-    this.loginErrorMessageInvalid = page.getByText('Username or password incorrect. You have 10 attempts remaining.');
+    this.loginErrorMessageInvalid = page.getByText(/Username or password incorrect/i);
     this.passwordRecoveryLink = page.locator('#restore-password-link');
     this.passwordToggleButton = page.getByLabel('Toggle password visibility');
     this.privacyPolicyLink = page.getByText('Privacy policy');
@@ -133,7 +134,7 @@ export class LoginPage {
   async selectLanguage(lang: LanguageOption) {
     await test.step(`Click globe icon in top right and select language "${lang}"`, async () => {
       if (!this.page.url().endsWith('/login')) {
-        await this.page.goto('https://qa.ovac.pre.councilbox.com/login', { waitUntil: 'domcontentloaded' });
+        await this.page.goto(resolvePublicLoginUrl(), { waitUntil: 'domcontentloaded' });
       }
       const globeIcon = this.page.locator('.ri-global-line, i.ri-global-line, [class*="ri-global"]').first();
       await globeIcon.waitFor({ state: 'visible', timeout: 10000 });

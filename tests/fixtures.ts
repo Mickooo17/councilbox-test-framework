@@ -2,6 +2,7 @@ import { test as base, expect, Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 import envConfig from '../global-env';
+import { BasePage } from '../pages/BasePage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { InstitutionsPage } from '../pages/institutions/InstitutionsPage';
@@ -109,21 +110,7 @@ export const test = base.extend<{
 
     // Auto-dismiss any bottom toast/banner or overlay modal for authenticated pages
     if (!isUnauthenticatedTest) {
-      const closeBtn = page.locator(`
-        .MuiButtonBase-root.MuiIconButton-root.closeIcon,
-        button.closeIcon,
-        [class*="toast"] button,
-        [class*="snackbar"] button,
-        button[aria-label="close" i],
-        button[aria-label="Close" i],
-        .ri-close-line,
-        i.ri-close-line,
-        button:has(.ri-close-line),
-        button:has(i.ri-close-line)
-      `).first();
-      if (await closeBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
-        await closeBtn.click().catch(() => {});
-      }
+      await new BasePage(page).dismissToastOrModal();
     }
 
     await use(page);

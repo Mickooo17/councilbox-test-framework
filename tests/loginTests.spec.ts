@@ -1,4 +1,5 @@
 import * as f from './fixtures';
+import { resolvePublicLoginUrl } from '../utils/UrlHelper';
 
 // Force unauthenticated browser context for login tests
 f.test.use({ storageState: { cookies: [], origins: [] } });
@@ -85,7 +86,7 @@ f.test.describe('LoginPage - UI Tests', () => {
 
   f.test('should have all required appointment access elements visible @smoke', async ({ page, appointmentLoginPage }) => {
     // Act - Fixture opens /admin, so we need to navigate specifically to /login
-    await page.goto('https://qa.ovac.pre.councilbox.com/login');
+    await page.goto(resolvePublicLoginUrl());
 
     // Assert
     await appointmentLoginPage.verifyAppointmentAccessElementsVisible();
@@ -93,7 +94,7 @@ f.test.describe('LoginPage - UI Tests', () => {
 
   f.test('Verify user cannot access appointment with invalid ID, reference number or code @XR-2281 @XR-2282 @XR-2284 @regression', async ({ page, appointmentLoginPage }) => {
     // Act - Fixture opens /admin, so we navigate specifically to /login
-    await page.goto('https://qa.ovac.pre.councilbox.com/login');
+    await page.goto(resolvePublicLoginUrl());
 
     // Act - Fill invalid appointment credentials (invalid DNI/ID & reference number)
     await appointmentLoginPage.fillAppointmentLoginCredentials('00000000X', 'INVALID_REF_999');
@@ -152,7 +153,7 @@ f.test.describe('LoginPage - Language Selection Tests', () => {
   for (const lang of languages) {
     f.test(`should select ${lang.name} language on the /login screen and display content properly ${lang.tag}`, async ({ page, loginPage }) => {
       // Act - Navigate to the /login screen
-      await page.goto('https://qa.ovac.pre.councilbox.com/login');
+      await page.goto(resolvePublicLoginUrl());
 
       // Act - Click globe icon and select language
       await loginPage.selectLanguage(lang.name);

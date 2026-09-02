@@ -4,7 +4,8 @@ import { MESSAGES } from '../../utils/Constants';
 import { UserApiHelper, CreateUserApiOptions, CreatedUserData, UserRole } from '../../utils/users/UserApiHelper';
 import { UserDataStore } from '../../utils/users/UserDataStore';
 
-export { CreateUserApiOptions, CreatedUserData, UserRole, UserDataStore };
+export type { CreateUserApiOptions, CreatedUserData, UserRole };
+export { UserDataStore };
 
 export interface UserData {
     name: string;

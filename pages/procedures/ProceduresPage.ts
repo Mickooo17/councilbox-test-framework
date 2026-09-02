@@ -2,6 +2,7 @@ import { Page, Locator, expect, test, Download, APIRequestContext } from '@playw
 import { BasePage } from '../BasePage';
 import { ProcedureApiHelper, CreateProcedureApiOptions, CreatedProcedureData } from '../../utils/procedures/ProcedureApiHelper';
 import { MESSAGES } from '../../utils/Constants';
+import { resolveCompanyUrl } from '../../utils/UrlHelper';
 
 export interface ProcedureData {
     name: string;
@@ -190,7 +191,7 @@ export class ProceduresPage extends BasePage {
 
     async navigateToProcedureConsents(procedureId: string | number, companyId: number = 1112) {
         await test.step(`Navigate to Consents tab of procedure ${procedureId}`, async () => {
-            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/procedures/${procedureId}/consents`, { waitUntil: 'domcontentloaded' });
+            await this.page.goto(resolveCompanyUrl(companyId, `procedures/${procedureId}/consents`), { waitUntil: 'domcontentloaded' });
             await this.page.waitForLoadState('networkidle');
             await this.dismissToastOrModal();
             await this.page.waitForTimeout(1500);
@@ -455,7 +456,7 @@ export class ProceduresPage extends BasePage {
                 await firstCard.waitFor({ state: 'visible', timeout: 10000 });
                 await firstCard.evaluate((el) => (el as HTMLElement).click());
                 const text = await firstCard.innerText();
-                selectedDocName = text.split('\n')[0].trim();
+                selectedDocName = text.split('\n')[0]?.trim() || '';
             }
 
             // Click ADD button in the OVAC storage drawer

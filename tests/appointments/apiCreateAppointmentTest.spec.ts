@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures';
 import { AppointmentApiHelper } from '../../utils/appointments/AppointmentApiHelper';
+import { resolveCompanyUrl } from '../../utils/UrlHelper';
 
 test.describe('OVAC Appointment API Creation & UI Verification', () => {
   test('Create appointment via API and verify in UI by appointment ID @XR-API-APPOINTMENT', async ({ page, request }) => {
@@ -23,7 +24,7 @@ test.describe('OVAC Appointment API Creation & UI Verification', () => {
     console.log(`[API Test] Successfully created Appointment ID: ${appointmentId}, Case: ${createdAppointment.caseNumber}`);
 
     // 2. Open UI and verify appointment exists in list
-    await page.goto('https://qa.ovac.pre.councilbox.com/company/1112');
+    await page.goto(resolveCompanyUrl(1112));
 
     // Search by Appointment ID
     const searchInput = page.locator('input[placeholder="Search"]');

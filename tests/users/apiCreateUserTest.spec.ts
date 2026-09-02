@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 
 test.describe('OVAC User API Creation & UI Verification', () => {
-  test('Create Admin Agent user via API and verify in UI @XR-API-USER', async ({ usersPage, page }) => {
+  test('Create Admin Agent user via API and verify in UI @XR-API-USER', async ({ usersPage }) => {
     // 1. Create Admin Agent user via API directly from usersPage
     const createdUser = await usersPage.createAdminAgentUserViaApi({
       name: 'AutoAdmin',

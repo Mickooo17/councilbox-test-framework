@@ -1,8 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  workers: 7,
-  retries: 0,
+  ...(process.env.CI ? { workers: 2, retries: 1 } : { workers: 4, retries: 0 }),
   projects: [
     {
       name: 'setup',
