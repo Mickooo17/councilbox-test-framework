@@ -574,19 +574,31 @@ export class ProceduresPage extends BasePage {
 
     async publishProcedure() {
         await test.step('Publish procedure from Review tab', async () => {
-            const publishBtn = this.page.locator('#council-editor-publish, button:has-text("PUBLISH"), button:has-text("PUBLICAR")').first();
+            const publishBtn = this.page.getByRole('button', { name: /Publish|Publicar/i })
+                .or(this.page.locator('#council-editor-publish, button:has-text("PUBLISH"), button:has-text("PUBLICAR")'))
+                .first();
             await publishBtn.waitFor({ state: 'visible', timeout: 10000 });
             await publishBtn.click({ force: true });
             await this.page.waitForTimeout(1000);
 
             // Confirm publish in modal dialog
-            const acceptBtn = this.page.locator('#modal-button-accept, #modal button.cbx-primary, #alert-confirm button').first();
+            const dialog = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').first();
+            const acceptBtn = dialog.getByRole('button', { name: /Publish|Publicar|Accept|Aceptar/i })
+                .or(this.page.locator('#modal-button-accept, #modal button.cbx-primary, #alert-confirm button'))
+                .first();
             if (await acceptBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
                 await acceptBtn.click({ force: true });
             }
 
             await this.page.waitForLoadState('networkidle');
             await this.page.waitForTimeout(2000);
+        });
+    }
+
+    async verifyNoConsentsAssociatedMessage() {
+        await test.step('Verify message indicating no consents are associated with procedure', async () => {
+            const emptyMessage = this.page.getByText(/The procedure does not require any associated consent|El procedimiento no requiere ningún consentimiento asociado/i).first();
+            await expect(emptyMessage).toBeVisible({ timeout: 10000 });
         });
     }
 

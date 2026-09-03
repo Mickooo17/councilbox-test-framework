@@ -228,4 +228,37 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 4. Verify all elements in Configuration tab (General, Appointments, Security)
         await proceduresPage.verifyAllConfigurationElements();
     });
+
+    test('Without the consents, new procedures can be created - Procedures @XR-2561 @regression', async ({ proceduresPage }) => {
+        test.slow();
+
+        // 1. Open create procedure drawer and select Video-appointment procedure
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 2. Fill procedure details (Name & Description) and continue
+        await proceduresPage.fillProcedureDetails(procedureData);
+        await proceduresPage.clickContinue(); // Advance from Details to Entities
+
+        // 3. Advance from Entities to Consents tab
+        await proceduresPage.clickContinue(); // Advance to Consents
+
+        // 4. Verify that Consents step displays message that no consents are required
+        await proceduresPage.verifyNoConsentsAssociatedMessage();
+
+        // 5. Advance through the rest of the wizard to Review tab without adding any consents
+        await proceduresPage.advanceToReviewTab();
+
+        // 6. Publish the procedure and confirm in the warning dialog
+        await proceduresPage.publishProcedure();
+
+        // 7. Verify the procedure is successfully created and displayed in the table
+        await proceduresPage.searchProcedure(procedureData.name);
+        await proceduresPage.verifyProcedureInTable(procedureData.name);
+
+        // 8. Open the created procedure and verify Consents tab remains empty
+        await proceduresPage.openProcedureFromList(procedureData.name);
+        await proceduresPage.clickConsentsTabInWizardOrEdit();
+        await proceduresPage.verifyNoConsentsAssociatedMessage();
+    });
 });
