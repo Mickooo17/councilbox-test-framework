@@ -19,4 +19,30 @@ test.describe('Activity & Dashboard Tests', () => {
     await activityPage.clickDataByParticipantTab();
     await activityPage.verifyDataByParticipantTabIsDisplayed();
   });
+
+  test("Search functionality on 'Data by Participant' tab with results and empty state @XR-3112 @regression", async ({ activityPage }) => {
+    test.slow();
+
+    // 1. Navigate to Activity from left menu
+    await activityPage.navigateToActivity();
+    await activityPage.verifyActivityPageLoaded();
+
+    // 2. Click on "Data by Participant" tab
+    await activityPage.clickDataByParticipantTab();
+    await activityPage.verifyDataByParticipantTabIsDisplayed();
+
+    // 3. Positive search: Search with existing TIN (12345678z) and verify results are displayed
+    const existingTin = '12345678z';
+    await activityPage.searchParticipant(existingTin);
+    await activityPage.verifySearchResultsDisplayed(existingTin);
+
+    // 4. Navigate back to search input
+    await activityPage.clickBackFromSearchResults();
+    await activityPage.verifyDataByParticipantTabIsDisplayed();
+
+    // 5. Negative search: Search with random non-existent TIN and verify empty state message
+    const randomNonExistentTin = `NON_EXISTENT_${Date.now()}`;
+    await activityPage.searchParticipant(randomNonExistentTin);
+    await activityPage.verifyNoResultsMessageDisplayed(randomNonExistentTin);
+  });
 });
