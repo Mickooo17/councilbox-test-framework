@@ -641,6 +641,37 @@ export class ProceduresPage extends BasePage {
         });
     }
 
+    async clickStepperTab(tabName: 'Details' | 'Entities' | 'Consents' | 'Documentation' | 'Configuration' | 'Review') {
+        await test.step(`Click stepper tab: ${tabName}`, async () => {
+            const patterns: Record<string, RegExp> = {
+                Details: /^Details$|^Detalles$/i,
+                Entities: /^Entities$|^Entidades$/i,
+                Consents: /^Consents$|^Consentimientos$/i,
+                Documentation: /^Documentation$|^Documentación$/i,
+                Configuration: /^Configuration$|^Configuración$/i,
+                Review: /^Review$|^Revisión$/i,
+            };
+            const pattern = patterns[tabName] || new RegExp(`^${tabName}$`, 'i');
+            const stepTab = this.page.locator('.cbx-stepper-item-contentText, .cbx-stepper-item-text')
+                .filter({ hasText: pattern })
+                .first();
+            await stepTab.waitFor({ state: 'visible', timeout: 10000 });
+            await stepTab.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    async clickPrevious() {
+        await test.step('Click Previous button', async () => {
+            const prevBtn = this.page.getByRole('button', { name: /Previous|Anterior/i })
+                .or(this.page.locator('#procedure-editor-prev'))
+                .first();
+            await prevBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await prevBtn.click({ force: true });
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
     async searchProcedure(name: string) {
         await test.step(`Search procedure: "${name}"`, async () => {
             const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();

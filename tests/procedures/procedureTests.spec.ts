@@ -261,4 +261,56 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.clickConsentsTabInWizardOrEdit();
         await proceduresPage.verifyNoConsentsAssociatedMessage();
     });
+
+    test('Ovac - Browsing beetwen tabs in new Procedure creation @XR-2331 @regression', async ({ proceduresPage }) => {
+        test.slow();
+
+        // 1. Open create procedure drawer and select Video-appointment procedure
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 2. Verify that from step 1 navigation is restricted when required fields are not covered
+        await expect(proceduresPage.continueButton).toBeDisabled();
+        expect(proceduresPage.page.url()).toContain('/procedures/new');
+
+        // 3. Cover required fields (Name & Description)
+        await proceduresPage.fillProcedureDetails(procedureData);
+        await expect(proceduresPage.continueButton).toBeEnabled();
+
+        // 4. Click Continue to save draft and enable free tab browsing
+        await proceduresPage.clickContinue();
+        await expect(proceduresPage.page).toHaveURL(/.*\/companies/i);
+
+        // 5. Navigate freely between steps by clicking on desired tabs
+        // Click Consents tab
+        await proceduresPage.clickStepperTab('Consents');
+        await expect(proceduresPage.page).toHaveURL(/.*\/consents/i);
+
+        // Click Documentation tab
+        await proceduresPage.clickStepperTab('Documentation');
+        await expect(proceduresPage.page).toHaveURL(/.*\/documentation/i);
+
+        // Click Configuration tab
+        await proceduresPage.clickStepperTab('Configuration');
+        await expect(proceduresPage.page).toHaveURL(/.*\/configuration/i);
+
+        // Click Review tab
+        await proceduresPage.clickStepperTab('Review');
+        await expect(proceduresPage.page).toHaveURL(/.*\/review/i);
+
+        // Click Details tab (Step 1)
+        await proceduresPage.clickStepperTab('Details');
+        await expect(proceduresPage.page).toHaveURL(/.*\/details|.*\/procedures\/\d+$/i);
+
+        // Click Entities tab (Step 2)
+        await proceduresPage.clickStepperTab('Entities');
+        await expect(proceduresPage.page).toHaveURL(/.*\/companies/i);
+
+        // 6. Verify navigation via Continue and Previous buttons
+        await proceduresPage.clickContinue();
+        await expect(proceduresPage.page).toHaveURL(/.*\/consents/i);
+
+        await proceduresPage.clickPrevious();
+        await expect(proceduresPage.page).toHaveURL(/.*\/companies/i);
+    });
 });
