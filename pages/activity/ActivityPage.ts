@@ -133,7 +133,6 @@ export class ActivityPage extends BasePage {
 
   async clickParticipantResult(query: string) {
     await test.step(`Click on participant result: "${query}"`, async () => {
-      await this.dismissToastOrModal();
       const tinLocator = this.page.getByText(new RegExp(`^${query}$`, 'i')).first();
       await tinLocator.waitFor({ state: 'visible', timeout: 10000 });
       await tinLocator.click();
@@ -143,7 +142,6 @@ export class ActivityPage extends BasePage {
 
   async verifyParticipantAppointmentsDisplayed(query: string) {
     await test.step(`Verify appointments related to participant "${query}" are displayed`, async () => {
-      await this.dismissToastOrModal();
       await expect(this.page).toHaveURL(/.*\/activity\/participant\/.+/i, { timeout: 10000 });
 
       // Verify participant query / TIN is visible
@@ -159,5 +157,89 @@ export class ActivityPage extends BasePage {
       await expect(appointmentCard).toBeVisible({ timeout: 10000 });
     });
   }
+
+  async openAppointmentActionsMenu(appointmentIndex: number = 0) {
+    await test.step(`Open three dots action menu for appointment at index ${appointmentIndex}`, async () => {
+      const threeDotsBtn = this.page.locator('button:has(.ri-more-2-fill), button#appointment-menu').nth(appointmentIndex);
+      await threeDotsBtn.scrollIntoViewIfNeeded();
+      await threeDotsBtn.click();
+      const menu = this.page.locator('div[role="presentation"]#appointment-menu, .MuiPopover-root').first();
+      await expect(menu).toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  async verifyAppointmentActionsMenuVisible() {
+    await test.step('Verify appointment actions menu is visible with options', async () => {
+      const menu = this.page.locator('div[role="presentation"]#appointment-menu, .MuiPopover-root').filter({ has: this.page.locator('[id*="appointment-"]') }).first();
+      await expect(menu).toBeVisible({ timeout: 5000 });
+
+      // Verify presence of action items inside the open menu
+      const actions = menu.locator('[id*="appointment-"], [role="button"], li').filter({ hasText: /.+/ });
+      await expect(actions.first()).toBeVisible({ timeout: 5000 });
+    });
+  }
+
+  async performStatusAction() {
+    await test.step('Click on "Status" in appointment actions menu and verify details dialog', async () => {
+      const statusOption = this.page.locator('[id*="appointment-see-details"]')
+        .or(this.page.locator('div[role="presentation"]#appointment-menu, .MuiPopover-root').getByRole('button', { name: /^Status$|^Estado$/i }))
+        .first();
+      await statusOption.click();
+
+      // Verify Details modal is displayed
+      const detailsDialog = this.page.locator('[role="dialog"]').filter({ hasText: /Details|Detalles/i }).first();
+      await expect(detailsDialog).toBeVisible({ timeout: 10000 });
+
+      // Verify status label or information is visible inside dialog
+      const statusInfo = detailsDialog.getByText(/Status|Estado/i).first();
+      await expect(statusInfo).toBeVisible({ timeout: 5000 });
+
+      // Close Details dialog
+      const closeBtn = this.page.locator('#panel-confirm-close, button:has(.ri-close-line)')
+        .or(detailsDialog.getByRole('button', { name: /^Close$|^Cerrar$/i }))
+        .first();
+      await closeBtn.click();
+      await expect(detailsDialog).toBeHidden({ timeout: 5000 });
+    });
+  }
+
+  async performHistoryAction() {
+    await test.step('Click on "History" in appointment actions menu and verify history timeline modal', async () => {
+      const historyOption = this.page.locator('[id*="appointment-see-timeline"]')
+        .or(this.page.locator('div[role="presentation"]#appointment-menu, .MuiPopover-root').getByRole('button', { name: /^History$|^Historial$/i }))
+        .first();
+      await historyOption.click();
+
+      // Verify History dialog is displayed
+      const historyDialog = this.page.locator('[role="dialog"]').filter({ hasText: /History|Historial/i }).first();
+      await expect(historyDialog).toBeVisible({ timeout: 10000 });
+
+      // Close History dialog
+      const closeBtn = historyDialog.getByRole('button', { name: /^Close$|^Cerrar$/i }).first();
+      await closeBtn.click();
+      await expect(historyDialog).toBeHidden({ timeout: 5000 });
+    });
+  }
+
+  async performParticipantsAction() {
+    await test.step('Click on "Participants" in appointment actions menu and verify attendees drawer panel', async () => {
+      const participantsOption = this.page.locator('[id*="appointment-participants-action"]')
+        .or(this.page.locator('div[role="presentation"]#appointment-menu, .MuiPopover-root').getByRole('button', { name: /^Participants$|^Participantes$/i }))
+        .first();
+      await participantsOption.click();
+
+      // Verify Attendees drawer panel is displayed
+      const drawerTitle = this.page.getByText(/List of attendees|Lista de asistentes/i).first();
+      await expect(drawerTitle).toBeVisible({ timeout: 10000 });
+
+      // Close drawer panel
+      const closeDrawerBtn = this.page.locator('button[aria-label="Close drawer panel"]')
+        .or(this.page.getByRole('button', { name: /^Close$|^Cerrar$/i }))
+        .first();
+      await closeDrawerBtn.click();
+      await expect(drawerTitle).toBeHidden({ timeout: 5000 });
+    });
+  }
 }
+
 

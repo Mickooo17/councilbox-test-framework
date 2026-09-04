@@ -51,7 +51,7 @@ export class BasePage {
             `).first();
 
             if (await closeBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-                await closeBtn.click().catch(() => {});
+                await closeBtn.click({ timeout: 1000, force: true }).catch(() => {});
             }
 
             await this.page.evaluate(() => {
