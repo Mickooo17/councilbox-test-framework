@@ -45,4 +45,28 @@ test.describe('Activity & Dashboard Tests', () => {
     await activityPage.searchParticipant(randomNonExistentTin);
     await activityPage.verifyNoResultsMessageDisplayed(randomNonExistentTin);
   });
+
+  test("View related appointments for a specific participant on 'Data by Participant' tab @XR-3113 @regression", async ({ activityPage }) => {
+    test.slow();
+
+    // 1. From the menu on the left, select "Activity"
+    await activityPage.navigateToActivity();
+
+    // 2. The web application accurately presents the Activity page
+    await activityPage.verifyActivityPageLoaded();
+
+    // 3. At the top of the page, click on "Data by Participant"
+    await activityPage.clickDataByParticipantTab();
+    await activityPage.verifyDataByParticipantTabIsDisplayed();
+
+    // 4. Enter the name, TIN, or surname into the input field, and then click on the "Search" button
+    const participantTin = '12345678z';
+    await activityPage.searchParticipant(participantTin);
+    await activityPage.verifySearchResultsDisplayed(participantTin);
+
+    // 5. Click on the desired participant and verify related appointments are displayed
+    await activityPage.clickParticipantResult(participantTin);
+    await activityPage.verifyParticipantAppointmentsDisplayed(participantTin);
+  });
 });
+

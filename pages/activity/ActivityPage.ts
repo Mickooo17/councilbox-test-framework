@@ -130,4 +130,34 @@ export class ActivityPage extends BasePage {
       await this.page.waitForTimeout(500);
     });
   }
+
+  async clickParticipantResult(query: string) {
+    await test.step(`Click on participant result: "${query}"`, async () => {
+      await this.dismissToastOrModal();
+      const tinLocator = this.page.getByText(new RegExp(`^${query}$`, 'i')).first();
+      await tinLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await tinLocator.click();
+      await this.page.waitForURL(/.*\/activity\/participant\/.+/i, { timeout: 15000 });
+    });
+  }
+
+  async verifyParticipantAppointmentsDisplayed(query: string) {
+    await test.step(`Verify appointments related to participant "${query}" are displayed`, async () => {
+      await this.dismissToastOrModal();
+      await expect(this.page).toHaveURL(/.*\/activity\/participant\/.+/i, { timeout: 10000 });
+
+      // Verify participant query / TIN is visible
+      const participantHeader = this.page.getByText(new RegExp(`^${query}$`, 'i')).first();
+      await expect(participantHeader).toBeVisible({ timeout: 10000 });
+
+      // Verify appointments summary count/label is present
+      const appointmentsSummary = this.page.getByText(/Appointments|Citas/i).first();
+      await expect(appointmentsSummary).toBeVisible({ timeout: 10000 });
+
+      // Verify at least one appointment card is displayed
+      const appointmentCard = this.page.getByText(/^APPOINTMENT$|^CITA$/i).first();
+      await expect(appointmentCard).toBeVisible({ timeout: 10000 });
+    });
+  }
 }
+
