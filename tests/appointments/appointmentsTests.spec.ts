@@ -79,4 +79,61 @@ test.describe('Appointments Management - Status Verification Tests', () => {
       participantName: 'Ammar Micijevic',
     });
   });
+
+  /**
+   * Test Case XR-3139:
+   * Verify that first and last name is displayed in the calendar with the name of Procedure - Calendar View
+   *
+   * Flow:
+   * 1. Create a fresh appointment for today/upcoming via API with specific participant and procedure.
+   * 2. Navigate to Appointments module (`/company/1112`).
+   * 3. Click on the "Calendar view" icon.
+   * 4. Verify that the procedure in calendar shows: First Name + Last Name (or Name Surname) + Procedure Name.
+   */
+  test('Verify that first and last name is displayed in calendar with procedure name - Calendar View @XR-3139 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    const participant = {
+      name: 'Ammar',
+      surname: 'Micijevic',
+      email: 'ammar.micijevic@councilbox.com',
+      dni: 'ammarpass',
+      idCardType: 'passport',
+    };
+    const procedureTitle = 'ALL in ONE';
+
+    // Set appointment date for today at upcoming hour so it appears in daily/current calendar view
+    const appointmentDate = new Date();
+    appointmentDate.setHours(appointmentDate.getHours() + 2, 0, 0, 0);
+
+    // 1. Create appointment via API
+    let createdAppointment: any;
+    await test.step('Create appointment via API', async () => {
+      createdAppointment = await AppointmentApiHelper.createAppointment(request, {
+        companyId: 1112,
+        procedureId: 3524,
+        procedureTitle: procedureTitle,
+        dateStart: appointmentDate,
+        participant: participant,
+        observations: 'XR-3139 Calendar View Verification',
+      });
+
+      expect(createdAppointment).toBeDefined();
+      expect(createdAppointment.id).toBeGreaterThan(0);
+    }, {
+      subtitle: `Create appointment for today at ${appointmentDate.toLocaleTimeString()} with ${participant.name} ${participant.surname}`,
+    });
+
+    // 2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Switch to Calendar View
+    await appointmentsPage.switchToCalendarView();
+
+    // 4. Verify appointment in Calendar View contains first/last name and procedure name
+    const participantFullName = `${participant.name} ${participant.surname}`;
+    await appointmentsPage.verifyAppointmentInCalendarView(participantFullName, procedureTitle);
+  });
 });
+

@@ -15,6 +15,10 @@ export class AppointmentsPage extends BasePage {
   readonly statusFilterButton: Locator;
   readonly periodFilterButton: Locator;
   readonly searchInput: Locator;
+  readonly viewModeDropdown: Locator;
+  readonly calendarViewButton: Locator;
+  readonly tableViewButton: Locator;
+  readonly dayViewRadio: Locator;
   readonly appointmentsTable: Locator;
   readonly tableRows: Locator;
 
@@ -35,6 +39,23 @@ export class AppointmentsPage extends BasePage {
     this.statusFilterButton = page.locator('div').filter({ hasText: /^Status$/ }).locator('..').locator('[role="button"]').or(page.locator('input[name="Status"]').locator('..')).first();
     this.periodFilterButton = page.locator('div').filter({ hasText: /^Period$/ }).locator('..').locator('[role="button"]').or(page.locator('input[name="Period"]').locator('..')).first();
     this.searchInput = page.locator('input[placeholder="Search"], input[placeholder*="participant" i]').first();
+    this.viewModeDropdown = page.locator('div').filter({ hasText: /List view|Calendar view|Daily view|Vista de lista|Vista de calendario|Vista diaria/i })
+      .locator('..')
+      .or(page.getByRole('button', { name: /List view|Calendar view|Daily view|Vista de lista|Vista de calendario|Vista diaria/i }))
+      .or(page.locator('text="List view"').locator('..'))
+      .first();
+    this.calendarViewButton = page.getByRole('menuitem', { name: /Calendar view|Vista de calendario/i })
+      .or(page.getByRole('option', { name: /Calendar view|Vista de calendario/i }))
+      .or(page.locator('li, .MuiMenuItem-root').filter({ hasText: /Calendar view|Vista de calendario/i }))
+      .or(page.getByText(/Calendar view|Vista de calendario/i))
+      .first();
+    this.tableViewButton = page.getByRole('menuitem', { name: /List view|Vista de lista/i })
+      .or(page.getByRole('option', { name: /List view|Vista de lista/i }))
+      .or(page.locator('li, .MuiMenuItem-root').filter({ hasText: /List view|Vista de lista/i }))
+      .first();
+    this.dayViewRadio = page.getByRole('radio', { name: /^Day$|^Día$/i })
+      .or(page.locator('label, span').filter({ hasText: /^Day$|^Día$/i }))
+      .first();
     this.appointmentsTable = page.locator('table').first();
     this.tableRows = page.locator('tbody tr');
 
@@ -155,4 +176,60 @@ export class AppointmentsPage extends BasePage {
       subtitle: 'Assert Details window heading, status, canceled by, reason, observations, and participants',
     });
   }
+
+  async switchToCalendarView() {
+    await test.step('Switch to Calendar view (Day view)', async () => {
+      await this.dismissToastOrModal();
+      
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes('/appointments/one_on_one') && !currentUrl.includes('/appointments')) {
+        await this.navigateToAppointmentsPage();
+      }
+
+      // Check if already in calendar view
+      if (!await this.page.locator('.rbc-calendar, [class*="calendar"], [class*="rbc-"]').isVisible({ timeout: 2000 }).catch(() => false)) {
+        // Click on "List view" text/element directly to open dropdown
+        const listViewLabel = this.page.locator('text="List view"').or(this.page.getByText('List view', { exact: true })).first();
+        await listViewLabel.waitFor({ state: 'visible', timeout: 10000 });
+        await listViewLabel.click();
+        await this.page.waitForTimeout(500);
+
+        // Click Calendar view
+        const calendarItem = this.page.locator('text="Calendar view"').or(this.page.getByRole('menuitem', { name: /Calendar view/i })).first();
+        await calendarItem.waitFor({ state: 'visible', timeout: 5000 });
+        await calendarItem.click();
+        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Switch to 'Day' view if available as described in XR-3139
+      if (await this.dayViewRadio.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await this.dayViewRadio.click();
+        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForTimeout(1000);
+      }
+
+      await this.dismissToastOrModal();
+    }, {
+      subtitle: 'Open view mode dropdown, select Calendar view, and switch to Day view',
+    });
+  }
+
+  async verifyAppointmentInCalendarView(participantFullName: string, procedureName: string) {
+    await test.step(`Verify appointment with participant "${participantFullName}" and procedure "${procedureName}" is displayed in Calendar view`, async () => {
+      await this.dismissToastOrModal();
+      // Format expected in Day view: "FIRSTNAME LASTNAME - PROCEDURE" or "PROCEDURE - FIRSTNAME LASTNAME"
+      const expectedTextRegex = new RegExp(`${participantFullName}.*${procedureName}|${procedureName}.*${participantFullName}`, 'i');
+      const calendarItem = this.page.locator('.rbc-event, [class*="event"], [class*="calendar-event"], [class*="appointment-card"], [class*="fc-event"], [role="button"]')
+        .filter({ hasText: expectedTextRegex })
+        .or(this.page.getByText(expectedTextRegex))
+        .first();
+
+      await expect(calendarItem).toBeVisible({ timeout: 15000 });
+    }, {
+      params: { participantFullName, procedureName },
+      subtitle: 'Check that appointment entry contains both participant full name and procedure name in calendar',
+    });
+  }
 }
+
