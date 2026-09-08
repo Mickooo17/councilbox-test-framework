@@ -106,6 +106,35 @@ test.describe('Activity & Dashboard Tests', () => {
     await activityPage.openAppointmentActionsMenu(0);
     await activityPage.performParticipantsAction();
   });
+
+  test("On the 'Data by Participant' tab, within the specific participant page, the 'Details' section is displayed for 'Completed' appointments @XR-3115 @regression", async ({ activityPage }) => {
+    test.slow();
+
+    // 1. From the menu on the left, select "Activity"
+    await activityPage.navigateToActivity();
+
+    // 2. The web application accurately presents the Activity page
+    await activityPage.verifyActivityPageLoaded();
+
+    // 3. At the top of the page, click on "Data by Participant"
+    await activityPage.clickDataByParticipantTab();
+    await activityPage.verifyDataByParticipantTabIsDisplayed();
+
+    // 4. Enter the name, TIN, or surname into the input field, and then click on the "Search" button
+    const participantTin = '12345678z';
+    await activityPage.searchParticipant(participantTin);
+    await activityPage.verifySearchResultsDisplayed(participantTin);
+
+    // 5. Click on the desired participant who has completed appointments
+    await activityPage.clickParticipantResult(participantTin, 'muhamed.adzamija@councilbox.com');
+
+    // 6. Navigate to the completed appointment and click on the "Details" button
+    await activityPage.openCompletedAppointmentDetails();
+
+    // 7. Verify the "Details" section is displayed with accurate and correct data
+    await activityPage.verifyCompletedAppointmentDetailsSection();
+  });
 });
+
 
 

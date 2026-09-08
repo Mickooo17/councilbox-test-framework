@@ -131,12 +131,17 @@ export class ActivityPage extends BasePage {
     });
   }
 
-  async clickParticipantResult(query: string) {
-    await test.step(`Click on participant result: "${query}"`, async () => {
-      const tinLocator = this.page.getByText(new RegExp(`^${query}$`, 'i')).first();
-      await tinLocator.waitFor({ state: 'visible', timeout: 10000 });
-      await tinLocator.click();
+  async clickParticipantResult(query: string, cardSelectorText?: string) {
+    await test.step('Click on participant result', async () => {
+      const target = cardSelectorText
+        ? this.page.getByText(cardSelectorText).first()
+        : this.page.getByText(new RegExp(`^${query}$`, 'i')).first();
+      await target.waitFor({ state: 'visible', timeout: 10000 });
+      await target.click();
       await this.page.waitForURL(/.*\/activity\/participant\/.+/i, { timeout: 15000 });
+    }, {
+      subtitle: 'Select participant card from results',
+      params: { query, cardSelectorText: cardSelectorText || query }
     });
   }
 
@@ -240,6 +245,43 @@ export class ActivityPage extends BasePage {
       await expect(drawerTitle).toBeHidden({ timeout: 5000 });
     });
   }
+
+  async openCompletedAppointmentDetails() {
+    await test.step('Navigate to completed appointment and click Details button', async () => {
+      // Locate Completed badge on the appointment
+      const completedBadge = this.page.getByText(/^Completed$|^Completada$/i).first();
+      await completedBadge.scrollIntoViewIfNeeded();
+      await expect(completedBadge).toBeVisible({ timeout: 10000 });
+
+      // Locate DETAILS accordion button
+      const detailsAccordionBtn = this.page.getByRole('button', { name: /^DETAILS$|^DETALLES$/i }).first();
+      await detailsAccordionBtn.scrollIntoViewIfNeeded();
+      await expect(detailsAccordionBtn).toBeVisible({ timeout: 10000 });
+
+      // Click to expand Details section
+      await detailsAccordionBtn.click();
+      await expect(detailsAccordionBtn).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 });
+    }, {
+      subtitle: 'Expand Details accordion for completed appointment'
+    });
+  }
+
+  async verifyCompletedAppointmentDetailsSection() {
+    await test.step('Verify Details section is displayed with accurate appointment data', async () => {
+      const accordionDetails = this.page.locator('.MuiAccordionDetails-root').first();
+      await expect(accordionDetails).toBeVisible({ timeout: 10000 });
+
+      // Verify core labels in the Details section
+      await expect(accordionDetails.getByText(/Dates|Fechas/i).first()).toBeVisible({ timeout: 5000 });
+      await expect(accordionDetails.getByText(/Assignment|Asignación/i).first()).toBeVisible({ timeout: 5000 });
+      await expect(accordionDetails.getByText(/Request|Petición/i).first()).toBeVisible({ timeout: 5000 });
+      await expect(accordionDetails.getByText(/Appointment|Cita/i).first()).toBeVisible({ timeout: 5000 });
+      await expect(accordionDetails.getByText(/Duration|Duración/i).first()).toBeVisible({ timeout: 5000 });
+    }, {
+      subtitle: 'Validate Dates, Assignment, Request, Appointment, and Duration'
+    });
+  }
 }
+
 
 
