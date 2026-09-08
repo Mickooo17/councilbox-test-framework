@@ -13,6 +13,7 @@ import { UsersPage } from '../pages/users/UsersPage';
 import { UserProfilePage } from '../pages/users/UserProfilePage';
 import { SupportPage } from '../pages/support/SupportPage';
 import { AppointmentLoginPage } from '../pages/AppointmentLoginPage';
+import { AppointmentsPage } from '../pages/AppointmentsPage';
 import { ProceduresPage } from '../pages/procedures/ProceduresPage';
 import { ActivityPage } from '../pages/activity/ActivityPage';
 import { resolveLoginUrl } from '../utils/UrlHelper';
@@ -39,6 +40,7 @@ export const test = base.extend<{
   userProfilePage: UserProfilePage;
   supportPage: SupportPage;
   appointmentLoginPage: AppointmentLoginPage;
+  appointmentsPage: AppointmentsPage;
   activityPage: ActivityPage;
   page: Page;
 }>({
@@ -74,6 +76,9 @@ export const test = base.extend<{
   },
   appointmentLoginPage: async ({ page }, use) => {
     await use(new AppointmentLoginPage(page));
+  },
+  appointmentsPage: async ({ page }, use) => {
+    await use(new AppointmentsPage(page));
   },
   activityPage: async ({ page }, use) => {
     await use(new ActivityPage(page));

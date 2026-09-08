@@ -152,4 +152,75 @@ export class AppointmentApiHelper {
 
     return appData;
   }
+
+  /**
+   * Cancels an appointment via GraphQL API (`cancelAppointment` mutation).
+   * Automatically updates AppointmentDataStore.
+   */
+  static async cancelAppointment(
+    requestContext: APIRequestContext,
+    councilId: number,
+    options: { reason?: string; message?: string } = {}
+  ): Promise<boolean> {
+    const reason = options.reason ?? 'unavailable';
+    const message = options.message ?? 'Canceled for automated test verification';
+
+    const tokens = await ApiAuthHelper.getTokensForUser(
+      requestContext,
+      adminProfessionalUser.username,
+      adminProfessionalUser.password
+    );
+
+    const graphqlUrl = ApiAuthHelper.getGraphqlUrl();
+
+    const mutationQuery = `
+      mutation CancelAppointment($councilId: Int!, $message: String!, $reason: String) {
+        cancelAppointment(councilId: $councilId, message: $message, reason: $reason) {
+          success
+          message
+        }
+      }
+    `;
+
+    const response = await requestContext.post(graphqlUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tokens.token}`,
+        'x-jwt-token': tokens.token,
+        'cbx-client-v': '8.6.6',
+      },
+      data: {
+        operationName: 'CancelAppointment',
+        query: mutationQuery,
+        variables: {
+          councilId,
+          message,
+          reason,
+        },
+      },
+    });
+
+    if (!response.ok()) {
+      throw new Error(`CancelAppointment HTTP error status ${response.status()}: ${await response.text()}`);
+    }
+
+    const body = await response.json();
+    if (body.errors && body.errors.length > 0) {
+      throw new Error(`CancelAppointment GraphQL error: ${JSON.stringify(body.errors, null, 2)}`);
+    }
+
+    const result = body.data?.cancelAppointment;
+    if (!result || !result.success) {
+      throw new Error(`CancelAppointment failed: ${JSON.stringify(body)}`);
+    }
+
+    AppointmentDataStore.updateAppointment(councilId, {
+      state: 40,
+      cancelReason: reason,
+      cancelMessage: message,
+    });
+
+    console.log(`[AppointmentApiHelper] Successfully canceled appointment ID #${councilId}`);
+    return true;
+  }
 }

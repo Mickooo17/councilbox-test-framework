@@ -26,6 +26,8 @@ export interface CreatedAppointmentData {
   companyId: number;
   participant: ParticipantDetails;
   createdTimeMs: number;
+  cancelReason?: string;
+  cancelMessage?: string;
 }
 
 const STORE_FILE = path.join(process.cwd(), 'playwright/.auth/created_appointments.json');
@@ -66,6 +68,19 @@ export class AppointmentDataStore {
     const updated = [data, ...existing.filter((item) => item.id !== data.id)];
     this.saveToFile(updated);
     console.log(`[AppointmentDataStore] Saved appointment ID #${data.id} (${data.caseNumber})`);
+  }
+
+  /**
+   * Updates an existing appointment in store (e.g. after cancellation or rescheduling).
+   */
+  static updateAppointment(id: number, partialData: Partial<CreatedAppointmentData>): void {
+    const existing = this.loadFromFile();
+    const updated = existing.map((item) => (item.id === id ? { ...item, ...partialData } : item));
+    this.saveToFile(updated);
+
+    this.inMemoryStore = this.inMemoryStore.map((item) =>
+      item.id === id ? { ...item, ...partialData } : item
+    );
   }
 
   /**

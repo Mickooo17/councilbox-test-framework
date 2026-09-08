@@ -7,11 +7,13 @@ export class BasePage {
     readonly proceduresButton: Locator;
     readonly documentationButton: Locator;
     readonly usersButton: Locator;
+    readonly appointmentsButton: Locator;
     readonly governmentIcon: Locator;
     readonly qaDevMenuItem: Locator;
 
     constructor(public page: Page) {
         this.closeModalButton = page.locator('.MuiButtonBase-root.MuiIconButton-root.closeIcon');
+        this.appointmentsButton = page.locator('a[href*="/company/"][href*="appointments"]').or(page.locator('a[href*="/company/"]')).or(page.getByRole('button', { name: /Appointments|Citas/i })).or(page.locator('.ri-calendar-line, [class*="calendar"]').locator('..')).first();
         this.institutionsButton = page.locator('a[href*="/companies"]').or(page.getByRole('button', { name: /Entities|Institutions|Entidades|Instituciones/i })).first();
         this.templatesButton = page.locator('a[href*="/drafts"]').or(page.getByRole('button', { name: /Templates|Plantillas/i })).first();
         this.proceduresButton = page.locator('a[href*="/procedures"]').or(page.getByRole('button', { name: /Procedures|Procedimientos/i })).first();
@@ -101,6 +103,14 @@ export class BasePage {
         await test.step('Navigate to Users page', async () => {
             await this.usersButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.usersButton.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    async navigateToAppointments() {
+        await test.step('Navigate to Appointments page', async () => {
+            await this.appointmentsButton.waitFor({ state: 'visible', timeout: 10000 });
+            await this.appointmentsButton.click();
             await this.page.waitForTimeout(1000);
         });
     }
