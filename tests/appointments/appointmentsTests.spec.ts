@@ -135,5 +135,63 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     const participantFullName = `${participant.name} ${participant.surname}`;
     await appointmentsPage.verifyAppointmentInCalendarView(participantFullName, procedureTitle);
   });
+
+  /**
+   * Test Case XR-3445:
+   * Verify comment field in cancel appointment confirmation modal is required
+   *
+   * Flow:
+   * 1. Create a fresh appointment via GraphQL API (`AppointmentApiHelper.createAppointment`).
+   * 2. Navigate to Appointments page (`/company/1112`).
+   * 3. Search for the appointment by unique ID.
+   * 4. Open cancel appointment modal from row action menu.
+   * 5. Verify Observations field has mandatory asterisk label (`Observations*`).
+   * 6. Attempt to submit with empty Observations field and assert validation error appears ("Required") and modal stays open.
+   * 7. Fill Observations field with cancellation comment and confirm cancellation.
+   */
+  test('Verify comment field in cancel appointment confirmation modal is required @XR-3445 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    let createdAppointment: any;
+    await test.step('Create appointment via API', async () => {
+      createdAppointment = await AppointmentApiHelper.createAppointment(request, {
+        companyId: 1112,
+        procedureId: 3524,
+        procedureTitle: 'ALL in ONE',
+        participant: {
+          dni: 'ammarpass',
+          idCardType: 'passport',
+          name: 'Ammar',
+          surname: 'Micijevic',
+          email: 'ammar.micijevic@councilbox.com',
+        },
+        observations: 'XR-3445 Cancel Modal Validation Test',
+      });
+
+      expect(createdAppointment).toBeDefined();
+      expect(createdAppointment.id).toBeGreaterThan(0);
+    }, {
+      subtitle: 'GraphQL createAppointment mutation for company 1112 and procedure 3524',
+    });
+
+    const appointmentId = createdAppointment.id;
+
+    // 2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Search for appointment by ID
+    await appointmentsPage.searchAppointment(appointmentId);
+
+    // 4. Open cancel appointment modal from row action menu
+    await appointmentsPage.openCancelAppointmentModal(appointmentId);
+
+    // 5. Verify Observations field is required and displays error on empty submission
+    await appointmentsPage.verifyCancelModalObservationsRequired();
+
+    // 6. Fill cancel observations and confirm cancellation
+    await appointmentsPage.fillCancelObservationsAndConfirm('Canceled via automated test for XR-3445 verification');
+  });
 });
 

@@ -32,6 +32,14 @@ export class AppointmentsPage extends BasePage {
   readonly observationsSection: Locator;
   readonly participantsSection: Locator;
 
+  // Cancel Appointment Modal elements
+  readonly cancelModal: Locator;
+  readonly cancelObservationsLabel: Locator;
+  readonly cancelObservationsInput: Locator;
+  readonly cancelErrorHelperText: Locator;
+  readonly cancelAcceptButton: Locator;
+  readonly cancelCloseButton: Locator;
+
   constructor(page: Page) {
     super(page);
 
@@ -68,6 +76,20 @@ export class AppointmentsPage extends BasePage {
     this.reasonSection = page.locator('div, p').filter({ hasText: /^Reason$/i }).or(page.getByText(/^Reason$/i)).first();
     this.observationsSection = page.locator('div, p').filter({ hasText: /^Observations$/i }).or(page.getByText(/^Observations$/i)).first();
     this.participantsSection = page.locator('div, p').filter({ hasText: /^Participants$/i }).or(page.getByText(/^Participants$/i)).first();
+
+    // Cancel modal elements
+    this.cancelModal = page.locator('.cbx-Modal-content, [class*="Modal-content"]')
+      .filter({ hasText: /Cancel the appointment|Cancelar cita/i })
+      .first();
+    this.cancelObservationsLabel = this.cancelModal.locator('text=/Observations\\*|Observaciones\\*/i').first();
+    this.cancelObservationsInput = this.cancelModal.locator('input[maxlength="500"], textarea').first();
+    this.cancelErrorHelperText = this.cancelModal.locator('.MuiFormHelperText-root, p.MuiFormHelperText-root').first();
+    this.cancelAcceptButton = this.cancelModal.locator('#modal-button-accept').or(
+      this.cancelModal.getByRole('button', { name: /^ACCEPT$|^Aceptar$/i })
+    ).first();
+    this.cancelCloseButton = this.cancelModal.locator('#modal-button-cancel').or(
+      this.cancelModal.getByRole('button', { name: /^CLOSE$|^Cerrar$/i })
+    ).first();
   }
 
   async navigateToAppointmentsPage(companyId: number = 1112) {
@@ -229,6 +251,81 @@ export class AppointmentsPage extends BasePage {
     }, {
       params: { participantFullName, procedureName },
       subtitle: 'Check that appointment entry contains both participant full name and procedure name in calendar',
+    });
+  }
+
+  async openCancelAppointmentModal(identifier: string | number) {
+    await test.step(`Open cancel appointment modal for #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const row = await this.getAppointmentRow(identifier);
+      const menuBtn = row.locator('#appointment-menu').or(
+        row.locator('button:has(.ri-more-2-line), button:has-text(""), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const cancelMenuItem = this.page.locator(`#appointment-cancel-action-${identifier}`).or(
+        this.page.getByRole('button', { name: /Cancel the appointment|Cancelar cita/i })
+      ).or(
+        this.page.locator('button, li').filter({ hasText: /Cancel the appointment|Cancelar cita/i })
+      ).first();
+      await cancelMenuItem.waitFor({ state: 'visible', timeout: 10000 });
+      await cancelMenuItem.click();
+      await this.cancelModal.waitFor({ state: 'visible', timeout: 10000 });
+    }, {
+      params: { identifier: String(identifier) },
+      subtitle: 'Click row actions menu and select "Cancel the appointment"',
+    });
+  }
+
+  async verifyCancelModalObservationsRequired() {
+    await test.step('Verify Observations field in cancel appointment modal is mandatory', async () => {
+      // 1. Verify modal is visible
+      await expect(this.cancelModal).toBeVisible({ timeout: 10000 });
+
+      // 2. Verify Observations label has asterisk * indicating mandatory field
+      await expect(this.cancelObservationsLabel).toBeVisible({ timeout: 10000 });
+
+      // 3. Verify Observations input is visible
+      await expect(this.cancelObservationsInput).toBeVisible({ timeout: 10000 });
+
+      // 4. Click ACCEPT button while observations field is empty
+      await this.cancelAcceptButton.click();
+      await this.page.waitForTimeout(500);
+
+      // 5. Verify validation error appears (Required / Este campo es obligatorio)
+      await expect(this.cancelErrorHelperText).toBeVisible({ timeout: 5000 });
+      await expect(this.cancelErrorHelperText).toHaveText(/Required|Obligatorio/i);
+
+      // 6. Verify input has aria-invalid indicating error
+      await expect(this.cancelObservationsInput).toHaveAttribute('aria-invalid', /Required|true/i);
+
+      // 7. Verify modal is still visible (appointment is not canceled without observations)
+      await expect(this.cancelModal).toBeVisible();
+    }, {
+      subtitle: 'Assert mandatory asterisk label, submit empty form, and verify "Required" validation error',
+    });
+  }
+
+  async fillCancelObservationsAndConfirm(observationsText: string) {
+    await test.step(`Fill cancel observations and confirm cancellation`, async () => {
+      await this.cancelObservationsInput.fill(observationsText);
+      await this.page.waitForTimeout(500);
+      await this.cancelAcceptButton.click();
+      await expect(this.cancelModal).toBeHidden({ timeout: 15000 });
+    }, {
+      params: { observationsText },
+      subtitle: 'Enter observations text and click ACCEPT button',
+    });
+  }
+
+  async closeCancelModal() {
+    await test.step('Close cancel appointment modal', async () => {
+      await this.cancelCloseButton.click();
+      await expect(this.cancelModal).toBeHidden({ timeout: 10000 });
+    }, {
+      subtitle: 'Click CLOSE button to dismiss cancellation modal',
     });
   }
 }
