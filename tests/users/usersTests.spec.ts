@@ -33,13 +33,13 @@ f.test.describe('Users - Add User Tests', () => {
         await usersPage.verifyUserDeletedAlert();
     });
 
-    f.test('should add a new user with Spanish language and verify it appears in the list @regression', async ({ usersPage }) => {
+    f.test('Admin is able to create new user with \'Spanish\' language in the Users form @XR-633 @regression', async ({ usersPage }) => {
         const userData = DataGenerator.randomUserData();
 
-        // Add user — default form language is Español, so no language change needed
+        // Add user with Spanish language
         await usersPage.clickAddUser();
         await usersPage.fillUserForm(userData);
-        // No selectLanguage call needed: the form already defaults to Español
+        await usersPage.selectLanguage('Spanish');
         await usersPage.submitUserForm();
         await usersPage.verifyUserCreatedAlert();
 
@@ -51,6 +51,37 @@ f.test.describe('Users - Add User Tests', () => {
         // Cleanup: delete the user
         await usersPage.deleteUser();
         await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('Admin is able to create new user with \'Catala\' language in the Users form @XR-626 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // Add user with Catala language
+        await usersPage.clickAddUser();
+        await usersPage.fillUserForm(userData);
+        await usersPage.selectLanguage('Catala');
+        await usersPage.submitUserForm();
+        await usersPage.verifyUserCreatedAlert();
+
+        // Verify user in table
+        const fullName = `${userData.name} ${userData.surname}`;
+        await usersPage.searchUser(userData.name);
+        await usersPage.verifyUserInTable(fullName);
+
+        // Cleanup: delete the user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('Admin is able to click the \'Return\' button in the \'Add user\' form @XR-634 @regression', async ({ usersPage }) => {
+        // Open Add user form
+        await usersPage.clickAddUser();
+
+        // Click Return / Back button
+        await usersPage.clickReturnFromAddUser();
+
+        // Verify returned to Users table
+        await expect(usersPage.addUserButton).toBeVisible();
     });
 });
 
@@ -70,7 +101,7 @@ f.test.describe('Users - Search Tests', () => {
         await usersPage.verifyNoSearchResults();
     });
 
-    f.test('should create a user, search by name, and verify result @regression', async ({ usersPage }) => {
+    f.test('Admin is able to use search engine to find users by user name @XR-624 @regression', async ({ usersPage }) => {
         const userData = DataGenerator.randomUserData();
 
         // Create user
@@ -80,9 +111,29 @@ f.test.describe('Users - Search Tests', () => {
         await usersPage.submitUserForm();
         await usersPage.verifyUserCreatedAlert();
 
-        // Search by name and verify
+        // Search by user name
         const fullName = `${userData.name} ${userData.surname}`;
-        await usersPage.searchUser(userData.email);
+        await usersPage.searchUser(userData.name);
+        await usersPage.verifyUserInTable(fullName);
+
+        // Cleanup
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('Admin is able to use search engine to find users by user surname @XR-625 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // Create user
+        await usersPage.clickAddUser();
+        await usersPage.fillUserForm(userData);
+        await usersPage.selectLanguage('English');
+        await usersPage.submitUserForm();
+        await usersPage.verifyUserCreatedAlert();
+
+        // Search by user surname
+        const fullName = `${userData.name} ${userData.surname}`;
+        await usersPage.searchUser(userData.surname);
         await usersPage.verifyUserInTable(fullName);
 
         // Cleanup

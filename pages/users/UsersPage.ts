@@ -41,9 +41,10 @@ export class UsersPage extends BasePage {
         this.continueButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Continue|Continuar/i }).or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
         this.addButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /Add|Añadir|Guardar/i })).first();
         this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
-        this.backButton = page.getByRole('button', { name: /Back|Volver|Atrás/i })
-            .or(page.locator('button:has(.ri-arrow-left-line), button:has(.ri-arrow-left-s-line), button:has(i[class*="arrow-left"]), .ri-arrow-left-line, i.ri-arrow-left-line'))
-            .or(page.locator('#back-button, [aria-label*="back" i], [aria-label*="volver" i]'))
+        this.backButton = page.getByRole('button', { name: /Back|Volver|Atrás|Close drawer panel/i })
+            .or(page.locator('[aria-label="Close drawer panel"], [aria-label*="close drawer" i], [aria-label*="back" i], [aria-label*="volver" i]'))
+            .or(page.locator('button:has(.ri-arrow-left-line), button:has(.ri-arrow-left-s-line), button:has(.ri-close-line), button:has(i[class*="arrow-left"]), .ri-arrow-left-line, i.ri-arrow-left-line'))
+            .or(page.locator('#back-button'))
             .first();
     }
 
@@ -74,22 +75,65 @@ export class UsersPage extends BasePage {
 
     async selectLanguage(language: string) {
         await test.step(`Select language: ${language}`, async () => {
-            const dropdown = this.page.locator('.MuiDrawer-root, form').getByText(/Language|Idioma/i)
-                .or(this.page.getByText('EspañolLanguage'))
-                .or(this.page.getByText('EnglishLanguage'))
-                .or(this.page.locator('[id*="language"]'))
+            const langContainer = this.languageInput.locator('..')
+                .or(this.page.locator('[id*="language"]').locator('..'))
+                .or(this.page.locator('.MuiDrawer-root, form, .cbx-drawerPanel-container').getByText(/Language|Idioma/i))
                 .first();
-            if (await dropdown.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await dropdown.click();
-                const option = this.page.getByRole('menuitem', { name: language })
-                    .or(this.page.getByRole('option', { name: language }))
-                    .or(this.page.getByText(language, { exact: true }))
+            await langContainer.click();
+            await this.page.waitForTimeout(400);
+
+            const langIdMap: Record<string, string> = {
+                'español': 'language-es',
+                'espanol': 'language-es',
+                'spanish': 'language-es',
+                'català': 'language-cat',
+                'catala': 'language-cat',
+                'galego': 'language-gal',
+                'galician': 'language-gal',
+                'euskera': 'language-eu',
+                'basque': 'language-eu',
+                'english': 'language-en',
+                'valencià': 'language-vl',
+                'valencia': 'language-vl',
+                'valencian': 'language-vl',
+                'italiano': 'language-it',
+                'italian': 'language-it',
+            };
+
+            const targetId = langIdMap[language.toLowerCase()];
+            const optionById = targetId ? this.page.locator(`#${targetId}`) : null;
+
+            if (optionById && await optionById.isVisible({ timeout: 1500 }).catch(() => false)) {
+                await optionById.click();
+            } else {
+                let pattern = language;
+                if (/catala/i.test(language)) pattern = 'Català|Catala';
+                if (/espanol/i.test(language)) pattern = 'Español|Espanol';
+                if (/valencia/i.test(language)) pattern = 'Valencià|Valencia';
+
+                const option = this.page.getByRole('menuitem', { name: new RegExp(`^(${pattern})$`, 'i') })
+                    .or(this.page.getByRole('option', { name: new RegExp(`^(${pattern})$`, 'i') }))
+                    .or(this.page.locator('.MuiMenuItem-root, li').filter({ hasText: new RegExp(`^(${pattern})$`, 'i') }))
                     .first();
                 await option.click();
-                // Ensure dropdown menu popover and backdrop are closed before proceeding
-                await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-                await this.page.waitForTimeout(300);
             }
+
+            // Ensure dropdown backdrop or popover is closed before proceeding
+            await this.page.locator('.cbx-selectInput-backdrop, .MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+            await this.page.waitForTimeout(300);
+        });
+    }
+
+    async clickReturnFromAddUser() {
+        await test.step('Click Return/Back button in Add user form', async () => {
+            const returnBtn = this.page.getByRole('button', { name: /Close drawer panel|Volver|Back/i })
+                .or(this.page.locator('[aria-label="Close drawer panel"], [aria-label*="close drawer" i]'))
+                .or(this.backButton)
+                .first();
+            await returnBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await returnBtn.click();
+            await this.nameInput.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+            await this.addUserButton.waitFor({ state: 'visible', timeout: 10000 });
         });
     }
 
