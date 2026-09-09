@@ -485,3 +485,65 @@ f.test.describe('Users - Edit Language Tests', () => {
         await usersPage.verifyUserDeletedAlert();
     });
 });
+
+f.test.describe('Users - Table Header & Display Tests', () => {
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
+        await homePage.validateHomePageIsOpened();
+        await usersPage.dismissModal();
+        await usersPage.selectQADevCompany();
+        await usersPage.page.waitForLoadState('networkidle');
+        await usersPage.navigateToUsers();
+    });
+
+    f.test('When opening "Users" page - external ID label is displayed properly in the header @XR-3032 @regression', async ({ usersPage }) => {
+        await usersPage.verifyExternalIdHeaderDisplayed();
+    });
+
+    f.test('Ratings are showing in proper colour on the "Users" page @XR-3060 @regression', async ({ usersPage }) => {
+        await usersPage.verifyRatingColorsInTable();
+    });
+
+    f.test('It is possible to filter users by "Name" on the "Users" page @XR-2989 @regression', async ({ usersPage }) => {
+        await usersPage.selectColumnSortOption('Name');
+        await usersPage.clickSortArrowInFirstColumn();
+    });
+
+    f.test('It is possible to filter users by "Surname" on the "Users" page @XR-2988 @regression', async ({ usersPage }) => {
+        await usersPage.selectColumnSortOption('Surname');
+        await usersPage.clickSortArrowInFirstColumn();
+    });
+});
+
+f.test.describe('Users - Details Page Tests', () => {
+    f.test.beforeEach(async ({ homePage, usersPage }) => {
+        await homePage.validateHomePageIsOpened();
+        await usersPage.dismissModal();
+        await usersPage.selectQADevCompany();
+        await usersPage.page.waitForLoadState('networkidle');
+        await usersPage.navigateToUsers();
+    });
+
+    f.test('On the user page, the appointments tab with appointments is displayed @XR-2967 @regression', async ({ usersPage }) => {
+        await usersPage.clickUserRow('Ammar Mičijević');
+        await usersPage.clickAppointmentsTabOnUserDetails();
+        await usersPage.verifyUserAppointmentsTableDisplayed();
+    });
+
+    f.test('The users page shows the "Activity" tab for users @XR-2999 @regression', async ({ usersPage }) => {
+        await usersPage.clickUserRow('Ammar Professional');
+        await usersPage.verifyActivityTabDisplayed();
+    });
+
+    f.test('The user can modify the month on the "Activity" tab @XR-3000 @regression', async ({ usersPage }) => {
+        await usersPage.clickUserRow('Ammar Professional');
+        await usersPage.clickActivityTabOnUserDetails();
+        await usersPage.modifyMonthOnActivityTab();
+    });
+
+    f.test('On the users page, on the "Activity" tab, the user can hover over the charts @XR-3001 @regression', async ({ usersPage }) => {
+        await usersPage.clickUserRow('Ammar Professional');
+        await usersPage.clickActivityTabOnUserDetails();
+        await usersPage.hoverOverActivityChart();
+    });
+});
+

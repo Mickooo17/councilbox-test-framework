@@ -448,4 +448,181 @@ export class UsersPage extends BasePage {
             return await UserApiHelper.deleteUserByEmail(this.page.request, email);
         });
     }
+
+    /**
+     * Verifies that the External ID column header is displayed in the users table (XR-3032).
+     */
+    async verifyExternalIdHeaderDisplayed() {
+        await test.step('Verify External ID header is displayed in the users table', async () => {
+            const externalIdHeader = this.page.locator('table thead th').filter({ hasText: /External ID|ID externo/i }).first();
+            await expect(externalIdHeader).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Verifies that ratings in the users table are shown in the proper colour (XR-3060).
+     */
+    async verifyRatingColorsInTable() {
+        await test.step('Verify ratings are showing in proper colour on the Users page', async () => {
+            let ratingSpan = this.page.locator('table tbody tr span[style*="var(--success)"]').first();
+            if (!await ratingSpan.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await this.searchUser('Ammar');
+                ratingSpan = this.page.locator('table tbody tr span[style*="var(--success)"]').first();
+            }
+            await expect(ratingSpan).toBeVisible({ timeout: 10000 });
+            const color = await ratingSpan.evaluate(el => window.getComputedStyle(el).color);
+            expect(color).toBe('rgb(18, 136, 81)');
+        });
+    }
+
+    /**
+     * Opens the column sort dropdown in the first table header and selects Name or Surname (XR-2989, XR-2988).
+     */
+    async selectColumnSortOption(option: 'Name' | 'Surname') {
+        await test.step(`Select sort option "${option}" from column header dropdown`, async () => {
+            const dropdownIcon = this.page.locator('th .ri-arrow-up-down-line').first();
+            await dropdownIcon.waitFor({ state: 'visible', timeout: 10000 });
+            await dropdownIcon.click();
+            await this.page.waitForTimeout(400);
+
+            const pattern = option === 'Name' ? /^Name$|^Nombre$/i : /^Surnames?$|^Apellidos?$/i;
+            const optionItem = this.page.locator('.cbx-dropdown-options li, .MuiMenu-paper li, ul[role="menu"] li').filter({ hasText: pattern }).first();
+            await optionItem.waitFor({ state: 'visible', timeout: 5000 });
+            await optionItem.click();
+            await this.page.waitForTimeout(500);
+
+            // Verify header text updated
+            const header = this.page.locator('table thead th').first();
+            await expect(header).toContainText(pattern, { timeout: 5000 });
+        });
+    }
+
+    /**
+     * Clicks the sort arrow in the first column header to sort table rows (XR-2989, XR-2988).
+     */
+    async clickSortArrowInFirstColumn() {
+        await test.step('Click sort arrow in first column header', async () => {
+            const sortArrow = this.page.locator('th:first-child .cbx-table-sort-label-arrow, th:first-child [class*="cbx-table-sort-label-arrow"]').first();
+            await sortArrow.waitFor({ state: 'visible', timeout: 5000 });
+            await sortArrow.click();
+            await this.page.waitForTimeout(800);
+            await expect(this.page.locator('table tbody tr').first()).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    /**
+     * Clicks on a user row in the table to open user details (XR-2967, XR-2999, XR-3000, XR-3001).
+     */
+    async clickUserRow(userName: string) {
+        await test.step(`Click on user row: "${userName}"`, async () => {
+            let row = this.page.locator('table tbody tr').filter({ hasText: userName }).first();
+            if (!await row.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await this.searchUser(userName);
+                row = this.page.locator('table tbody tr').filter({ hasText: userName }).first();
+            }
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+            const cell = row.locator('td:first-child');
+            await cell.click();
+            await this.page.waitForURL(/\/users\/\d+\/edit/i, { timeout: 10000 });
+        });
+    }
+
+    /**
+     * Navigates to Appointments tab on user details page (XR-2967).
+     */
+    async clickAppointmentsTabOnUserDetails() {
+        await test.step('Click Appointments tab on user details', async () => {
+            const appointmentsTab = this.page.getByRole('button', { name: /APPOINTMENTS|CITAS/i }).or(this.page.locator('button').filter({ hasText: /APPOINTMENTS|CITAS/i })).first();
+            await appointmentsTab.waitFor({ state: 'visible', timeout: 10000 });
+            await appointmentsTab.click();
+            await this.page.waitForURL(/\/appointments/i, { timeout: 10000 });
+        });
+    }
+
+    /**
+     * Verifies that the appointments table is displayed on user details page (XR-2967).
+     */
+    async verifyUserAppointmentsTableDisplayed() {
+        await test.step('Verify user appointments table is displayed with records', async () => {
+            const table = this.page.locator('table').first();
+            await expect(table).toBeVisible({ timeout: 10000 });
+            const headers = this.page.locator('table thead th');
+            await expect(headers.first()).toBeVisible({ timeout: 5000 });
+            const rows = this.page.locator('table tbody tr');
+            await expect(rows.first()).toBeVisible({ timeout: 10000 });
+            const rowCount = await rows.count();
+            expect(rowCount).toBeGreaterThan(0);
+        });
+    }
+
+    /**
+     * Verifies that the Activity tab is displayed on user details page (XR-2999).
+     */
+    async verifyActivityTabDisplayed() {
+        await test.step('Verify Activity tab is displayed on user details', async () => {
+            const activityTab = this.page.getByRole('button', { name: /ACTIVITY|ACTIVIDAD/i }).or(this.page.locator('button').filter({ hasText: /ACTIVITY|ACTIVIDAD/i })).first();
+            await expect(activityTab).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Clicks the Activity tab on user details page (XR-3000, XR-3001).
+     */
+    async clickActivityTabOnUserDetails() {
+        await test.step('Click Activity tab on user details', async () => {
+            const activityTab = this.page.getByRole('button', { name: /ACTIVITY|ACTIVIDAD/i }).or(this.page.locator('button').filter({ hasText: /ACTIVITY|ACTIVIDAD/i })).first();
+            await activityTab.waitFor({ state: 'visible', timeout: 10000 });
+            await activityTab.click();
+            await this.page.waitForURL(/\/activity/i, { timeout: 10000 });
+        });
+    }
+
+    /**
+     * Modifies month on Activity tab using < and > buttons (XR-3000).
+     */
+    async modifyMonthOnActivityTab() {
+        await test.step('Modify month on Activity tab using < and > buttons', async () => {
+            const leftArrow = this.page.locator('.ri-arrow-left-s-line').first();
+            const rightArrow = this.page.locator('.ri-arrow-right-s-line').first();
+            await leftArrow.waitFor({ state: 'visible', timeout: 10000 });
+            await rightArrow.waitFor({ state: 'visible', timeout: 10000 });
+
+            // Read container text that holds the month and year
+            const getMonthText = async () => {
+                return await this.page.evaluate(() => {
+                    const arrow = document.querySelector('.ri-arrow-left-s-line');
+                    const container = arrow?.closest('div[style*="flex"]')?.parentElement;
+                    return container?.innerText.replace(/\s+/g, ' ').trim() || '';
+                });
+            };
+
+            const initialMonth = await getMonthText();
+            expect(initialMonth).toBeTruthy();
+
+            // Click left arrow (<) to go to previous month
+            await leftArrow.click();
+            await this.page.waitForTimeout(500);
+            const prevMonth = await getMonthText();
+            expect(prevMonth).not.toBe(initialMonth);
+
+            // Click right arrow (>) to return to original month
+            await rightArrow.click();
+            await this.page.waitForTimeout(500);
+            const returnedMonth = await getMonthText();
+            expect(returnedMonth).toBe(initialMonth);
+        });
+    }
+
+    /**
+     * Hovers over the charts on the Activity tab (XR-3001).
+     */
+    async hoverOverActivityChart() {
+        await test.step('Hover over charts on Activity tab', async () => {
+            const chart = this.page.locator('svg[viewBox="0 0 583 360"], svg:has(path[fill]), .recharts-surface').first();
+            await chart.waitFor({ state: 'visible', timeout: 10000 });
+            await chart.hover();
+            await this.page.waitForTimeout(500);
+            await expect(chart).toBeVisible();
+        });
+    }
 }
