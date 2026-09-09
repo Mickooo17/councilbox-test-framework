@@ -16,6 +16,7 @@ import { AppointmentLoginPage } from '../pages/AppointmentLoginPage';
 import { AppointmentsPage } from '../pages/AppointmentsPage';
 import { ProceduresPage } from '../pages/procedures/ProceduresPage';
 import { ActivityPage } from '../pages/activity/ActivityPage';
+import { LegalTextsPage } from '../pages/institutions/LegalTextsPage';
 import { resolveLoginUrl } from '../utils/UrlHelper';
 
 export const adminUser = envConfig.users.admin;
@@ -42,6 +43,7 @@ export const test = base.extend<{
   appointmentLoginPage: AppointmentLoginPage;
   appointmentsPage: AppointmentsPage;
   activityPage: ActivityPage;
+  legalTextsPage: LegalTextsPage;
   page: Page;
 }>({
   loginPage: async ({ page }, use) => {
@@ -82,6 +84,9 @@ export const test = base.extend<{
   },
   activityPage: async ({ page }, use) => {
     await use(new ActivityPage(page));
+  },
+  legalTextsPage: async ({ page }, use) => {
+    await use(new LegalTextsPage(page));
   },
   page: async ({ page }, use, testInfo) => {
     const fileName = (testInfo.file || '').replace(/\\/g, '/');

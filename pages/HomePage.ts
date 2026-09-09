@@ -30,4 +30,19 @@ export class HomePage extends BasePage {
       await this.dismissToastOrModal();
     });
   }
+
+  async hoverAccountIcon() {
+    await test.step('Hover over Account icon in header', async () => {
+      await this.profileIcon.waitFor({ state: 'visible', timeout: 10000 });
+      await this.profileIcon.hover();
+    });
+  }
+
+  async verifyRoleDisplayedOnHover(expectedRolePattern: RegExp = /administrator|admin|super administrator|global administrator|professional|calendar manager/i) {
+    await test.step('Verify user role is displayed when hovering over Account icon', async () => {
+      const tooltip = this.page.locator('.cbx-tooltip-options-container, [class*="cbx-tooltip"]').first();
+      await expect(tooltip).toBeVisible({ timeout: 5000 });
+      await expect(tooltip).toContainText(expectedRolePattern, { timeout: 5000 });
+    });
+  }
 }

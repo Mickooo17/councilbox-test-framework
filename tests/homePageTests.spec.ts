@@ -33,4 +33,12 @@ f.test.describe('HomePage - User Profile Tests', () => {
     await expect(profileIcon).toBeVisible();
     await expect(profileIcon).toBeEnabled();
   });
+
+  f.test('The user\'s role is displayed when you hover over the "Account" icon @XR-2524 @smoke @regression', async ({ homePage }) => {
+    // 1. Hover over the "Account" icon in the header
+    await homePage.hoverAccountIcon();
+
+    // 2. Verify the user's role is displayed in the tooltip [Super administrator/Administrator/Professional/Calendar manager]
+    await homePage.verifyRoleDisplayedOnHover(/administrator|admin|super administrator|global administrator|professional|calendar manager/i);
+  });
 });
