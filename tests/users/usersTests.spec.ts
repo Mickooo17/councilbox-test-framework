@@ -13,7 +13,7 @@ f.test.describe('Users - Add User Tests', () => {
         await usersPage.navigateToUsers();
     });
 
-    f.test('should add a new user with English language and verify it appears in the list @smoke @regression', async ({ usersPage }) => {
+    f.test('should add a new user with English language and verify it appears in the list @smoke @regression @XR-1618', async ({ usersPage }) => {
         const userData = DataGenerator.randomUserData();
 
         // Add user
@@ -82,6 +82,34 @@ f.test.describe('Users - Add User Tests', () => {
 
         // Verify returned to Users table
         await expect(usersPage.addUserButton).toBeVisible();
+    });
+
+    f.test('The admin is able to choose entities when adding the user - Add user form @XR-1619 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // 1. Open add user form and populate step 1 fields
+        await usersPage.clickAddUser();
+        await usersPage.fillUserForm(userData);
+        await usersPage.selectLanguage('English');
+
+        // 2. Click Continue to proceed to Step 2 (Entities)
+        await usersPage.clickContinue();
+
+        // 3. Choose entity
+        await usersPage.selectEntityInStep2('Catalan Entity');
+
+        // 4. Click Add / Finalize button
+        await usersPage.submitAddUserStep2();
+        await usersPage.verifyUserCreatedAlert();
+
+        // 5. Verify user in table
+        const fullName = `${userData.name} ${userData.surname}`;
+        await usersPage.searchUser(userData.name);
+        await usersPage.verifyUserInTable(fullName);
+
+        // 6. Cleanup: delete the user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
     });
 });
 
@@ -157,6 +185,95 @@ f.test.describe('Users - Validation Tests', () => {
 
         // Try to submit without filling any fields
         await usersPage.verifyUserFormValidation();
+
+        // Cancel the form
+        await usersPage.cancelUserForm();
+    });
+
+    f.test('The admin is not able to create a user without populating the Name field - Add user form @XR-1614 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // Open add user form
+        await usersPage.clickAddUser();
+
+        // Populate all required fields except the Name field
+        await usersPage.surnameInput.fill(userData.surname);
+        await usersPage.phoneInput.fill(userData.phone);
+        await usersPage.idCardInput.fill(userData.idCard);
+        await usersPage.emailInput.fill(userData.email);
+
+        // Click Continue
+        await usersPage.clickContinue();
+
+        // Verify error message is displayed below the Name field
+        await usersPage.verifyNameError();
+
+        // Cancel the form
+        await usersPage.cancelUserForm();
+    });
+
+    f.test('The admin is not able to create a user without populating the Surname field - Add user form @XR-1615 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // Open add user form
+        await usersPage.clickAddUser();
+
+        // Populate all required fields except the Surname field
+        await usersPage.nameInput.fill(userData.name);
+        await usersPage.phoneInput.fill(userData.phone);
+        await usersPage.idCardInput.fill(userData.idCard);
+        await usersPage.emailInput.fill(userData.email);
+
+        // Click Continue
+        await usersPage.clickContinue();
+
+        // Verify error message is displayed below the Surname field
+        await usersPage.verifySurnameError();
+
+        // Cancel the form
+        await usersPage.cancelUserForm();
+    });
+
+    f.test('The admin is not able to create a user without populating the E-mail field - Add user form @XR-1616 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // Open add user form
+        await usersPage.clickAddUser();
+
+        // Populate all required fields except the E-mail field
+        await usersPage.nameInput.fill(userData.name);
+        await usersPage.surnameInput.fill(userData.surname);
+        await usersPage.phoneInput.fill(userData.phone);
+        await usersPage.idCardInput.fill(userData.idCard);
+
+        // Click Continue
+        await usersPage.clickContinue();
+
+        // Verify error message is displayed below the E-mail field
+        await usersPage.verifyEmailError();
+
+        // Cancel the form
+        await usersPage.cancelUserForm();
+    });
+
+    f.test('The admin is not able to create a user with invalid Telephone number field - Add user form @XR-1617 @regression', async ({ usersPage }) => {
+        const userData = DataGenerator.randomUserData();
+
+        // Open add user form
+        await usersPage.clickAddUser();
+
+        // Populate all required fields with invalid input on the Telephone field
+        await usersPage.nameInput.fill(userData.name);
+        await usersPage.surnameInput.fill(userData.surname);
+        await usersPage.phoneInput.fill('invalid_phone');
+        await usersPage.idCardInput.fill(userData.idCard);
+        await usersPage.emailInput.fill(userData.email);
+
+        // Click Continue
+        await usersPage.clickContinue();
+
+        // Verify error message is displayed below the Telephone field
+        await usersPage.verifyPhoneError();
 
         // Cancel the form
         await usersPage.cancelUserForm();

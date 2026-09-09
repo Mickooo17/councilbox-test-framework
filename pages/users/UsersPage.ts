@@ -38,8 +38,8 @@ export class UsersPage extends BasePage {
         this.idCardInput = page.locator('#user-id-card-type');
         this.emailInput = page.locator('#user-form-email');
         this.languageInput = page.locator('#user-settings-language');
-        this.continueButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Continue|Continuar/i }).or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
-        this.addButton = page.locator('.MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /Add|Añadir|Guardar/i })).first();
+        this.continueButton = page.locator('.cbx-drawerPanel-container, .MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Continue|Continuar/i }).or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
+        this.addButton = page.locator('.cbx-drawerPanel-container, .MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i })).first();
         this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
         this.backButton = page.getByRole('button', { name: /Back|Volver|Atrás|Close drawer panel/i })
             .or(page.locator('[aria-label="Close drawer panel"], [aria-label*="close drawer" i], [aria-label*="back" i], [aria-label*="volver" i]'))
@@ -316,10 +316,87 @@ export class UsersPage extends BasePage {
         });
     }
 
+    async clickContinue() {
+        await test.step('Click Continue button in Add User form', async () => {
+            // Dismiss any open popover backdrop or press Escape
+            await this.page.keyboard.press('Escape').catch(() => {});
+            await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+            await this.page.waitForTimeout(300);
+
+            await this.continueButton.waitFor({ state: 'visible', timeout: 5000 });
+            await this.continueButton.click();
+        });
+    }
+
+    async verifyFieldError(inputLocator: Locator, expectedErrorText: string | RegExp = /This field is required|requerido/i) {
+        await test.step(`Verify field validation error: ${expectedErrorText}`, async () => {
+            await expect(inputLocator).toHaveClass(/cbx-inputText-error/, { timeout: 5000 });
+            const errorMsg = inputLocator.locator('xpath=ancestor::div[contains(@class, "cbx-inputText-allContainer")]//div[contains(@class, "cbx-inputText-container-helpers")]//p');
+            await expect(errorMsg).toBeVisible({ timeout: 5000 });
+            await expect(errorMsg).toContainText(expectedErrorText, { timeout: 5000 });
+        });
+    }
+
+    async verifyNameError(expectedError: string | RegExp = /This field is required|requerido/i) {
+        await this.verifyFieldError(this.nameInput, expectedError);
+    }
+
+    async verifySurnameError(expectedError: string | RegExp = /This field is required|requerido/i) {
+        await this.verifyFieldError(this.surnameInput, expectedError);
+    }
+
+    async verifyEmailError(expectedError: string | RegExp = /This field is required|requerido/i) {
+        await this.verifyFieldError(this.emailInput, expectedError);
+    }
+
+    async verifyPhoneError(expectedError: string | RegExp = /This field is required|requerido/i) {
+        await this.verifyFieldError(this.phoneInput, expectedError);
+    }
+
+    async selectEntityInStep2(entityName: string) {
+        await test.step(`Select entity "${entityName}" in Step 2 of Add User form`, async () => {
+            // Wait for step 2 Add button and entities table to appear
+            await this.addButton.waitFor({ state: 'visible', timeout: 10000 });
+
+            const entitiesTable = this.page.locator('table').filter({ hasText: /Assignment|Asignación/i });
+            await entitiesTable.waitFor({ state: 'visible', timeout: 10000 });
+
+            // Check if entity is already visible in table rows
+            const entityRow = entitiesTable.locator('tbody tr').filter({ hasText: entityName }).first();
+            if (await entityRow.isVisible({ timeout: 2000 }).catch(() => false)) {
+                const checkbox = entityRow.locator('input[type="checkbox"]');
+                await checkbox.check({ force: true });
+            } else {
+                // Search entity
+                const searchInput = this.page.locator('input[placeholder*="Search entity" i], input[placeholder*="Buscar" i]').first();
+                if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await searchInput.fill(entityName);
+                    await this.page.waitForTimeout(500);
+                }
+                const searchedRow = entitiesTable.locator('tbody tr').filter({ hasText: entityName }).first();
+                await searchedRow.waitFor({ state: 'visible', timeout: 5000 });
+                await searchedRow.locator('input[type="checkbox"]').check({ force: true });
+            }
+        });
+    }
+
+    async submitAddUserStep2() {
+        await test.step('Click Add button in Step 2 of Add User form', async () => {
+            await this.addButton.waitFor({ state: 'visible', timeout: 5000 });
+            await this.addButton.click();
+        });
+    }
+
     async cancelUserForm() {
         await test.step('Cancel user form', async () => {
-            await this.page.keyboard.press('Escape');
-            await this.page.waitForTimeout(800);
+            const returnBtn = this.page.locator('[aria-label="Close drawer panel"], [aria-label*="close drawer" i]');
+            if (await returnBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await returnBtn.click();
+            } else {
+                await this.page.keyboard.press('Escape');
+            }
+            await this.addUserButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+            await this.page.waitForTimeout(500);
         });
     }
 
