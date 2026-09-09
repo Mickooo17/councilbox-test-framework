@@ -74,3 +74,42 @@ f.test.describe('Institutions - Full Lifecycle Tests', () => {
         await institutionsPage.verifyInstitutionNotInTable(institutionData.name);
     });
 });
+
+f.test.describe('Institutions - Table Columns & Administration Tests', () => {
+    f.test.beforeEach(async ({ homePage, institutionsPage }) => {
+        await homePage.validateHomePageIsOpened();
+        await institutionsPage.dismissModal();
+        await institutionsPage.selectQADevCompany();
+        await institutionsPage.page.waitForLoadState('networkidle');
+        await institutionsPage.navigateToInstitutions();
+    });
+
+    f.test('[Institutions] Verify that "Organization" icon is different from the "Entity" icon @XR-2299 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.verifyOrganizationAndEntityIconsDiffer();
+    });
+
+    f.test('[Institutions] Verify that "Name" column is sortable @XR-2300 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.sortByNameColumn();
+    });
+
+    f.test('[Institutions] Verify that there is a "Level" column that is sortable @XR-2301 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.sortByLevelColumn();
+    });
+
+    f.test('[Institutions] Verify that "Institutions" form contains all fields @XR-2302 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.verifyInstitutionsTableFields();
+    });
+
+    f.test('[Institutions] Verify that "Level" column display correct value @XR-2303 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.verifyLevelColumnValues();
+    });
+
+    f.test('On the Institutions page, the administrator can define the minimum advance time for the organization/entity @XR-2697 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.openInstitutionDetails('QA DEV');
+        await institutionsPage.navigateToAdministrationAgenda();
+        await institutionsPage.openEditSchedulePeriod();
+        await institutionsPage.setMinimumAdvanceNotice(3);
+        await institutionsPage.saveSchedulePeriod();
+    });
+});
+
