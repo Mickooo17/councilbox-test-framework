@@ -90,7 +90,7 @@ export const test = base.extend<{
   },
   page: async ({ page }, use, testInfo) => {
     const fileName = (testInfo.file || '').replace(/\\/g, '/');
-    const isUnauthenticatedTest = fileName.includes('auth.setup.ts') || fileName.includes('loginTests.spec.ts') || fileName.includes('sendMessageToSupport.spec.ts') || fileName.includes('appointmentLogin');
+    const isUnauthenticatedTest = fileName.includes('auth.setup.ts') || fileName.includes('loginTests.spec.ts') || fileName.includes('sendMessageToSupport.spec.ts') || fileName.includes('appointmentLogin') || fileName.includes('superadmin') || fileName.includes('superAdmin');
 
     if (isUnauthenticatedTest) {
       // Clear cookies and storage for unauthenticated tests so they stay on login page

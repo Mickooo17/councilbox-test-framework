@@ -58,6 +58,13 @@ export class BasePage {
 
             await this.page.evaluate(() => {
                 document.querySelectorAll('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation, [class*="Toastify__toast"], #modal.cbx-Modal-container, .cbx-Modal-backdrop').forEach(el => (el as HTMLElement).remove());
+                // Dismiss or remove "New version OVAC" upgrade modal
+                Array.from(document.querySelectorAll('div, section, aside')).forEach(el => {
+                    if (el.textContent && el.textContent.includes('New version OVAC') && el.textContent.length < 500) {
+                        const modalParent = el.closest('[class*="Modal"], [role="dialog"], [class*="dialog"]') || el.parentElement;
+                        if (modalParent) (modalParent as HTMLElement).remove();
+                    }
+                });
             }).catch(() => {});
         });
     }
