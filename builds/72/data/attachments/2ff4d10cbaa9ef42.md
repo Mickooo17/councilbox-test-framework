@@ -1,0 +1,297 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/users/usersTests.spec.ts >> Users - Table Header & Display Tests >> It is possible to filter users by "Surname" on the "Users" page @XR-2988 @regression
+- Location: tests/users/usersTests.spec.ts:511:7
+
+# Error details
+
+```
+TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('th .ri-arrow-up-down-line').first() to be visible
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: 
+      - generic [ref=e11]:
+        - link [ref=e13] [cursor=pointer]:
+          - /url: /company/1112/activity/dashboardCouncils
+          - button " Activity" [ref=e14]:
+            - generic [ref=e15]: 
+            - generic [ref=e17]: Activity
+        - link [ref=e19] [cursor=pointer]:
+          - /url: /company/1112
+          - button " Appointments" [ref=e20]:
+            - generic [ref=e21]: 
+            - generic [ref=e23]: Appointments
+        - link [ref=e25] [cursor=pointer]:
+          - /url: /company/1112/managements
+          - button " Processes" [ref=e26]:
+            - generic [ref=e27]: 
+            - generic [ref=e29]: Processes
+        - link [ref=e31] [cursor=pointer]:
+          - /url: /company/1112/procedures
+          - button " Procedures" [ref=e32]:
+            - generic [ref=e33]: 
+            - generic [ref=e35]: Procedures
+        - link [ref=e37] [cursor=pointer]:
+          - /url: /company/1112/drafts
+          - button " Templates" [ref=e38]:
+            - generic [ref=e39]: 
+            - generic [ref=e41]: Templates
+        - link [ref=e43] [cursor=pointer]:
+          - /url: /company/1112/documentation
+          - button " Documents" [ref=e44]:
+            - generic [ref=e45]: 
+            - generic [ref=e47]: Documents
+        - link [ref=e49] [cursor=pointer]:
+          - /url: /company/1112/companies
+          - button " Entities" [ref=e50]:
+            - generic [ref=e51]: 
+            - generic [ref=e53]: Entities
+        - link [ref=e55] [cursor=pointer]:
+          - /url: /company/1112/users
+          - button " Users" [active] [ref=e56]:
+            - generic [ref=e57]: 
+            - generic [ref=e59]: Users
+      - generic [ref=e61]:
+        - img "CBX white Logo" [ref=e62]
+        - generic [ref=e63]: © 2026 v8.6.6
+    - generic [ref=e65]:
+      - banner [ref=e66]:
+        - img "logo" [ref=e69] [cursor=pointer]
+        - generic [ref=e70]: QA DEV
+        - generic [ref=e76]:
+          - button "" [ref=e80] [cursor=pointer]
+          - button "Actions Button" [ref=e86] [cursor=pointer]:
+            - generic [ref=e89]:
+              - img "logo" [ref=e91]
+              - generic [ref=e92]: 
+      - progressbar [ref=e96]
+  - generic [ref=e99]:
+    - generic [ref=e103]:
+      - generic [ref=e104]: New version OVAC 8.6
+      - generic [ref=e105]:
+        - generic [ref=e106]: We have updated the app to the latest version to offer you a better experience. This update includes important improvements, error corrections and optimizations so that use will be easier and friendlier.
+        - generic [ref=e107]: Review upgrades
+    - button [ref=e113] [cursor=pointer]
+```
+
+# Test source
+
+```ts
+  384 |         await test.step('Click Add button in Step 2 of Add User form', async () => {
+  385 |             await this.addButton.waitFor({ state: 'visible', timeout: 5000 });
+  386 |             await this.addButton.click();
+  387 |         });
+  388 |     }
+  389 | 
+  390 |     async cancelUserForm() {
+  391 |         await test.step('Cancel user form', async () => {
+  392 |             const returnBtn = this.page.locator('[aria-label="Close drawer panel"], [aria-label*="close drawer" i]');
+  393 |             if (await returnBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+  394 |                 await returnBtn.click();
+  395 |             } else {
+  396 |                 await this.page.keyboard.press('Escape');
+  397 |             }
+  398 |             await this.addUserButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  399 |             await this.page.waitForTimeout(500);
+  400 |         });
+  401 |     }
+  402 | 
+  403 |     async clickBackButton() {
+  404 |         await test.step('Click back button', async () => {
+  405 |             if (await this.backButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+  406 |                 await this.backButton.click();
+  407 |             } else {
+  408 |                 await this.page.keyboard.press('Escape');
+  409 |             }
+  410 |             await this.page.waitForTimeout(500);
+  411 |             await this.dismissToastOrModal();
+  412 |         });
+  413 |     }
+  414 | 
+  415 |     /**
+  416 |      * Creates an Admin Agent user ('professionalAdmin') via GraphQL API.
+  417 |      * Can be called directly on usersPage fixture in any test.
+  418 |      */
+  419 |     async createAdminAgentUserViaApi(options: Omit<CreateUserApiOptions, 'role'> = {}): Promise<CreatedUserData> {
+  420 |         return await test.step('Create Admin Agent user via API', async () => {
+  421 |             return await UserApiHelper.createAdminAgentUser(this.page.request, options);
+  422 |         });
+  423 |     }
+  424 | 
+  425 |     /**
+  426 |      * Creates any user with specified role and permissions via GraphQL API.
+  427 |      */
+  428 |     async createUserViaApi(options: CreateUserApiOptions = {}): Promise<CreatedUserData> {
+  429 |         return await test.step(`Create user (${options.role || 'professionalAdmin'}) via API`, async () => {
+  430 |             return await UserApiHelper.createUser(this.page.request, options);
+  431 |         });
+  432 |     }
+  433 | 
+  434 |     /**
+  435 |      * Deletes a user by ID via GraphQL API.
+  436 |      */
+  437 |     async deleteUserViaApi(userId: number | string): Promise<boolean> {
+  438 |         return await test.step(`Delete user #${userId} via API`, async () => {
+  439 |             return await UserApiHelper.deleteUser(this.page.request, userId);
+  440 |         });
+  441 |     }
+  442 | 
+  443 |     /**
+  444 |      * Deletes user(s) by email via GraphQL API.
+  445 |      */
+  446 |     async deleteUserByEmailViaApi(email: string): Promise<boolean> {
+  447 |         return await test.step(`Delete user by email "${email}" via API`, async () => {
+  448 |             return await UserApiHelper.deleteUserByEmail(this.page.request, email);
+  449 |         });
+  450 |     }
+  451 | 
+  452 |     /**
+  453 |      * Verifies that the External ID column header is displayed in the users table (XR-3032).
+  454 |      */
+  455 |     async verifyExternalIdHeaderDisplayed() {
+  456 |         await test.step('Verify External ID header is displayed in the users table', async () => {
+  457 |             const externalIdHeader = this.page.locator('table thead th').filter({ hasText: /External ID|ID externo/i }).first();
+  458 |             await expect(externalIdHeader).toBeVisible({ timeout: 10000 });
+  459 |         });
+  460 |     }
+  461 | 
+  462 |     /**
+  463 |      * Verifies that ratings in the users table are shown in the proper colour (XR-3060).
+  464 |      */
+  465 |     async verifyRatingColorsInTable() {
+  466 |         await test.step('Verify ratings are showing in proper colour on the Users page', async () => {
+  467 |             let ratingSpan = this.page.locator('table tbody tr span[style*="var(--success)"]').first();
+  468 |             if (!await ratingSpan.isVisible({ timeout: 2000 }).catch(() => false)) {
+  469 |                 await this.searchUser('Ammar');
+  470 |                 ratingSpan = this.page.locator('table tbody tr span[style*="var(--success)"]').first();
+  471 |             }
+  472 |             await expect(ratingSpan).toBeVisible({ timeout: 10000 });
+  473 |             const color = await ratingSpan.evaluate(el => window.getComputedStyle(el).color);
+  474 |             expect(color).toBe('rgb(18, 136, 81)');
+  475 |         });
+  476 |     }
+  477 | 
+  478 |     /**
+  479 |      * Opens the column sort dropdown in the first table header and selects Name or Surname (XR-2989, XR-2988).
+  480 |      */
+  481 |     async selectColumnSortOption(option: 'Name' | 'Surname') {
+  482 |         await test.step(`Select sort option "${option}" from column header dropdown`, async () => {
+  483 |             const dropdownIcon = this.page.locator('th .ri-arrow-up-down-line').first();
+> 484 |             await dropdownIcon.waitFor({ state: 'visible', timeout: 10000 });
+      |                                ^ TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+  485 |             await dropdownIcon.click();
+  486 |             await this.page.waitForTimeout(400);
+  487 | 
+  488 |             const pattern = option === 'Name' ? /^Name$|^Nombre$/i : /^Surnames?$|^Apellidos?$/i;
+  489 |             const optionItem = this.page.locator('.cbx-dropdown-options li, .MuiMenu-paper li, ul[role="menu"] li').filter({ hasText: pattern }).first();
+  490 |             await optionItem.waitFor({ state: 'visible', timeout: 5000 });
+  491 |             await optionItem.click();
+  492 |             await this.page.waitForTimeout(500);
+  493 | 
+  494 |             // Verify header text updated
+  495 |             const header = this.page.locator('table thead th').first();
+  496 |             await expect(header).toContainText(pattern, { timeout: 5000 });
+  497 |         });
+  498 |     }
+  499 | 
+  500 |     /**
+  501 |      * Clicks the sort arrow in the first column header to sort table rows (XR-2989, XR-2988).
+  502 |      */
+  503 |     async clickSortArrowInFirstColumn() {
+  504 |         await test.step('Click sort arrow in first column header', async () => {
+  505 |             const sortArrow = this.page.locator('th:first-child .cbx-table-sort-label-arrow, th:first-child [class*="cbx-table-sort-label-arrow"]').first();
+  506 |             await sortArrow.waitFor({ state: 'visible', timeout: 5000 });
+  507 |             await sortArrow.click();
+  508 |             await this.page.waitForTimeout(800);
+  509 |             await expect(this.page.locator('table tbody tr').first()).toBeVisible({ timeout: 5000 });
+  510 |         });
+  511 |     }
+  512 | 
+  513 |     /**
+  514 |      * Clicks on a user row in the table to open user details (XR-2967, XR-2999, XR-3000, XR-3001).
+  515 |      */
+  516 |     async clickUserRow(userName: string) {
+  517 |         await test.step(`Click on user row: "${userName}"`, async () => {
+  518 |             let row = this.page.locator('table tbody tr').filter({ hasText: userName }).first();
+  519 |             if (!await row.isVisible({ timeout: 2000 }).catch(() => false)) {
+  520 |                 await this.searchUser(userName);
+  521 |                 row = this.page.locator('table tbody tr').filter({ hasText: userName }).first();
+  522 |             }
+  523 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  524 |             const cell = row.locator('td:first-child');
+  525 |             await cell.click();
+  526 |             await this.page.waitForURL(/\/users\/\d+\/edit/i, { timeout: 10000 });
+  527 |         });
+  528 |     }
+  529 | 
+  530 |     /**
+  531 |      * Navigates to Appointments tab on user details page (XR-2967).
+  532 |      */
+  533 |     async clickAppointmentsTabOnUserDetails() {
+  534 |         await test.step('Click Appointments tab on user details', async () => {
+  535 |             const appointmentsTab = this.page.getByRole('button', { name: /APPOINTMENTS|CITAS/i }).or(this.page.locator('button').filter({ hasText: /APPOINTMENTS|CITAS/i })).first();
+  536 |             await appointmentsTab.waitFor({ state: 'visible', timeout: 10000 });
+  537 |             await appointmentsTab.click();
+  538 |             await this.page.waitForURL(/\/appointments/i, { timeout: 10000 });
+  539 |         });
+  540 |     }
+  541 | 
+  542 |     /**
+  543 |      * Verifies that the appointments table is displayed on user details page (XR-2967).
+  544 |      */
+  545 |     async verifyUserAppointmentsTableDisplayed() {
+  546 |         await test.step('Verify user appointments table is displayed with records', async () => {
+  547 |             const table = this.page.locator('table').first();
+  548 |             await expect(table).toBeVisible({ timeout: 10000 });
+  549 |             const headers = this.page.locator('table thead th');
+  550 |             await expect(headers.first()).toBeVisible({ timeout: 5000 });
+  551 |             const rows = this.page.locator('table tbody tr');
+  552 |             await expect(rows.first()).toBeVisible({ timeout: 10000 });
+  553 |             const rowCount = await rows.count();
+  554 |             expect(rowCount).toBeGreaterThan(0);
+  555 |         });
+  556 |     }
+  557 | 
+  558 |     /**
+  559 |      * Verifies that the Activity tab is displayed on user details page (XR-2999).
+  560 |      */
+  561 |     async verifyActivityTabDisplayed() {
+  562 |         await test.step('Verify Activity tab is displayed on user details', async () => {
+  563 |             const activityTab = this.page.getByRole('button', { name: /ACTIVITY|ACTIVIDAD/i }).or(this.page.locator('button').filter({ hasText: /ACTIVITY|ACTIVIDAD/i })).first();
+  564 |             await expect(activityTab).toBeVisible({ timeout: 10000 });
+  565 |         });
+  566 |     }
+  567 | 
+  568 |     /**
+  569 |      * Clicks the Activity tab on user details page (XR-3000, XR-3001).
+  570 |      */
+  571 |     async clickActivityTabOnUserDetails() {
+  572 |         await test.step('Click Activity tab on user details', async () => {
+  573 |             const activityTab = this.page.getByRole('button', { name: /ACTIVITY|ACTIVIDAD/i }).or(this.page.locator('button').filter({ hasText: /ACTIVITY|ACTIVIDAD/i })).first();
+  574 |             await activityTab.waitFor({ state: 'visible', timeout: 10000 });
+  575 |             await activityTab.click();
+  576 |             await this.page.waitForURL(/\/activity/i, { timeout: 10000 });
+  577 |         });
+  578 |     }
+  579 | 
+  580 |     /**
+  581 |      * Modifies month on Activity tab using < and > buttons (XR-3000).
+  582 |      */
+  583 |     async modifyMonthOnActivityTab() {
+  584 |         await test.step('Modify month on Activity tab using < and > buttons', async () => {
+```

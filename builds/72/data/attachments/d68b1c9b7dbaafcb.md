@@ -1,0 +1,255 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/appointments/appointmentsTests.spec.ts >> Appointments Management - Status Verification Tests >> Verify that first and last name is displayed in calendar with procedure name - Calendar View @XR-3139 @regression
+- Location: tests/appointments/appointmentsTests.spec.ts:93:7
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f5e3]:
+  - generic [ref=f5e4]:
+    - generic [ref=f5e5]: 
+    - generic [ref=f5e11]:
+      - link [ref=f5e13] [cursor=pointer]:
+        - /url: /company/1112/activity/dashboardCouncils
+        - button " Activity" [ref=f5e14]:
+          - generic [ref=f5e15]: 
+          - generic [ref=f5e17]: Activity
+      - link [ref=f5e19] [cursor=pointer]:
+        - /url: /company/1112
+        - button " Appointments" [ref=f5e20]:
+          - generic [ref=f5e21]: 
+          - generic [ref=f5e23]: Appointments
+      - link [ref=f5e25] [cursor=pointer]:
+        - /url: /company/1112/managements
+        - button " Processes" [ref=f5e26]:
+          - generic [ref=f5e27]: 
+          - generic [ref=f5e29]: Processes
+      - link [ref=f5e31] [cursor=pointer]:
+        - /url: /company/1112/procedures
+        - button " Procedures" [ref=f5e32]:
+          - generic [ref=f5e33]: 
+          - generic [ref=f5e35]: Procedures
+      - link [ref=f5e37] [cursor=pointer]:
+        - /url: /company/1112/drafts
+        - button " Templates" [ref=f5e38]:
+          - generic [ref=f5e39]: 
+          - generic [ref=f5e41]: Templates
+      - link [ref=f5e43] [cursor=pointer]:
+        - /url: /company/1112/documentation
+        - button " Documents" [ref=f5e44]:
+          - generic [ref=f5e45]: 
+          - generic [ref=f5e47]: Documents
+      - link [ref=f5e49] [cursor=pointer]:
+        - /url: /company/1112/companies
+        - button " Entities" [ref=f5e50]:
+          - generic [ref=f5e51]: 
+          - generic [ref=f5e53]: Entities
+      - link [ref=f5e55] [cursor=pointer]:
+        - /url: /company/1112/users
+        - button " Users" [ref=f5e56]:
+          - generic [ref=f5e57]: 
+          - generic [ref=f5e59]: Users
+    - generic [ref=f5e61]:
+      - img "CBX white Logo" [ref=f5e62]
+      - generic [ref=f5e63]: © 2026 v8.6.6
+  - generic [ref=f5e65]:
+    - banner [ref=f5e66]:
+      - img "logo" [ref=f5e69] [cursor=pointer]
+      - generic [ref=f5e70]: QA DEV
+      - generic [ref=f5e76]:
+        - button "" [ref=f5e80] [cursor=pointer]
+        - button "Actions Button" [ref=f5e86] [cursor=pointer]:
+          - generic [ref=f5e89]:
+            - img "logo" [ref=f5e91]
+            - generic [ref=f5e92]: 
+    - generic [ref=f5e94]:
+      - button "Actions Button" [ref=f5e97] [cursor=pointer]:
+        - generic [ref=f5e98]: 
+      - generic [ref=f5e101]:
+        - generic [ref=f5e105]:
+          - button "Icon Button" [ref=f5e106] [cursor=pointer]:
+            - paragraph [ref=f5e108]: Video-appointments
+          - button "Icon Button" [ref=f5e110] [cursor=pointer]:
+            - paragraph [ref=f5e112]: In-person appointments
+        - generic [ref=f5e117]:
+          - generic [ref=f5e118]:
+            - generic [ref=f5e120]:
+              - generic [ref=f5e123]:
+                - generic [ref=f5e124] [cursor=pointer]:
+                  - generic [ref=f5e126]:
+                    - generic [ref=f5e127]: 
+                    - generic [ref=f5e128]: Calendar view
+                  - textbox "Input":
+                    - /placeholder: ""
+                    - text: "[object Object]"
+                - group "Input fieldset"
+              - generic [ref=f5e132]:
+                - generic [ref=f5e133]: Status
+                - generic [ref=f5e134]:
+                  - button "Confirmed, In progress, Pending report, Completed, In pause" [ref=f5e135] [cursor=pointer]
+                  - textbox [aria-hidden]: confirmed,room_opened,act_pending,complete,paused
+              - button "Icon Button" [ref=f5e137] [cursor=pointer]:
+                - generic [ref=f5e138]: 
+            - generic [ref=f5e140]:
+              - generic [ref=f5e144]:
+                - button "Icon Button" [ref=f5e146] [cursor=pointer]:
+                  - generic [ref=f5e147]: 
+                - textbox "Search" [ref=f5e149]
+              - button "Icon Button" [ref=f5e150] [cursor=pointer]:
+                - generic [ref=f5e151]: 
+          - generic [ref=f5e154]:
+            - generic [ref=f5e160]:
+              - generic [ref=f5e163]:
+                - button "September 2026" [ref=f5e165] [cursor=pointer]:
+                  - generic [ref=f5e166]: September
+                  - generic [ref=f5e167]: "2026"
+                - generic [ref=f5e173]:
+                  - generic [ref=f5e174]:
+                    - radio "Month" [ref=f5e175]
+                    - generic [aria-hidden] [ref=f5e176] [cursor=pointer]: Month
+                  - generic [ref=f5e177]:
+                    - radio "Week" [ref=f5e178]
+                    - generic [aria-hidden] [ref=f5e179] [cursor=pointer]: Week
+                  - generic [ref=f5e180]:
+                    - radio "Day" [checked] [active] [ref=f5e181]
+                    - generic [aria-hidden] [ref=f5e182] [cursor=pointer]: Day
+                - button "Previous page" [ref=f5e183] [cursor=pointer]
+                - button "Today" [ref=f5e187] [cursor=pointer]
+                - button "Next page" [ref=f5e188] [cursor=pointer]
+              - generic [ref=f5e192]:
+                - generic [ref=f5e198]:
+                  - generic [ref=f5e199]:
+                    - generic [aria-hidden] [ref=f5e200]: Mon
+                    - generic [aria-hidden] [ref=f5e201]: "14"
+                    - button "Monday, September 14, 2026" [ref=f5e202] [cursor=pointer]
+                  - generic [ref=f5e203]:
+                    - generic [aria-hidden] [ref=f5e204]: Tue
+                    - generic [aria-hidden] [ref=f5e205]: "15"
+                    - button "Tuesday, September 15, 2026" [ref=f5e206] [cursor=pointer]
+                  - generic [ref=f5e207]:
+                    - generic [aria-hidden] [ref=f5e208]: Wed
+                    - generic [aria-hidden] [ref=f5e209]: "16"
+                    - button "Wednesday, September 16, 2026" [ref=f5e210] [cursor=pointer]
+                  - generic [ref=f5e211]:
+                    - generic [aria-hidden] [ref=f5e212]: Thu
+                    - generic [aria-hidden] [ref=f5e213]: "17"
+                    - button "Thursday, September 17, 2026" [ref=f5e214] [cursor=pointer]
+                  - generic [ref=f5e215]:
+                    - generic [aria-hidden] [ref=f5e216]: Fri
+                    - generic [aria-hidden] [ref=f5e217]: "18"
+                    - button "Friday, September 18, 2026" [pressed] [ref=f5e218] [cursor=pointer]
+                - generic [ref=f5e219]:
+                  - generic [aria-hidden] [ref=f5e220]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=f5e221]: 9:00 AM
+                          - generic [ref=f5e223]: 9:15 AM
+                          - generic [ref=f5e225]: 9:30 AM
+                          - generic [ref=f5e227]: 9:45 AM
+                          - generic [ref=f5e229]: 10:00 AM
+                          - generic [ref=f5e231]: 10:15 AM
+                          - generic [ref=f5e233]: 10:30 AM
+                          - generic [ref=f5e235]: 10:45 AM
+                          - generic [ref=f5e237]: 11:00 AM
+                          - generic [ref=f5e239]: 11:15 AM
+                          - generic [ref=f5e241]: 11:30 AM
+                          - generic [ref=f5e243]: 11:45 AM
+                          - generic [ref=f5e245]: 12:00 PM
+                          - generic [ref=f5e247]: 12:15 PM
+                          - generic [ref=f5e249]: 12:30 PM
+                          - generic [ref=f5e251]: 12:45 PM
+                          - generic [ref=f5e253]: 1:00 PM
+                          - generic [ref=f5e255]: 1:15 PM
+                          - generic [ref=f5e257]: 1:30 PM
+                          - generic [ref=f5e259]: 1:45 PM
+                          - generic [ref=f5e261]: 2:00 PM
+                          - generic [ref=f5e263]: 2:15 PM
+                          - generic [ref=f5e265]: 2:30 PM
+                          - generic [ref=f5e267]: 2:45 PM
+                          - generic [ref=f5e269]: 3:00 PM
+                          - generic [ref=f5e271]: 3:15 PM
+                          - generic [ref=f5e273]: 3:30 PM
+                          - generic [ref=f5e275]: 3:45 PM
+                          - generic [ref=f5e277]: 4:00 PM
+                          - generic [ref=f5e279]: 4:15 PM
+                          - generic [ref=f5e281]: 4:30 PM
+                          - generic [ref=f5e283]: 4:45 PM
+                          - generic [ref=f5e285]: 5:00 PM
+                          - generic [ref=f5e287]: 5:15 PM
+                          - generic [ref=f5e289]: 5:30 PM
+                          - generic [ref=f5e291]: 5:45 PM
+                          - generic [ref=f5e293]: 6:00 PM
+                          - generic [ref=f5e295]: 6:15 PM
+                          - generic [ref=f5e297]: 6:30 PM
+                          - generic [ref=f5e299]: 6:45 PM
+                          - generic [ref=f5e301]: 7:00 PM
+                          - generic [ref=f5e303]: 7:15 PM
+                          - generic [ref=f5e305]: 7:30 PM
+                          - generic [ref=f5e307]: 7:45 PM
+                          - generic [ref=f5e309]: 8:00 PM
+                          - generic [ref=f5e311]: 8:15 PM
+                          - generic [ref=f5e313]: 8:30 PM
+                          - generic [ref=f5e315]: 8:45 PM
+                          - generic [ref=f5e317]: 9:00 PM
+                          - generic [ref=f5e319]: 9:15 PM
+                          - generic [ref=f5e321]: 9:30 PM
+                          - generic [ref=f5e323]: 9:45 PM
+                          - generic [ref=f5e325]: 10:00 PM
+                          - generic [ref=f5e327]: 10:15 PM
+                          - generic [ref=f5e329]: 10:30 PM
+                          - generic [ref=f5e331]: 10:45 PM
+                          - generic [ref=f5e333]: 11:00 PM
+                          - generic [ref=f5e335]:
+                            - generic [ref=f5e336]: 11:15 PM
+                            - generic [ref=f5e337]: 11:30 PM
+                          - generic [aria-hidden]:
+                            - generic: 12:37 PM
+                  - generic [ref=f5e344]:
+                    - generic "Ammar Micijevic - ALL in ONE, 10:00 AM - 10:15 AM" [ref=f5e345]:
+                      - generic [aria-hidden] [ref=f5e347]:
+                        - generic [ref=f5e348]: Ammar Micijevic - ALL in ONE
+                        - generic [ref=f5e349]: 10:00 AM - 10:15 AM
+                      - generic [ref=f5e350]: "Ammar Micijevic - ALL in ONE, Start: Friday, September 18, 2026, 10:00 AM, End: Friday, September 18, 2026, 10:15 AM"
+                    - generic "Ammar Micijevic - ALL in ONE, 10:00 AM - 10:15 AM" [ref=f5e351]:
+                      - generic [aria-hidden] [ref=f5e353]:
+                        - generic [ref=f5e354]: Ammar Micijevic - ALL in ONE
+                        - generic [ref=f5e355]: 10:00 AM - 10:15 AM
+                      - generic [ref=f5e356]: "Ammar Micijevic - ALL in ONE, Start: Friday, September 18, 2026, 10:00 AM, End: Friday, September 18, 2026, 10:15 AM"
+                    - generic "Ammar Micijevic - ALL in ONE, 12:00 PM - 12:15 PM" [ref=f5e357]:
+                      - generic [aria-hidden] [ref=f5e359]:
+                        - generic [ref=f5e360]: Ammar Micijevic - ALL in ONE
+                        - generic [ref=f5e361]: 12:00 PM - 12:15 PM
+                      - generic [ref=f5e362]: "Ammar Micijevic - ALL in ONE, Start: Friday, September 18, 2026, 12:00 PM, End: Friday, September 18, 2026, 12:15 PM"
+                    - generic "Ammar Micijevic - ALL in ONE, 2:00 PM - 2:15 PM" [ref=f5e363]:
+                      - generic [aria-hidden] [ref=f5e365]:
+                        - generic [ref=f5e366]: Ammar Micijevic - ALL in ONE
+                        - generic [ref=f5e367]: 2:00 PM - 2:15 PM
+                      - generic [ref=f5e368]: "Ammar Micijevic - ALL in ONE, Start: Friday, September 18, 2026, 2:00 PM, End: Friday, September 18, 2026, 2:15 PM"
+                    - generic "Ammar Micijevic - ALL in ONE, 2:00 PM - 2:15 PM" [ref=f5e369]:
+                      - generic [aria-hidden] [ref=f5e371]:
+                        - generic [ref=f5e372]: Ammar Micijevic - ALL in ONE
+                        - generic [ref=f5e373]: 2:00 PM - 2:15 PM
+                      - generic [ref=f5e374]: "Ammar Micijevic - ALL in ONE, Start: Friday, September 18, 2026, 2:00 PM, End: Friday, September 18, 2026, 2:15 PM"
+                    - generic "Ammar Micijevic - ALL in ONE, 2:00 PM - 2:15 PM" [ref=f5e375]:
+                      - generic [aria-hidden] [ref=f5e377]:
+                        - generic [ref=f5e378]: Ammar Micijevic - ALL in ONE
+                        - generic [ref=f5e379]: 2:00 PM - 2:15 PM
+                      - generic [ref=f5e380]: "Ammar Micijevic - ALL in ONE, Start: Friday, September 18, 2026, 2:00 PM, End: Friday, September 18, 2026, 2:15 PM"
+            - generic [ref=f5e442]:
+              - paragraph [ref=f5e443] [cursor=pointer]: Legal notice and Terms and conditions of use
+              - paragraph [ref=f5e444] [cursor=pointer]: PRIVACY_POLICY
+```
