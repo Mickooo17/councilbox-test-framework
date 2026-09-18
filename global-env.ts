@@ -20,6 +20,12 @@ const envConfig = config[env];
 envConfig.users.admin.password = (process.env[`${envUpper}_ADMIN_PASSWORD`] || '').trim();
 envConfig.users.adminProfessional.password = (process.env[`${envUpper}_ADMIN_PROFESSIONAL_PASSWORD`] || '').trim();
 envConfig.users.superadmin.password = (process.env[`${envUpper}_SUPERADMIN_PASSWORD`] || '').trim();
+if (envConfig.users.agentWithVideoAttention) {
+    envConfig.users.agentWithVideoAttention.password = (process.env[`${envUpper}_AGENT_WITH_VIDEO_ATTENTION_PASSWORD`] || '').trim();
+}
+if (envConfig.users.entityAdministrator) {
+    envConfig.users.entityAdministrator.password = (process.env[`${envUpper}_ENTITY_ADMINISTRATOR_PASSWORD`] || '').trim();
+}
 
 // Export selected environment config for use in tests
 export default envConfig;

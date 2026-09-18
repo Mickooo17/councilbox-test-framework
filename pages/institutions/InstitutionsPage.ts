@@ -336,5 +336,33 @@ export class InstitutionsPage extends BasePage {
             await this.dismissToastOrModal();
         });
     }
+
+    async verifyEntitiesButtonVisible() {
+        await test.step('Validate "Entities" button is visible in navigation bar', async () => {
+            const entitiesButton = this.page.locator('a#companies-link')
+                .or(this.page.locator('a[href*="/companies"]'))
+                .or(this.page.getByRole('link', { name: /Entities/i }))
+                .first();
+            await expect(entitiesButton).toBeVisible({ timeout: 10000 });
+            await expect(entitiesButton).toContainText(/Entities/i);
+        });
+    }
+
+    async verifyEntitiesPageOpened() {
+        await test.step('Verify Entities page is displayed', async () => {
+            await expect(this.page).toHaveURL(/\/companies/i, { timeout: 10000 });
+            await expect(this.page.locator('table, tbody, tr, #companies-table, [class*="companies"]').first()).toBeVisible({ timeout: 15000 });
+        });
+    }
+
+    async verifyEntitiesButtonNotVisible() {
+        await test.step('Verify "Entities" (Institutions) button is not visible in navigation bar', async () => {
+            const entitiesButton = this.page.locator('a#companies-link')
+                .or(this.page.locator('a[href*="/companies"]'))
+                .or(this.page.getByRole('link', { name: /Entities|Institutions/i }))
+                .or(this.page.getByText(/^Entities$|^Institutions$/i));
+            await expect(entitiesButton).not.toBeVisible();
+        });
+    }
 }
 

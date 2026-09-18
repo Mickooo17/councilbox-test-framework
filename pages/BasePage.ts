@@ -61,8 +61,10 @@ export class BasePage {
                 // Dismiss or remove "New version OVAC" upgrade modal
                 Array.from(document.querySelectorAll('div, section, aside')).forEach(el => {
                     if (el.textContent && el.textContent.includes('New version OVAC') && el.textContent.length < 500) {
-                        const modalParent = el.closest('[class*="Modal"], [role="dialog"], [class*="dialog"]') || el.parentElement;
-                        if (modalParent) (modalParent as HTMLElement).remove();
+                        const modalParent = el.closest('[class*="Modal"], [role="dialog"], [class*="dialog"]');
+                        if (modalParent && modalParent !== document.body && modalParent.id !== 'root') {
+                            (modalParent as HTMLElement).remove();
+                        }
                     }
                 });
             }).catch(() => {});

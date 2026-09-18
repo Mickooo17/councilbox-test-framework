@@ -213,6 +213,20 @@ export class TemplatesPage extends BasePage {
             }
         });
     }
+
+    async verifyTemplatesButtonVisible() {
+        await test.step('Validate Templates button is visible', async () => {
+            await expect(this.templatesButton).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    async verifyTemplatesPageOpened() {
+        await test.step('Verify Templates page is displayed', async () => {
+            await expect(this.page).toHaveURL(/\/drafts/i, { timeout: 10000 });
+            await expect(this.searchInput).toBeVisible({ timeout: 15000 });
+            await expect(this.tableBody).toBeVisible({ timeout: 15000 });
+        });
+    }
 }
 
 

@@ -8,8 +8,14 @@
       "adminProfessional": {
         "username": "ammar.micijevic@councilbox.com"
       },
+      "agentWithVideoAttention": {
+        "username": "bmg8117@jakobejackson.top"
+      },
+      "entityAdministrator": {
+        "username": "muhamed.adzamija+3@councilbox.com"
+      },
       "superadmin": {
-        "username": "ammar.micijevic+superadmin@councilbox.com"
+        "username": "muhamed.adzamija@councilbox.com"
       }
     }
   },
@@ -22,8 +28,14 @@
       "adminProfessional": {
         "username": "ammar.micijevic@councilbox.com"
       },
+      "agentWithVideoAttention": {
+        "username": "bmg8117@jakobejackson.top"
+      },
+      "entityAdministrator": {
+        "username": "muhamed.adzamija+3@councilbox.com"
+      },
       "superadmin": {
-        "username": "ammar.micijevic+superadmin@councilbox.com"
+        "username": "muhamed.adzamija@councilbox.com"
       }
     }
   },
