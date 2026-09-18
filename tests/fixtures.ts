@@ -21,6 +21,8 @@ import { resolveLoginUrl } from '../utils/UrlHelper';
 
 export const adminUser = envConfig.users.admin;
 export const adminProfessionalUser = envConfig.users.adminProfessional;
+export const agentWithVideoAttentionUser = envConfig.users.agentWithVideoAttention;
+export const entityAdministratorUser = envConfig.users.entityAdministrator;
 export const superadminUser = envConfig.users.superadmin;
 
 export const testUser = adminUser;
@@ -90,7 +92,7 @@ export const test = base.extend<{
   },
   page: async ({ page }, use, testInfo) => {
     const fileName = (testInfo.file || '').replace(/\\/g, '/');
-    const isUnauthenticatedTest = fileName.includes('auth.setup.ts') || fileName.includes('loginTests.spec.ts') || fileName.includes('sendMessageToSupport.spec.ts') || fileName.includes('appointmentLogin') || fileName.includes('superadmin') || fileName.includes('superAdmin');
+    const isUnauthenticatedTest = fileName.includes('auth.setup.ts') || fileName.includes('loginTests.spec.ts') || fileName.includes('sendMessageToSupport.spec.ts') || fileName.includes('appointmentLogin') || fileName.includes('superadmin') || fileName.includes('superAdmin') || fileName.includes('agent') || fileName.includes('entity');
 
     if (isUnauthenticatedTest) {
       // Clear cookies and storage for unauthenticated tests so they stay on login page

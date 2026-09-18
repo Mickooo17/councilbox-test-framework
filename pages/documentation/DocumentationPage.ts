@@ -179,4 +179,115 @@ export class DocumentationPage extends BasePage {
             await this.page.waitForLoadState('networkidle');
         });
     }
+
+    async verifyDeleteOptionNotAvailable(fileName?: string) {
+        await test.step(`Verify Delete option is not available${fileName ? ` for document "${fileName}"` : ''}`, async () => {
+            await this.dismissToastOrModal();
+
+            let actionMenu: Locator;
+            if (fileName) {
+                const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
+                await this.searchDocument(nameWithoutExtension);
+                await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+                actionMenu = this.page.locator('#CardsContainerBody')
+                    .locator('div')
+                    .filter({ hasText: nameWithoutExtension })
+                    .getByRole('button', { name: 'Icon Button' })
+                    .first();
+            } else {
+                const cardsContainer = this.page.locator('#CardsContainerBody');
+                await expect(cardsContainer).toBeVisible({ timeout: 15000 });
+                actionMenu = cardsContainer.getByRole('button', { name: 'Icon Button' }).first();
+            }
+
+            await expect(actionMenu).toBeVisible({ timeout: 10000 });
+            await actionMenu.click();
+
+            const dropdownOptions = this.page.locator('.cbx-dropdown-options, [role="menu"]').first();
+            await expect(dropdownOptions).toBeVisible({ timeout: 5000 });
+
+            const deleteOption = dropdownOptions.getByText(/^Delete$|^Eliminar$/i);
+            await expect(deleteOption).not.toBeVisible();
+
+            const backdrop = this.page.locator('.cbx-dropdown-backdrop, .MuiBackdrop-root').first();
+            if (await backdrop.isVisible().catch(() => false)) {
+                await backdrop.click({ force: true }).catch(() => {});
+            } else {
+                await this.page.keyboard.press('Escape').catch(() => {});
+            }
+            await expect(dropdownOptions).not.toBeVisible({ timeout: 5000 }).catch(() => {});
+        });
+    }
+
+    async verifyNoDeleteButtonOnPage() {
+        await test.step('Verify that no Delete button is present on the Documentation page', async () => {
+            const deleteButtons = this.page.locator('button').filter({ hasText: /^Delete$|^Eliminar$/i });
+            await expect(deleteButtons).not.toBeVisible();
+        });
+    }
+
+    async verifyEditOptionNotAvailable(fileName?: string) {
+        await test.step(`Verify Edit option is not available${fileName ? ` for document "${fileName}"` : ''}`, async () => {
+            await this.dismissToastOrModal();
+
+            let actionMenu: Locator;
+            if (fileName) {
+                const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
+                await this.searchDocument(nameWithoutExtension);
+                await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+                actionMenu = this.page.locator('#CardsContainerBody')
+                    .locator('div')
+                    .filter({ hasText: nameWithoutExtension })
+                    .getByRole('button', { name: 'Icon Button' })
+                    .first();
+            } else {
+                const cardsContainer = this.page.locator('#CardsContainerBody');
+                await expect(cardsContainer).toBeVisible({ timeout: 15000 });
+                actionMenu = cardsContainer.getByRole('button', { name: 'Icon Button' }).first();
+            }
+
+            await expect(actionMenu).toBeVisible({ timeout: 10000 });
+            await actionMenu.click();
+
+            const dropdownOptions = this.page.locator('.cbx-dropdown-options, [role="menu"]').first();
+            await expect(dropdownOptions).toBeVisible({ timeout: 5000 });
+
+            const editOption = dropdownOptions.getByText(/^Edit$|^Editar$/i);
+            await expect(editOption).not.toBeVisible();
+
+            const backdrop = this.page.locator('.cbx-dropdown-backdrop, .MuiBackdrop-root').first();
+            if (await backdrop.isVisible().catch(() => false)) {
+                await backdrop.click({ force: true }).catch(() => {});
+            } else {
+                await this.page.keyboard.press('Escape').catch(() => {});
+            }
+            await expect(dropdownOptions).not.toBeVisible({ timeout: 5000 }).catch(() => {});
+        });
+    }
+
+    async verifyDocumentPreviewIsReadOnly() {
+        await test.step('Open document preview and verify it is read-only without edit options', async () => {
+            await this.dismissToastOrModal();
+
+            const firstCard = this.page.locator('#CardsContainerBody .MuiCard-root').first();
+            await expect(firstCard).toBeVisible({ timeout: 15000 });
+            await firstCard.click();
+
+            const drawerCloseButton = this.page.locator('button[aria-label="Close drawer panel"]').or(this.page.getByRole('button', { name: /Close drawer panel/i })).first();
+            await expect(drawerCloseButton).toBeVisible({ timeout: 10000 });
+
+            const editButton = this.page.locator('button').filter({ hasText: /^Edit$|^Editar$|^Save$|^Guardar$/i });
+            await expect(editButton).not.toBeVisible();
+
+            await drawerCloseButton.click();
+            await expect(drawerCloseButton).not.toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    async verifyNoEditButtonOnPage() {
+        await test.step('Verify that no Edit button is present on the Documentation page', async () => {
+            const editButtons = this.page.locator('button').filter({ hasText: /^Edit$|^Editar$/i });
+            await expect(editButtons).not.toBeVisible();
+        });
+    }
 }
