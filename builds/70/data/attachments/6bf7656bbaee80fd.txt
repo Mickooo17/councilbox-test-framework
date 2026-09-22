@@ -1,2 +1,0 @@
-[UserDataStore] Saved user ID #4230 (AutoAdmin AgentTester - auto_user_293088@test6884.com)
-[API Test] Successfully created Admin Agent User: ID=4230, Email=auto_user_293088@test6884.com, Name=AutoAdmin AgentTester
