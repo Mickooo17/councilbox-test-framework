@@ -1,0 +1,224 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/documentation/documentationTests.spec.ts >> Documentation - Upload and Download Document Tests >> should upload a new document and verify it appears in the list @smoke @regression
+- Location: tests/documentation/documentationTests.spec.ts:15:7
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: expect(locator).toContainText(expected) failed
+
+Locator: locator('#CardsContainerBody')
+Expected substring: "test_document_1790253093712"
+Received string:    "Drag your files here or click"
+
+Call log:
+  - Expect "toContainText" locator('#CardsContainerBody') with timeout 15000ms
+  - waiting for locator('#CardsContainerBody')
+    8 × locator resolved to <div id="CardsContainerBody">…</div>
+      - unexpected value "Drag your files here or click"
+  - Protocol error (Runtime.callFunctionOn): Internal server error, session closed.
+
+```
+
+```yaml
+- button "Icon Button": 
+- button "Choose File"
+- paragraph: Drag your files here or click
+```
+
+# Test source
+
+```ts
+  1   | import { Page, Locator, expect, test } from '@playwright/test';
+  2   | import { BasePage } from '../BasePage';
+  3   | import { MESSAGES } from '../../utils/Constants';
+  4   | import path from 'path';
+  5   | import fs from 'fs';
+  6   | 
+  7   | export class DocumentationPage extends BasePage {
+  8   |     readonly fabNewButton: Locator;
+  9   |     readonly menuUploadFile: Locator;
+  10  |     readonly fileInput: Locator;
+  11  |     readonly searchInput: Locator;
+  12  |     readonly alertAcceptButton: Locator;
+  13  |     readonly successUploadAlert: Locator;
+  14  |     readonly successDeleteAlert: Locator;
+  15  | 
+  16  |     constructor(page: Page) {
+  17  |         super(page);
+  18  |         this.fabNewButton = page.locator('.MuiButtonBase-root.MuiFab-root.MuiFab-primary');
+  19  |         this.menuUploadFile = page.locator('#company-document-upload-file');
+  20  |         this.fileInput = page.locator('input[type="file"]').first();
+  21  |         this.searchInput = page.locator('#company-document-search-input')
+  22  |             .or(page.getByRole('textbox', { name: /Search/i }))
+  23  |             .or(page.locator('input[placeholder*="Search" i]'))
+  24  |             .or(page.locator('input[placeholder*="Buscar" i]'))
+  25  |             .first();
+  26  |         this.alertAcceptButton = page.locator('#alert-confirm-button-accept');
+  27  |         this.successUploadAlert = page.locator('.Toastify__toast--success').filter({ hasText: MESSAGES.DOCUMENT_UPLOADED });
+  28  |         this.successDeleteAlert = page.locator('.Toastify__toast--success').filter({ hasText: MESSAGES.DOCUMENT_DELETED }); // Assuming similar generic toast
+  29  |     }
+  30  | 
+  31  |     async uploadDocument(fileName: string, fileContent: string) {
+  32  |         await test.step(`Upload document: ${fileName}`, async () => {
+  33  |             // Create temp dummy file
+  34  |             const filePath = path.join(__dirname, `../../test-data/${fileName}`);
+  35  |             fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  36  |             fs.writeFileSync(filePath, fileContent);
+  37  | 
+  38  |             const fab = this.page.locator('#add-document-button')
+  39  |                 .or(this.page.locator('.MuiFab-root'))
+  40  |                 .or(this.page.getByRole('button', { name: /New|Nuevo|\+/i }))
+  41  |                 .first();
+  42  | 
+  43  |             if (await fab.isVisible({ timeout: 2000 }).catch(() => false)) {
+  44  |                 await fab.click();
+  45  |                 const menuUpload = this.page.locator('#company-document-upload-file')
+  46  |                     .or(this.page.getByText(/Upload file|Subir archivo/i))
+  47  |                     .first();
+  48  |                 if (await menuUpload.isVisible({ timeout: 2000 }).catch(() => false)) {
+  49  |                     await menuUpload.click();
+  50  |                 }
+  51  |             }
+  52  | 
+  53  |             await this.fileInput.setInputFiles(filePath);
+  54  |             await this.page.keyboard.press('Escape').catch(() => {});
+  55  |             await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+  56  |         });
+  57  |     }
+  58  | 
+  59  |     async verifyUploadSuccessAlert() {
+  60  |         await test.step('Verify upload success alert', async () => {
+  61  |             // Wait for any "Uploading files..." / "Subiendo..." indicator to finish
+  62  |             await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
+  63  |             await this.page.waitForTimeout(1000);
+  64  |         });
+  65  |     }
+  66  | 
+  67  |     async searchDocument(fileName: string) {
+  68  |         await test.step(`Search for document: ${fileName}`, async () => {
+  69  |             await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
+  70  |             await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+  71  |             await this.searchInput.fill(fileName);
+  72  |             await this.page.waitForTimeout(1000);
+  73  |         });
+  74  |     }
+  75  | 
+  76  |     async verifyDocumentInTable(fileName: string) {
+  77  |         await test.step(`Verify document ${fileName} is present in the table`, async () => {
+  78  |             const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
+  79  |             await expect(this.page.getByText(/Uploading|Subiendo/i)).not.toBeVisible({ timeout: 15000 }).catch(() => {});
+> 80  |             await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 15000 });
+      |                                                                    ^ Error: expect(locator).toContainText(expected) failed
+  81  |         });
+  82  |     }
+  83  | 
+  84  |     async downloadDocument(fileName: string) {
+  85  |         await test.step(`Download document: ${fileName}`, async () => {
+  86  |             const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
+  87  |             // Search first to narrow down the table
+  88  |             await this.searchDocument(nameWithoutExtension);
+  89  | 
+  90  |             // Wait for results to be shown
+  91  |             await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+  92  | 
+  93  |             // Dismiss any active toast banner blocking pointer events
+  94  |             await this.dismissToastOrModal();
+  95  | 
+  96  |             // Locate action menu for that specific file card
+  97  |             const actionMenu = this.page.locator('#CardsContainerBody')
+  98  |                 .locator('div')
+  99  |                 .filter({ hasText: nameWithoutExtension })
+  100 |                 .getByRole('button', { name: 'Icon Button' })
+  101 |                 .first();
+  102 |             await actionMenu.click();
+  103 | 
+  104 |             // Set up download listener BEFORE clicking download
+  105 |             const downloadPromise = this.page.waitForEvent('download');
+  106 | 
+  107 |             // Click Download option
+  108 |             await this.page.getByText('Download').click();
+  109 | 
+  110 |             // Wait for the download to start and verify filename
+  111 |             const download = await downloadPromise;
+  112 |             expect(download.suggestedFilename()).toBe(fileName);
+  113 |         });
+  114 |     }
+  115 | 
+  116 |     async verifyDownloadInFileManager(fileName: string) {
+  117 |         await test.step(`Verify download in File Manager: ${fileName}`, async () => {
+  118 |             // Click File Manager icon in the header
+  119 |             const fileManagerButton = this.page.locator('#cbx-header-third-button-buttonFileManager');
+  120 |             await fileManagerButton.click();
+  121 |             await this.page.waitForTimeout(1500);
+  122 | 
+  123 |             // Verify filename appears in the File Manager list
+  124 |             const list = this.page.getByRole('list').or(this.page.locator('[class*="file-manager"]')).first();
+  125 |             await expect(list).toContainText(fileName, { timeout: 10000 });
+  126 | 
+  127 |             // Click on the file entry to open details modal
+  128 |             await this.page.getByText(fileName).first().click();
+  129 | 
+  130 |             // Verify modal shows status
+  131 |             const modal = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').first();
+  132 |             await expect(modal).toContainText(/Completed|Completado|Downloaded|Descargado/i, { timeout: 10000 });
+  133 | 
+  134 |             // Dismiss file details modal (1st Escape) and File Manager dropdown (2nd Escape)
+  135 |             await this.page.keyboard.press('Escape');
+  136 |             await this.page.waitForTimeout(400);
+  137 |             await this.page.keyboard.press('Escape');
+  138 |             await this.page.waitForTimeout(400);
+  139 | 
+  140 |             // Wait for backdrop overlay to fully detach
+  141 |             await this.page.locator('.cbx-dropdown-backdrop, .MuiBackdrop-root').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  142 |             await this.dismissToastOrModal();
+  143 |         });
+  144 |     }
+  145 | 
+  146 |     async deleteDocument(fileName: string) {
+  147 |         await test.step(`Delete document: ${fileName}`, async () => {
+  148 |             const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
+  149 |             // Search first to narrow down the table
+  150 |             await this.searchDocument(nameWithoutExtension);
+  151 | 
+  152 |             // Wait for results to be shown
+  153 |             await expect(this.page.locator('#CardsContainerBody')).toContainText(nameWithoutExtension, { timeout: 10000 });
+  154 | 
+  155 |             // Dismiss any active toast banner blocking pointer events
+  156 |             await this.dismissToastOrModal();
+  157 | 
+  158 |             // Locate action menu for that specific file card
+  159 |             const actionMenu = this.page.locator('#CardsContainerBody')
+  160 |                 .locator('div')
+  161 |                 .filter({ hasText: nameWithoutExtension })
+  162 |                 .getByRole('button', { name: 'Icon Button' })
+  163 |                 .first();
+  164 |             await actionMenu.click();
+  165 | 
+  166 |             // Click Delete option
+  167 |             const deleteOption = this.page.getByText('Delete');
+  168 |             await deleteOption.click();
+  169 | 
+  170 |             // Confirm delete verifying dialog contains full filename as seen in codegen
+  171 |             await expect(this.page.getByRole('dialog')).toContainText(fileName);
+  172 |             await this.page.getByRole('button', { name: 'Accept' }).click();
+  173 |         });
+  174 |     }
+  175 | 
+  176 |     async verifyDeleteSuccessAlert() {
+  177 |         await test.step('Verify delete success alert', async () => {
+  178 |             // We'll just wait for state sync since Toast classes might differ
+  179 |             await this.page.waitForLoadState('networkidle');
+  180 |         });
+```
