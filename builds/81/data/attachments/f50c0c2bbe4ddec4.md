@@ -1,0 +1,453 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/procedures/procedureTests.spec.ts >> Procedures - Configuration & Documentation Tab Tests >> Verify that all elements are displayed in Configuration tab - Video appointment procedure creation @XR-2298 @regression
+- Location: tests/procedures/procedureTests.spec.ts:53:9
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('heading', { name: /Consents|Consentimientos/i }).or(getByText(/^CONSENTS$|^CONSENTIMIENTOS$/i)).first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByRole('heading', { name: /Consents|Consentimientos/i }).or(getByText(/^CONSENTS$|^CONSENTIMIENTOS$/i)).first() with timeout 5000ms
+  - waiting for getByRole('heading', { name: /Consents|Consentimientos/i }).or(getByText(/^CONSENTS$|^CONSENTIMIENTOS$/i)).first()
+
+```
+
+```yaml
+- button ""
+- link " Activity":
+  - /url: /company/1112/activity/dashboardCouncils
+  - button " Activity"
+- link " Appointments":
+  - /url: /company/1112
+  - button " Appointments"
+- link " Processes":
+  - /url: /company/1112/managements
+  - button " Processes"
+- link " Procedures":
+  - /url: /company/1112/procedures
+  - button " Procedures"
+- link " Templates":
+  - /url: /company/1112/drafts
+  - button " Templates"
+- link " Documents":
+  - /url: /company/1112/documentation
+  - button " Documents"
+- link " Entities":
+  - /url: /company/1112/companies
+  - button " Entities"
+- link " Users":
+  - /url: /company/1112/users
+  - button " Users"
+- img "CBX white Logo"
+- text: © 2026 v8.7.0
+- banner:
+  - button "Logo QA DEV":
+    - img "Logo QA DEV"
+  - text: QA DEV
+  - button "Botón":
+    - button "Botón": 
+  - button "Actions Button":
+    - button "Actions Button":
+      - img "Logo Virtual Citizen Service Office"
+      - text: 
+- text:   Automation Procedure 650785
+- button "Help": 
+- paragraph: Video-appointment
+- text:  Draft
+- button "button": 
+- button "Previous"
+- button "Continue "
+- navigation "Progress":
+  - list:
+    - listitem:
+      - button "Details (done)":
+        - paragraph: Details
+        - text: (done)
+    - listitem:
+      - button "Entities (done)":
+        - paragraph: Entities
+        - text: (done)
+    - listitem:
+      - button "Agents with video attention (done)":
+        - paragraph: Agents with video attention
+        - text: (done)
+    - listitem:
+      - button "Steps of the procedure (done)":
+        - paragraph: Steps of the procedure
+        - text: (done)
+    - listitem:
+      - button "Documentation (done)":
+        - paragraph: Documentation
+        - text: (done)
+    - listitem:
+      - button "Configuration (actual)":
+        - paragraph: Configuration
+        - text: (actual)
+    - listitem:
+      - button "Review":
+        - paragraph: Review
+- heading "General" [level=1]
+- paragraph: Languages
+- paragraph: Languages available for the procedure.
+- img "es"
+- paragraph: Español
+- checkbox "Checkbox" [checked]
+- img "en"
+- paragraph: English
+- checkbox "Checkbox" [checked]
+- img "gal"
+- paragraph: Galego
+- checkbox "Checkbox" [checked]
+- img "vl"
+- paragraph: Valencià
+- checkbox "Checkbox" [checked]
+- img "cat"
+- paragraph: Català
+- checkbox "Checkbox" [checked]
+- img "it"
+- paragraph: Italiano
+- checkbox "Checkbox" [checked]
+- img "eu"
+- paragraph: Euskera
+- checkbox "Checkbox" [checked]
+- paragraph: Steps of the procedure
+- text: 
+- paragraph: Reorder
+- paragraph: Disabled
+- switch "Reorder"
+- text: Reorder
+- paragraph: Reordering consents
+- text: 
+- paragraph: Editing after meeting call
+- paragraph: Disabled
+- switch "toggle"
+- text: toggle
+- paragraph: Modification and addition of consents is allowed after sending the notification
+- paragraph: Notices
+- text: 
+- paragraph: Notifications
+- paragraph: Activated
+- switch "Notifications" [checked]
+- text: Notifications
+- paragraph: Delivery of personalized notifications to participants regarding appointments.
+- checkbox "E-mail" [checked]
+- text: E-mail
+- checkbox "SMS"
+- text: SMS
+- checkbox "WhatsApp"
+- text: WhatsApp E-mail
+- combobox "Default method": E-mail
+- text: Default method
+- heading "Security" [level=1]
+- paragraph: Secure access
+- text: 
+- paragraph: Personal identification
+- radio "Personal identification" [checked]
+- text: Personal identification
+- paragraph: Personal identification number or Passport
+- paragraph
+- text: 
+- paragraph: Appointments completed
+- paragraph: Regulate access to view completed appointments.
+- text: All users
+- combobox "Access roles": All users
+- text: Access roles
+- paragraph: documents and reports
+- text: 
+- paragraph: Signature visibility
+- paragraph: Disabled
+- switch "toggle"
+- text: toggle
+- paragraph: Activate the signature for the documents signed during the appointment
+- text: 
+- paragraph: Automatic report
+- paragraph: Disabled
+- switch "toggle"
+- text: toggle
+- paragraph: Close report automatically when finished
+- heading "Appointments" [level=1]
+- paragraph: "Options:"
+- text: 
+- paragraph: Representative
+- paragraph: Activated
+- switch "toggle" [checked]
+- text: toggle
+- paragraph: It allows representation of natural persons or legal entities
+- text: 
+- paragraph: Request and reschedule appointment
+- paragraph: Activated
+- switch "Request and reschedule appointment" [checked]
+- text: Request and reschedule appointment
+- paragraph: The participant may request and reschedule an appointment
+- spinbutton "Minimum application period": "0"
+- text: Minimum application period
+- paragraph: Hours
+- spinbutton "Maximum application period": "0"
+- text: Maximum application period
+- paragraph: Hours
+- text: 
+- paragraph: Automatic cancellation
+- paragraph: Disabled
+- switch "toggle"
+- text: toggle
+- paragraph: Automatically cancels unconfirmed appointments within the defined period.
+- text: 
+- paragraph: Cancel appointment
+- paragraph: Activated
+- switch "toggle" [checked]
+- text: toggle
+- paragraph: Participants can cancel their appointments with a minimum advance notice.
+- text: 
+- paragraph: Internal notes
+- button "Botón": 
+- paragraph: Allows for information for internal use in the appointment and its documents to be included.
+- checkbox "Required to complete the appointment."
+- text: Required to complete the appointment. 
+- paragraph: Conclusions
+- button "Botón": 
+- paragraph: Allows for shared information in the appointment and its documents to be included.
+- checkbox "Require participants' signature"
+- text: Require participants' signature
+- paragraph: Agenda
+- paragraph: Time allocated to each appointment
+- slider "min.": "1"
+- status:
+  - paragraph: The average appointment time for this procedure is 0 minutes.
+- paragraph: Evidence
+- text: 
+- paragraph: Recording of the appointment
+- paragraph: The appointments are recorded and stored for the institution's use.
+- text: Full and automatic recording
+- combobox "Recording": Full and automatic recording
+- text: Recording Video
+- combobox "Type of recording": Video
+- text: Type of recording
+- paragraph: Biometric identification
+- text: 
+- paragraph: Automatic biometric identification.
+- radio "Selection option" [checked]
+- text: Selection option 
+- paragraph: Automatic biometric identification with manual validation.
+- radio "Selection option"
+- text: Selection option Legal notice and Terms and conditions of use PRIVACY_POLICY
+```
+
+# Test source
+
+```ts
+  275 |                 await expect(switchInput).toBeChecked();
+  276 |             } else {
+  277 |                 await expect(switchInput).not.toBeChecked();
+  278 |             }
+  279 |         });
+  280 |     }
+  281 | 
+  282 |     async openCreateProcedureDrawer() {
+  283 |         await test.step('Open create procedure drawer', async () => {
+  284 |             await this.dismissToastOrModal();
+  285 |             await this.addProcedureButton.waitFor({ state: 'visible', timeout: 10000 });
+  286 |             await this.addProcedureButton.click();
+  287 |         });
+  288 |     }
+  289 | 
+  290 |     async selectVideoAppointmentProcedure() {
+  291 |         await test.step('Select Video-appointment procedure type', async () => {
+  292 |             await this.videoAppointmentOption.waitFor({ state: 'visible', timeout: 10000 });
+  293 |             await this.videoAppointmentOption.click();
+  294 |             await this.procedureNameInput.waitFor({ state: 'visible', timeout: 10000 });
+  295 |         });
+  296 |     }
+  297 | 
+  298 |     async fillProcedureDetails(data: ProcedureData) {
+  299 |         await test.step(`Fill procedure details: ${data.name}`, async () => {
+  300 |             await this.procedureNameInput.waitFor({ state: 'visible', timeout: 10000 });
+  301 |             await this.procedureNameInput.fill(data.name);
+  302 |             await this.procedureDescriptionEditor.waitFor({ state: 'visible', timeout: 10000 });
+  303 |             await this.procedureDescriptionEditor.fill(data.description);
+  304 |         });
+  305 |     }
+  306 | 
+  307 |     async editProcedureDetails(data: { name?: string; description?: string }) {
+  308 |         await test.step(`Edit procedure details${data.name ? ` (New Name: "${data.name}")` : ''}`, async () => {
+  309 |             if (data.name) {
+  310 |                 await this.procedureNameInput.waitFor({ state: 'visible', timeout: 10000 });
+  311 |                 await this.procedureNameInput.fill(data.name);
+  312 |             }
+  313 |             if (data.description) {
+  314 |                 await this.procedureDescriptionEditor.waitFor({ state: 'visible', timeout: 10000 });
+  315 |                 await this.procedureDescriptionEditor.fill(data.description);
+  316 |             }
+  317 |             await this.clickContinue();
+  318 |             await this.page.waitForTimeout(1000);
+  319 |         });
+  320 |     }
+  321 | 
+  322 |     async clickContinue() {
+  323 |         await test.step('Click Continue button', async () => {
+  324 |             await this.continueButton.click();
+  325 |             await this.page.waitForTimeout(500);
+  326 |         });
+  327 |     }
+  328 | 
+  329 |     async navigateToDocumentationTab() {
+  330 |         await test.step('Navigate to Documentation tab in procedure creation', async () => {
+  331 |             await this.documentationTab.waitFor({ state: 'visible', timeout: 10000 });
+  332 |             await this.documentationTab.click();
+  333 |             await this.page.waitForTimeout(1000);
+  334 |             await this.addFolderButton.waitFor({ state: 'visible', timeout: 15000 });
+  335 |         });
+  336 |     }
+  337 | 
+  338 |     async navigateToConfigurationTab() {
+  339 |         await test.step('Navigate to Configuration tab in procedure creation', async () => {
+  340 |             await this.dismissToastOrModal();
+  341 | 
+  342 |             // Advance through wizard steps until reaching /configuration URL
+  343 |             for (let i = 0; i < 6; i++) {
+  344 |                 if (this.page.url().includes('/configuration')) break;
+  345 | 
+  346 |                 const nextBtn = this.page.locator('#procedure-editor-next').or(this.page.getByRole('button', { name: /Continue|Continuar/i })).first();
+  347 |                 if (await nextBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+  348 |                     await nextBtn.click();
+  349 |                     await this.page.waitForTimeout(1000);
+  350 |                 }
+  351 |             }
+  352 | 
+  353 |             await this.page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+  354 |             await this.languagesHeading.waitFor({ state: 'visible', timeout: 15000 });
+  355 |         });
+  356 |     }
+  357 | 
+  358 |     async verifyAllConfigurationElements() {
+  359 |         await test.step('Verify all elements in Configuration tab (General, Appointments, Security)', async () => {
+  360 |             // 1. General Section & Subsections
+  361 |             await expect(this.generalHeading).toBeVisible();
+  362 |             await expect(this.languagesHeading).toBeVisible();
+  363 |             await expect(this.languagesDescription).toBeVisible();
+  364 | 
+  365 |             // Languages
+  366 |             await expect(this.languageOptionEspanol).toBeVisible();
+  367 |             await expect(this.languageOptionEnglish).toBeVisible();
+  368 |             await expect(this.languageOptionGalego).toBeVisible();
+  369 |             await expect(this.languageOptionValencia).toBeVisible();
+  370 |             await expect(this.languageOptionCatala).toBeVisible();
+  371 |             await expect(this.languageOptionItaliano).toBeVisible();
+  372 |             await expect(this.languageOptionEuskera).toBeVisible();
+  373 | 
+  374 |             // Consents
+> 375 |             await expect(this.consentsHeading).toBeVisible();
+      |                                                ^ Error: expect(locator).toBeVisible() failed
+  376 |             await expect(this.consentsReorderLabel).toBeVisible();
+  377 |             await expect(this.consentsEditingLabel).toBeVisible();
+  378 | 
+  379 |             // Notices
+  380 |             await expect(this.noticesHeading).toBeVisible();
+  381 |             await expect(this.notificationsToggleLabel).toBeVisible();
+  382 |             await expect(this.noticeEmailCheckbox).toBeVisible();
+  383 |             await expect(this.noticeSmsCheckbox).toBeVisible();
+  384 |             await expect(this.noticeWhatsappCheckbox).toBeVisible();
+  385 |             await expect(this.defaultMethodLabel).toBeVisible();
+  386 | 
+  387 |             // 2. Appointments Section & Subsections
+  388 |             await expect(this.appointmentsHeading).toBeVisible();
+  389 |             await expect(this.optionsHeading).toBeVisible();
+  390 |             await expect(this.representativeToggleLabel).toBeVisible();
+  391 |             await expect(this.requestAndRescheduleToggleLabel).toBeVisible();
+  392 |             await expect(this.minApplicationPeriodLabel).toBeVisible();
+  393 |             await expect(this.maxApplicationPeriodLabel).toBeVisible();
+  394 |             await expect(this.automaticCancellationToggleLabel).toBeVisible();
+  395 |             await expect(this.cancelAppointmentToggleLabel).toBeVisible();
+  396 |             await expect(this.internalNotesRequiredCheckbox).toBeVisible();
+  397 |             await expect(this.conclusionsSignatureCheckbox).toBeVisible();
+  398 | 
+  399 |             // Agenda
+  400 |             await expect(this.agendaHeading).toBeVisible();
+  401 |             await expect(this.timeAllocatedLabel).toBeVisible();
+  402 | 
+  403 |             // Evidence
+  404 |             await expect(this.evidenceHeading).toBeVisible();
+  405 |             await expect(this.recordingLabel).toBeVisible();
+  406 |             await expect(this.typeOfRecordingLabel).toBeVisible();
+  407 | 
+  408 |             // Biometric Identification
+  409 |             await expect(this.biometricHeading).toBeVisible();
+  410 |             await expect(this.biometricAutoRadio).toBeVisible();
+  411 |             await expect(this.biometricManualValidationRadio).toBeVisible();
+  412 | 
+  413 |             // 3. Security Section & Subsections
+  414 |             await expect(this.securityHeading).toBeVisible();
+  415 |             await expect(this.secureAccessHeading).toBeVisible();
+  416 |             await expect(this.personalIdentificationText).toBeVisible();
+  417 |             await expect(this.appointmentsCompletedText).toBeVisible();
+  418 |             await expect(this.accessRolesLabel).toBeVisible();
+  419 | 
+  420 |             // Documents and Reports
+  421 |             await expect(this.documentsAndReportsHeading).toBeVisible();
+  422 |             await expect(this.signatureVisibilityToggleLabel).toBeVisible();
+  423 |             await expect(this.automaticReportToggleLabel).toBeVisible();
+  424 |         });
+  425 |     }
+  426 | 
+  427 |     async createDocumentationFolder(folderTitle: string) {
+  428 |         await test.step(`Create documentation folder: ${folderTitle}`, async () => {
+  429 |             await this.dismissToastOrModal();
+  430 |             await this.addFolderButton.waitFor({ state: 'visible', timeout: 10000 });
+  431 |             await this.addFolderButton.click();
+  432 |             await this.folderTitleInput.waitFor({ state: 'visible', timeout: 10000 });
+  433 |             await this.folderTitleInput.fill(folderTitle);
+  434 | 
+  435 |             // Save folder
+  436 |             const saveBtn = this.page.locator('#-button-accept, button').filter({ hasText: /^SAVE$|^Guardar$/i }).first();
+  437 |             await saveBtn.evaluate((el) => (el as HTMLElement).click());
+  438 |             await this.page.waitForTimeout(2000);
+  439 |             await this.dismissToastOrModal();
+  440 |         });
+  441 |     }
+  442 | 
+  443 |     async openFolder(folderTitle: string) {
+  444 |         await test.step(`Open folder: ${folderTitle}`, async () => {
+  445 |             await this.dismissToastOrModal();
+  446 |             const folderItem = this.page.getByText(folderTitle).first();
+  447 |             await folderItem.waitFor({ state: 'visible', timeout: 10000 });
+  448 |             await folderItem.click();
+  449 |             await this.page.waitForTimeout(1500);
+  450 |         });
+  451 |     }
+  452 | 
+  453 |     async addDocumentFromOvacStorageInExpandedFolder(docName: string = 'campos-de-castilla2'): Promise<string> {
+  454 |         return await test.step(`Add document from OVAC storage: ${docName}`, async () => {
+  455 |             await this.dismissToastOrModal();
+  456 |             const ovacBtn = this.page.getByRole('button', { name: /OVAC STORAGE/i }).first();
+  457 |             await ovacBtn.waitFor({ state: 'visible', timeout: 10000 });
+  458 |             await ovacBtn.click();
+  459 |             await this.page.waitForTimeout(1500);
+  460 | 
+  461 |             // Select document from OVAC storage drawer
+  462 |             const docElement = this.page.locator(`img[alt="${docName}"], [alt*="${docName}" i]`).or(
+  463 |                 this.page.getByText(docName)
+  464 |             ).first();
+  465 | 
+  466 |             let selectedDocName = docName;
+  467 |             if (await docElement.isVisible({ timeout: 5000 }).catch(() => false)) {
+  468 |                 await docElement.evaluate((el) => (el as HTMLElement).click());
+  469 |             } else {
+  470 |                 const firstCard = this.page.locator('.cbx-drawerPanel-container').last().locator('.MuiCard-root').filter({ hasNot: this.page.locator('[alt*="logo" i]') }).first();
+  471 |                 await firstCard.waitFor({ state: 'visible', timeout: 10000 });
+  472 |                 await firstCard.evaluate((el) => (el as HTMLElement).click());
+  473 |                 const text = await firstCard.innerText();
+  474 |                 selectedDocName = text.split('\n')[0]?.trim() || '';
+  475 |             }
+```
