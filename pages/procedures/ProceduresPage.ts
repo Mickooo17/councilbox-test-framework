@@ -37,6 +37,7 @@ export class ProceduresPage extends BasePage {
     readonly languageOptionItaliano: Locator;
     readonly languageOptionEuskera: Locator;
 
+    readonly stepsOfProcedureHeading: Locator;
     readonly consentsHeading: Locator;
     readonly consentsReorderLabel: Locator;
     readonly consentsEditingLabel: Locator;
@@ -111,7 +112,8 @@ export class ProceduresPage extends BasePage {
         this.languageOptionItaliano = page.getByText('Italiano').first();
         this.languageOptionEuskera = page.getByText('Euskera').first();
 
-        this.consentsHeading = page.getByRole('heading', { name: /Consents|Consentimientos/i }).or(page.getByText(/^CONSENTS$|^CONSENTIMIENTOS$/i)).first();
+        this.stepsOfProcedureHeading = page.getByRole('heading', { name: /Steps of the procedure|Pasos del procedimiento|Consents|Consentimientos/i }).or(page.getByText(/^Steps of the procedure$|^Pasos del procedimiento$|^CONSENTS$|^CONSENTIMIENTOS$/i)).last();
+        this.consentsHeading = this.stepsOfProcedureHeading;
         this.consentsReorderLabel = page.getByText(/Reorder|Reordenar/i).first();
         this.consentsEditingLabel = page.getByText(/Editing after meeting call|Edición tras convocatoria/i).first();
 
@@ -371,8 +373,8 @@ export class ProceduresPage extends BasePage {
             await expect(this.languageOptionItaliano).toBeVisible();
             await expect(this.languageOptionEuskera).toBeVisible();
 
-            // Consents
-            await expect(this.consentsHeading).toBeVisible();
+            // Steps of the procedure (formerly Consents)
+            await expect(this.stepsOfProcedureHeading).toBeVisible();
             await expect(this.consentsReorderLabel).toBeVisible();
             await expect(this.consentsEditingLabel).toBeVisible();
 
@@ -646,7 +648,7 @@ export class ProceduresPage extends BasePage {
             const patterns: Record<string, RegExp> = {
                 Details: /^Details$|^Detalles$/i,
                 Entities: /^Entities$|^Entidades$/i,
-                Consents: /^Consents$|^Consentimientos$/i,
+                Consents: /^Consents$|^Consentimientos$|^Steps of the procedure$|^Pasos del procedimiento$/i,
                 Documentation: /^Documentation$|^Documentación$/i,
                 Configuration: /^Configuration$|^Configuración$/i,
                 Review: /^Review$|^Revisión$/i,
