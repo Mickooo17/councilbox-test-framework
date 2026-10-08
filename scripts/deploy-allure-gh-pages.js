@@ -7,6 +7,52 @@ function run(cmd, opts = {}) {
   return execSync(cmd, { stdio: 'inherit', ...opts });
 }
 
+function trimTrendHistory(historyDir, limit) {
+  if (!fs.existsSync(historyDir)) return;
+
+  const trendFiles = [
+    'history-trend.json',
+    'duration-trend.json',
+    'retry-trend.json',
+    'categories-trend.json'
+  ];
+
+  for (const file of trendFiles) {
+    const filePath = path.join(historyDir, file);
+    if (fs.existsSync(filePath)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        if (Array.isArray(data) && data.length > limit) {
+          fs.writeFileSync(filePath, JSON.stringify(data.slice(0, limit), null, 2));
+          console.log(`[deploy] Trimmed ${file} to last ${limit} entries.`);
+        }
+      } catch (e) {
+        console.warn(`[deploy] Could not trim ${file}:`, e.message);
+      }
+    }
+  }
+
+  const historyJsonPath = path.join(historyDir, 'history.json');
+  if (fs.existsSync(historyJsonPath)) {
+    try {
+      const historyData = JSON.parse(fs.readFileSync(historyJsonPath, 'utf8'));
+      let modified = false;
+      for (const key of Object.keys(historyData)) {
+        if (historyData[key] && Array.isArray(historyData[key].items) && historyData[key].items.length > limit) {
+          historyData[key].items = historyData[key].items.slice(0, limit);
+          modified = true;
+        }
+      }
+      if (modified) {
+        fs.writeFileSync(historyJsonPath, JSON.stringify(historyData));
+        console.log(`[deploy] Trimmed test items in history.json to last ${limit} entries.`);
+      }
+    } catch (e) {
+      console.warn(`[deploy] Could not trim history.json:`, e.message);
+    }
+  }
+}
+
 function deployAllure() {
   const buildNumber = process.env.BUILD_NUMBER || process.env.GITHUB_RUN_NUMBER || '1';
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -25,7 +71,7 @@ function deployAllure() {
     : `https://github.com/${repo}.git`;
 
   try {
-    run(`git clone --depth 10 --branch gh-pages --single-branch "${cloneUrl}" "${tempDir}"`);
+    run(`git clone --depth 1 --branch gh-pages --single-branch "${cloneUrl}" "${tempDir}"`);
   } catch (err) {
     console.log(`[deploy] gh-pages branch might not exist yet or failed to clone. Creating new gh-pages directory...`);
     fs.mkdirSync(tempDir, { recursive: true });
@@ -38,15 +84,16 @@ function deployAllure() {
     fs.mkdirSync(buildsDir, { recursive: true });
   }
 
-  const getSortedBuildsByTime = () => {
+  // Sort build directories numerically descending (e.g. 25, 24, 23...) instead of mtime
+  const getSortedBuilds = () => {
     if (!fs.existsSync(buildsDir)) return [];
     return fs.readdirSync(buildsDir)
       .filter(f => /^\d+$/.test(f) && fs.statSync(path.join(buildsDir, f)).isDirectory())
-      .sort((a, b) => fs.statSync(path.join(buildsDir, b)).mtimeMs - fs.statSync(path.join(buildsDir, a)).mtimeMs);
+      .sort((a, b) => Number(b) - Number(a));
   };
 
   // 2. Trend History logic: copy history from latest existing build to allure-results/history
-  const existingBuilds = getSortedBuildsByTime();
+  const existingBuilds = getSortedBuilds();
 
   if (existingBuilds.length > 0) {
     const latestBuild = existingBuilds[0];
@@ -57,6 +104,9 @@ function deployAllure() {
       console.log(`[deploy] Found previous history in build #${latestBuild}. Copying to allure-results/history...`);
       fs.mkdirSync(allureResultsHistory, { recursive: true });
       fs.cpSync(prevHistoryDir, allureResultsHistory, { recursive: true });
+
+      // Trim previous trend history so that after current build is generated, total is exactly maxBuilds
+      trimTrendHistory(allureResultsHistory, maxBuilds - 1);
     }
   }
 
@@ -69,6 +119,10 @@ function deployAllure() {
   }
   run(`npx allure generate allure-results --clean -o allure-report`);
 
+  // Ensure generated report trend does not exceed maxBuilds
+  trimTrendHistory(path.join(process.cwd(), 'allure-report', 'widgets'), maxBuilds);
+  trimTrendHistory(path.join(process.cwd(), 'allure-report', 'history'), maxBuilds);
+
   // 4. Copy new report to gh-pages-temp/builds/<BUILD_NUMBER>
   const newBuildDir = path.join(buildsDir, buildNumber.toString());
   if (fs.existsSync(newBuildDir)) {
@@ -77,8 +131,8 @@ function deployAllure() {
   fs.mkdirSync(newBuildDir, { recursive: true });
   fs.cpSync(path.join(process.cwd(), 'allure-report'), newBuildDir, { recursive: true });
 
-  // 5. Cleanup old builds (keep only last `maxBuilds` by modification time)
-  const allBuilds = getSortedBuildsByTime();
+  // 5. Cleanup old builds (keep only last `maxBuilds` by numeric build number)
+  const allBuilds = getSortedBuilds();
 
   if (allBuilds.length > maxBuilds) {
     const buildsToRemove = allBuilds.slice(maxBuilds);
@@ -91,7 +145,7 @@ function deployAllure() {
   }
 
   // 6. Create root index.html pointing to the latest available build
-  const remainingBuilds = getSortedBuildsByTime();
+  const remainingBuilds = getSortedBuilds();
   const latestBuildNum = remainingBuilds.length > 0 ? remainingBuilds[0] : buildNumber;
 
   const rootIndex = path.join(tempDir, 'index.html');
