@@ -38,7 +38,7 @@ export class UsersPage extends BasePage {
         this.idCardInput = page.locator('#user-id-card-type');
         this.emailInput = page.locator('#user-form-email');
         this.languageInput = page.locator('#user-settings-language');
-        this.continueButton = page.locator('.cbx-drawerPanel-container, .MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /Continue|Continuar/i }).or(page.getByRole('button', { name: /Continue|Continuar/i })).first();
+        this.continueButton = page.getByRole('button', { name: /Continue|Continuar/i }).first();
         this.addButton = page.locator('.cbx-drawerPanel-container, .MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i })).first();
         this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
         this.backButton = page.getByRole('button', { name: /Back|Volver|Atrás|Close drawer panel/i })
@@ -107,9 +107,13 @@ export class UsersPage extends BasePage {
                 await optionById.click();
             } else {
                 let pattern = language;
-                if (/catala/i.test(language)) pattern = 'Català|Catala';
-                if (/espanol/i.test(language)) pattern = 'Español|Espanol';
+                if (/spanish|espanol|español/i.test(language)) pattern = 'Español|Espanol|Spanish';
+                if (/english|ingles|inglés/i.test(language)) pattern = 'English|Inglés|Ingles';
+                if (/catala|català|catalan/i.test(language)) pattern = 'Català|Catala|Catalan';
                 if (/valencia/i.test(language)) pattern = 'Valencià|Valencia';
+                if (/galego|galician/i.test(language)) pattern = 'Galego|Galician';
+                if (/euskera|basque/i.test(language)) pattern = 'Euskera|Basque';
+                if (/italiano|italian/i.test(language)) pattern = 'Italiano|Italian';
 
                 const option = this.page.getByRole('menuitem', { name: new RegExp(`^(${pattern})$`, 'i') })
                     .or(this.page.getByRole('option', { name: new RegExp(`^(${pattern})$`, 'i') }))
@@ -139,9 +143,11 @@ export class UsersPage extends BasePage {
 
     async submitUserForm() {
         await test.step('Submit user form (Continue → Add)', async () => {
-            // Dismiss any open popover backdrop or press Escape
-            await this.page.keyboard.press('Escape').catch(() => {});
-            await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+            const popover = this.page.locator('.MuiPopover-root, .MuiMenu-root');
+            if (await popover.isVisible({ timeout: 500 }).catch(() => false)) {
+                await this.page.keyboard.press('Escape').catch(() => {});
+                await popover.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+            }
             await this.page.waitForTimeout(300);
 
             await this.continueButton.waitFor({ state: 'visible', timeout: 5000 });
@@ -174,10 +180,14 @@ export class UsersPage extends BasePage {
 
     async deleteUser() {
         await test.step('Delete user', async () => {
-            await this.page.getByRole('cell', { name: 'Icon Button' }).getByLabel('Icon Button').click();
-            await this.page.getByRole('button', { name: ' Delete' }).click();
+            const row = this.page.locator('table tbody tr').first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+            const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill)').first();
+            await actionBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await actionBtn.click();
+            await this.page.getByRole('button', { name: /Delete|Eliminar/i }).click();
             await expect(this.page.locator('#modal')).toContainText(MESSAGES.USER_DELETE_CONFIRMATION);
-            await this.page.getByRole('button', { name: 'Delete' }).click();
+            await this.page.getByRole('button', { name: /Delete|Eliminar/i }).click();
         });
     }
 
@@ -189,7 +199,11 @@ export class UsersPage extends BasePage {
 
     async openEditUserForm() {
         await test.step('Open user edit form', async () => {
-            await this.page.getByRole('cell', { name: 'Icon Button' }).getByLabel('Icon Button').first().click();
+            const row = this.page.locator('table tbody tr').first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+            const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill)').first();
+            await actionBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await actionBtn.click();
             await this.page.getByRole('button', { name: /Edit|Editar/i }).click();
             await this.nameInput.waitFor({ state: 'visible', timeout: 10000 });
         });
@@ -318,9 +332,11 @@ export class UsersPage extends BasePage {
 
     async clickContinue() {
         await test.step('Click Continue button in Add User form', async () => {
-            // Dismiss any open popover backdrop or press Escape
-            await this.page.keyboard.press('Escape').catch(() => {});
-            await this.page.locator('.MuiPopover-root, .MuiMenu-root').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+            const popover = this.page.locator('.MuiPopover-root, .MuiMenu-root');
+            if (await popover.isVisible({ timeout: 500 }).catch(() => false)) {
+                await this.page.keyboard.press('Escape').catch(() => {});
+                await popover.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+            }
             await this.page.waitForTimeout(300);
 
             await this.continueButton.waitFor({ state: 'visible', timeout: 5000 });
@@ -485,7 +501,7 @@ export class UsersPage extends BasePage {
             await dropdownIcon.click();
             await this.page.waitForTimeout(400);
 
-            const pattern = option === 'Name' ? /^Name$|^Nombre$/i : /^Surnames?$|^Apellidos?$/i;
+            const pattern = option === 'Name' ? /Name|Nombre/i : /Surnames?|Apellidos?/i;
             const optionItem = this.page.locator('.cbx-dropdown-options li, .MuiMenu-paper li, ul[role="menu"] li').filter({ hasText: pattern }).first();
             await optionItem.waitFor({ state: 'visible', timeout: 5000 });
             await optionItem.click();

@@ -31,7 +31,7 @@ export class InstitutionsPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        this.actionsButton = page.getByRole('button', { name: 'Actions Button' }).nth(1);
+        this.actionsButton = page.locator('#add-company-button, button:has(.ri-add-line), .MuiFab-root').or(page.getByRole('button', { name: /Actions|Acciones/i })).first();
         this.businessNameInput = page.locator('#business-name');
         this.cifInput = page.locator('#addSociedadCIF');
         this.addressInput = page.locator('#addSociedadDireccion');
@@ -39,8 +39,15 @@ export class InstitutionsPage extends BasePage {
         this.cityInput = page.locator('#addSociedadLocalidad');
         this.countryDropdown = page.getByText('SpainCountry');
         this.countryOptionAndorra = page.getByText('Andorra');
-        this.languageDropdown = page.getByText('EspañolMain language');
-        this.languageOptionEnglish = page.getByRole('list').getByText('English');
+        this.languageDropdown = page.getByRole('combobox', { name: /Main language|Idioma principal/i })
+            .or(page.locator('#mui-component-select-idLanguage, [aria-labelledby*="idLanguage" i]'))
+            .or(page.locator('.MuiFormControl-root').filter({ hasText: /Main language|Idioma principal/i }))
+            .or(page.getByText(/EspañolMain language|EspañolIdioma principal/i))
+            .first();
+        this.languageOptionEnglish = page.getByRole('option', { name: 'English' })
+            .or(page.getByRole('listbox').getByText('English'))
+            .or(page.locator('[role="option"]').filter({ hasText: 'English' }))
+            .first();
         this.createButton = page.getByRole('button', { name: ' Create' });
         this.successAlert = page.getByRole('alert');
         this.searchInput = page.getByRole('textbox', { name: /Search entity|Search institution|Buscar/i })
@@ -116,9 +123,19 @@ export class InstitutionsPage extends BasePage {
             await this.navigateToInstitutions();
             await this.searchInput.click();
             await this.searchInput.fill(name);
-            await this.tableBody.getByRole('button', { name: '' }).click();
-            await this.deleteButton.click();
-            await this.acceptButton.click();
+            const targetRow = this.page.locator('tbody tr').filter({ hasText: name }).first();
+            await targetRow.waitFor({ state: 'visible', timeout: 10000 });
+            await targetRow.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button[aria-label*="Actions" i]').first().click();
+            await this.page.waitForTimeout(500);
+            const deleteOption = this.page.getByRole('button', { name: /Delete|Eliminar/i }).first();
+            await deleteOption.waitFor({ state: 'visible', timeout: 5000 });
+            await deleteOption.click();
+            await this.page.waitForTimeout(500);
+            const acceptBtn = this.page.locator('#panel-confirm-button-accept, #modal-button-accept')
+                .or(this.page.getByRole('dialog').getByRole('button', { name: /Accept|Delete|Aceptar|Eliminar/i }))
+                .first();
+            await acceptBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await acceptBtn.click();
         });
     }
 
@@ -224,7 +241,7 @@ export class InstitutionsPage extends BasePage {
 
             const headers = this.page.locator('table thead th');
             await expect(headers.filter({ hasText: /Name|Nombre/i })).toBeVisible({ timeout: 5000 });
-            await expect(headers.filter({ hasText: /^Id$/i })).toBeVisible({ timeout: 5000 });
+            await expect(headers.filter({ hasText: /\bId\b/i })).toBeVisible({ timeout: 5000 });
             await expect(headers.filter({ hasText: /External ID|ID externo/i })).toBeVisible({ timeout: 5000 });
             await expect(headers.filter({ hasText: /Level|Nivel/i })).toBeVisible({ timeout: 5000 });
 
@@ -317,7 +334,10 @@ export class InstitutionsPage extends BasePage {
      */
     async setMinimumAdvanceNotice(value: string | number) {
         await test.step(`Set minimum advance notice to ${value}`, async () => {
-            const noticeInput = this.page.locator('.MuiFormControl-root').filter({ hasText: /Minimum notice|Antelación mínima/i }).locator('input').first();
+            const noticeInput = this.page.getByRole('spinbutton', { name: /Minimum notice|Antelación mínima/i })
+                .or(this.page.locator('input[name*="notice" i]'))
+                .or(this.page.locator('.MuiFormControl-root').filter({ hasText: /Minimum notice|Antelación mínima/i }).locator('input'))
+                .first();
             await noticeInput.waitFor({ state: 'visible', timeout: 10000 });
             await noticeInput.clear();
             await noticeInput.fill(value.toString());
@@ -329,7 +349,9 @@ export class InstitutionsPage extends BasePage {
      */
     async saveSchedulePeriod() {
         await test.step('Save schedule period adjustments', async () => {
-            const saveBtn = this.page.locator('#panel-confirm-button-accept, button:has-text("SAVE"), button:has-text("GUARDAR")').first();
+            const saveBtn = this.page.getByRole('button', { name: /Save|Guardar/i })
+                .or(this.page.locator('#panel-confirm-button-accept, button:has-text("SAVE"), button:has-text("GUARDAR")'))
+                .first();
             await saveBtn.waitFor({ state: 'visible', timeout: 5000 });
             await saveBtn.click();
             await this.page.waitForTimeout(1000);

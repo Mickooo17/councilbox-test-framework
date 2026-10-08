@@ -43,10 +43,15 @@ export class AppointmentsPage extends BasePage {
   constructor(page: Page) {
     super(page);
 
-    // Filter controls
-    this.statusFilterButton = page.locator('div').filter({ hasText: /^Status$/ }).locator('..').locator('[role="button"]').or(page.locator('input[name="Status"]').locator('..')).first();
-    this.periodFilterButton = page.locator('div').filter({ hasText: /^Period$/ }).locator('..').locator('[role="button"]').or(page.locator('input[name="Period"]').locator('..')).first();
-    this.searchInput = page.locator('input[placeholder="Search"], input[placeholder*="participant" i]').first();
+    this.statusFilterButton = page.getByRole('combobox', { name: /Status|Estado/i })
+      .or(page.locator('.MuiFormControl-root').filter({ hasText: /Status|Estado/i }).locator('[role="combobox"], [role="button"], input'))
+      .first();
+    this.periodFilterButton = page.getByRole('combobox', { name: /Period|Periodo/i })
+      .or(page.locator('.MuiFormControl-root').filter({ hasText: /Period|Periodo/i }).locator('[role="combobox"], [role="button"], input'))
+      .first();
+    this.searchInput = page.getByRole('textbox', { name: /Search|Buscar/i })
+      .or(page.locator('input[placeholder="Search"], input[placeholder*="participant" i]'))
+      .first();
     this.viewModeDropdown = page.locator('div').filter({ hasText: /List view|Calendar view|Daily view|Vista de lista|Vista de calendario|Vista diaria/i })
       .locator('..')
       .or(page.getByRole('button', { name: /List view|Calendar view|Daily view|Vista de lista|Vista de calendario|Vista diaria/i }))
@@ -69,26 +74,32 @@ export class AppointmentsPage extends BasePage {
 
     // Details view elements
     this.backButton = page.locator('button:has(.ri-arrow-left-line)').or(page.getByRole('button', { name: /back/i })).first();
-    this.appointmentDetailsHeader = page.getByText(/^Appointment$/i).or(page.getByRole('heading', { name: /Appointment/i })).first();
+    this.appointmentDetailsHeader = page.getByRole('heading', { name: /Details|Detalles|Appointment|Cita/i })
+      .or(page.getByText(/^Details$|^Detalles$/i))
+      .first();
     this.procedureTitleText = page.locator('div, p').filter({ hasText: /ALL in ONE/i }).first();
-    this.statusSection = page.locator('div, p').filter({ hasText: /^Status$/i }).or(page.getByText(/^Status$/i)).first();
-    this.canceledBySection = page.locator('div, p').filter({ hasText: /^Canceled by$/i }).or(page.getByText(/^Canceled by$/i)).first();
-    this.reasonSection = page.locator('div, p').filter({ hasText: /^Reason$/i }).or(page.getByText(/^Reason$/i)).first();
-    this.observationsSection = page.locator('div, p').filter({ hasText: /^Observations$/i }).or(page.getByText(/^Observations$/i)).first();
-    this.participantsSection = page.locator('div, p').filter({ hasText: /^Participants$/i }).or(page.getByText(/^Participants$/i)).first();
+    this.statusSection = page.locator('div, p').filter({ hasText: /^Status$|^Estado$/i }).or(page.getByText(/^Status$|^Estado$/i)).first();
+    this.canceledBySection = page.locator('div, p').filter({ hasText: /^Canceled by$|^Cancelado por$|^Modified by$|^Modificado por$/i })
+      .or(page.getByText(/^Canceled by$|^Cancelado por$|^Modified by$|^Modificado por$/i))
+      .first();
+    this.reasonSection = page.locator('div, p').filter({ hasText: /^Reason$|^Motivo$/i }).or(page.getByText(/^Reason$|^Motivo$/i)).first();
+    this.observationsSection = page.locator('div, p').filter({ hasText: /^Observations$|^Observaciones$/i }).or(page.getByText(/^Observations$|^Observaciones$/i)).first();
+    this.participantsSection = page.locator('div, p').filter({ hasText: /^Participants$|^Participantes$/i }).or(page.getByText(/^Participants$|^Participantes$/i)).first();
 
     // Cancel modal elements
-    this.cancelModal = page.locator('.cbx-Modal-content, [class*="Modal-content"]')
+    this.cancelModal = page.locator('.cbx-Modal-content, [class*="Modal-content"], [role="dialog"]')
       .filter({ hasText: /Cancel the appointment|Cancelar cita/i })
       .first();
-    this.cancelObservationsLabel = this.cancelModal.locator('text=/Observations\\*|Observaciones\\*/i').first();
-    this.cancelObservationsInput = this.cancelModal.locator('input[maxlength="500"], textarea').first();
-    this.cancelErrorHelperText = this.cancelModal.locator('.MuiFormHelperText-root, p.MuiFormHelperText-root').first();
-    this.cancelAcceptButton = this.cancelModal.locator('#modal-button-accept').or(
-      this.cancelModal.getByRole('button', { name: /^ACCEPT$|^Aceptar$/i })
+    this.cancelObservationsLabel = this.cancelModal.locator('text=/Observations|Observaciones/i').first();
+    this.cancelObservationsInput = this.cancelModal.getByRole('textbox').first();
+    this.cancelErrorHelperText = this.cancelModal.locator('[id$="-error"], p.MuiFormHelperText-root, [class*="helper-text"]')
+      .or(this.cancelModal.getByText(/Required|Obligatorio/i))
+      .first();
+    this.cancelAcceptButton = this.cancelModal.getByRole('button', { name: /^ACCEPT$|^Aceptar$/i }).or(
+      this.cancelModal.locator('#modal-button-accept')
     ).first();
-    this.cancelCloseButton = this.cancelModal.locator('#modal-button-cancel').or(
-      this.cancelModal.getByRole('button', { name: /^CLOSE$|^Cerrar$/i })
+    this.cancelCloseButton = this.cancelModal.getByRole('button', { name: /^CLOSE$|^Cerrar$/i }).or(
+      this.cancelModal.locator('#modal-button-cancel')
     ).first();
   }
 
@@ -107,17 +118,18 @@ export class AppointmentsPage extends BasePage {
     await test.step(`Filter appointments by status: "${statusName}"`, async () => {
       await this.dismissToastOrModal();
       await this.statusFilterButton.waitFor({ state: 'visible', timeout: 10000 });
-      await this.statusFilterButton.click();
+      // Click the parent container of the combobox which has cursor:pointer and handles the click
+      await this.statusFilterButton.locator('..').click({ force: true });
       await this.page.waitForTimeout(500);
 
       const optionRegex = new RegExp(statusName, 'i');
       const statusOption = this.page.getByRole('option', { name: optionRegex }).or(
-        this.page.locator('li').filter({ hasText: optionRegex })
+        this.page.locator('li, [role="menuitem"]').filter({ hasText: optionRegex })
       ).first();
       await statusOption.waitFor({ state: 'visible', timeout: 5000 });
       await statusOption.click();
 
-      // Close dropdown by pressing Escape
+      // Close dropdown by pressing Escape or clicking outside
       await this.page.keyboard.press('Escape');
       await this.page.waitForTimeout(1000);
       await this.page.waitForLoadState('networkidle');
