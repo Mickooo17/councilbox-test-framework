@@ -455,7 +455,16 @@ export class ProceduresPage extends BasePage {
     async addDocumentFromOvacStorageInExpandedFolder(docName: string = 'campos-de-castilla2'): Promise<string> {
         return await test.step(`Add document from OVAC storage: ${docName}`, async () => {
             await this.dismissToastOrModal();
-            const ovacBtn = this.page.getByRole('button', { name: /OVAC STORAGE/i }).first();
+
+            const ovacBtn = this.page.getByRole('button', { name: /OVAC/i }).or(this.page.locator('button').filter({ hasText: /Ovac/i })).first();
+            if (!await ovacBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+                const accordionBtn = this.page.locator('button').filter({ hasText: /Available documents|Documentos disponibles/i }).first();
+                if (await accordionBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await accordionBtn.click();
+                    await this.page.waitForTimeout(500);
+                }
+            }
+
             await ovacBtn.waitFor({ state: 'visible', timeout: 10000 });
             await ovacBtn.click();
             await this.page.waitForTimeout(1500);
@@ -540,12 +549,15 @@ export class ProceduresPage extends BasePage {
 
     async selectNavigationType(type: 'Linear' | 'Free') {
         await test.step(`Select Navigation type: ${type}`, async () => {
-            const select = this.page.locator('#mui-component-select-Navigation, [aria-labelledby="mui-component-select-Navigation"]').first();
+            const select = this.page.getByRole('combobox', { name: /Navigation|Navegación/i })
+                .or(this.page.locator('#mui-component-select-Navigation, #mui-component-select-Navegación, [aria-labelledby*="select-Navig" i], [aria-labelledby*="select-Naveg" i]'))
+                .first();
             await select.waitFor({ state: 'visible', timeout: 10000 });
             await select.click({ force: true });
             await this.page.waitForTimeout(500);
 
-            const option = this.page.locator('li[role="option"], .MuiMenuItem-root').filter({ hasText: new RegExp(`^${type}$`, 'i') }).first();
+            const typeRegex = new RegExp(`^${type}$|^${type === 'Linear' ? 'Lineal' : 'Libre'}$`, 'i');
+            const option = this.page.locator('li[role="option"], .MuiMenuItem-root, [role="option"]').filter({ hasText: typeRegex }).first();
             await option.waitFor({ state: 'visible', timeout: 5000 });
             await option.click({ force: true });
             await this.page.waitForTimeout(1000);
@@ -554,9 +566,16 @@ export class ProceduresPage extends BasePage {
 
     async verifyNavigationType(expectedType: 'Linear' | 'Free') {
         await test.step(`Verify Navigation type is ${expectedType}`, async () => {
-            const select = this.page.locator('#mui-component-select-Navigation, [aria-labelledby="mui-component-select-Navigation"]').first();
+            const select = this.page.getByRole('combobox', { name: /Navigation|Navegación/i })
+                .or(this.page.locator('#mui-component-select-Navigation, #mui-component-select-Navegación, [aria-labelledby*="select-Navig" i], [aria-labelledby*="select-Naveg" i]'))
+                .first();
             await select.waitFor({ state: 'visible', timeout: 10000 });
-            await expect(select).toHaveText(new RegExp(expectedType, 'i'));
+            const expectedRegex = new RegExp(`${expectedType}|${expectedType === 'Linear' ? 'Lineal' : 'Libre'}`, 'i');
+            try {
+                await expect(select).toHaveValue(expectedRegex, { timeout: 3000 });
+            } catch {
+                await expect(select).toHaveText(expectedRegex);
+            }
         });
     }
 
@@ -622,9 +641,9 @@ export class ProceduresPage extends BasePage {
 
     async clickConsentsTabInWizardOrEdit() {
         await test.step('Click Consents tab/step in wizard or procedure view', async () => {
-            const consentsStep = this.page.locator('.cbx-stepper-item-text').filter({ hasText: /^Consents$|^Consentimientos$/i }).or(
-                this.page.locator('[role="tab"], .MuiTab-root').filter({ hasText: /^Consents$|^Consentimientos$/i })
-            ).first();
+            const consentsStep = this.page.locator('.cbx-stepper-item-text, [role="tab"], .MuiTab-root, nav button')
+                .filter({ hasText: /Steps of the procedure|Pasos del procedimiento|Consents|Consentimientos/i })
+                .first();
             await consentsStep.waitFor({ state: 'visible', timeout: 10000 });
             await consentsStep.click({ force: true });
             await this.page.waitForTimeout(1000);
@@ -646,15 +665,15 @@ export class ProceduresPage extends BasePage {
     async clickStepperTab(tabName: 'Details' | 'Entities' | 'Consents' | 'Documentation' | 'Configuration' | 'Review') {
         await test.step(`Click stepper tab: ${tabName}`, async () => {
             const patterns: Record<string, RegExp> = {
-                Details: /^Details$|^Detalles$/i,
-                Entities: /^Entities$|^Entidades$/i,
-                Consents: /^Consents$|^Consentimientos$|^Steps of the procedure$|^Pasos del procedimiento$/i,
-                Documentation: /^Documentation$|^Documentación$/i,
-                Configuration: /^Configuration$|^Configuración$/i,
-                Review: /^Review$|^Revisión$/i,
+                Details: /Details|Detalles/i,
+                Entities: /Entities|Entidades/i,
+                Consents: /Consents|Consentimientos|Steps of the procedure|Pasos del procedimiento/i,
+                Documentation: /Documentation|Documentación/i,
+                Configuration: /Configuration|Configuración/i,
+                Review: /Review|Revisión/i,
             };
-            const pattern = patterns[tabName] || new RegExp(`^${tabName}$`, 'i');
-            const stepTab = this.page.locator('.cbx-stepper-item-contentText, .cbx-stepper-item-text')
+            const pattern = patterns[tabName] || new RegExp(tabName, 'i');
+            const stepTab = this.page.locator('nav button, .cbx-stepper-item-contentText, .cbx-stepper-item-text, [role="tab"]')
                 .filter({ hasText: pattern })
                 .first();
             await stepTab.waitFor({ state: 'visible', timeout: 10000 });
