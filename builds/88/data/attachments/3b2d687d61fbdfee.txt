@@ -1,3 +1,0 @@
-[UserDataStore] Saved user ID #4427 (AutoDelete UserTest - auto_user_796254@test5057.com)
-[API Test] Created User for deletion: ID=4427, Email=auto_user_796254@test5057.com
-[API Test] Successfully deleted User ID=4427 via API
