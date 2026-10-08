@@ -41,7 +41,7 @@ export class TagsPage extends BasePage {
         this.tagValueInput = page.locator('#company-tag-value');
         this.tagDescriptionInput = page.locator('#company-tag-description');
         this.saveButton = page.getByRole('button', { name: /Save|Guardar/i })
-            .or(page.locator('#panel-confirm-button-accept, button:has-text("SAVE"), button:has-text("GUARDAR")'))
+            .or(page.locator('#panel-confirm-button-accept, #-button-accept, button:has-text("SAVE"), button:has-text("GUARDAR")'))
             .first();
         this.searchInput = page.getByRole('textbox', { name: /Search tags|Search by participant or record|Buscar/i })
             .or(page.getByPlaceholder(/Search tags|Buscar etiquetas|Search|Buscar/i))

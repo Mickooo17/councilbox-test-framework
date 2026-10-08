@@ -37,7 +37,10 @@ export class UsersPage extends BasePage {
         this.phoneInput = page.locator('#user-settings-phone');
         this.idCardInput = page.locator('#user-id-card-type');
         this.emailInput = page.locator('#user-form-email');
-        this.languageInput = page.locator('#user-settings-language');
+        this.languageInput = page.locator('#user-settings-language')
+            .or(page.getByRole('combobox', { name: /Language|Idioma/i }))
+            .or(page.locator('.cbx-inputText-renderValue-container').filter({ hasText: /Language|Idioma/i }).locator('input'))
+            .first();
         this.continueButton = page.getByRole('button', { name: /Continue|Continuar/i }).first();
         this.addButton = page.locator('.cbx-drawerPanel-container, .MuiDrawer-root, form, .MuiDialog-root').getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i }).or(page.getByRole('button', { name: /^Add$|^Añadir$|^Guardar$/i })).first();
         this.searchInput = page.locator('#search-users-input').or(page.getByRole('textbox', { name: /Search/i })).or(page.locator('input[placeholder*="Search" i]')).or(page.locator('input[placeholder*="Buscar" i]')).first();
@@ -211,7 +214,10 @@ export class UsersPage extends BasePage {
 
     async selectLanguageInEditForm(language: string) {
         await test.step(`Select language in edit form: ${language}`, async () => {
-            const langContainer = this.languageInput.locator('..');
+            const langContainer = this.page.getByRole('combobox', { name: /Language|Idioma/i })
+                .or(this.languageInput)
+                .or(this.page.locator('.cbx-inputText-renderValue-container').filter({ hasText: /Language|Idioma/i }))
+                .first();
             await langContainer.click();
             await this.page.waitForTimeout(400);
 
@@ -219,10 +225,12 @@ export class UsersPage extends BasePage {
             if (/catala/i.test(language)) pattern = 'Català|Catala';
             if (/espanol/i.test(language)) pattern = 'Español|Espanol';
             if (/valencia/i.test(language)) pattern = 'Valencià|Valencia';
+            if (/english/i.test(language)) pattern = 'English';
+            if (/italiano/i.test(language)) pattern = 'Italiano';
 
-            const option = this.page.getByRole('menuitem', { name: new RegExp(`^(${pattern})$`, 'i') })
-                .or(this.page.getByRole('option', { name: new RegExp(`^(${pattern})$`, 'i') }))
-                .or(this.page.locator('.MuiMenuItem-root').filter({ hasText: new RegExp(`^(${pattern})$`, 'i') }))
+            const option = this.page.getByRole('option', { name: new RegExp(`^(${pattern})$`, 'i') })
+                .or(this.page.getByRole('menuitem', { name: new RegExp(`^(${pattern})$`, 'i') }))
+                .or(this.page.locator('.MuiMenuItem-root, [role="option"]').filter({ hasText: new RegExp(`^(${pattern})$`, 'i') }))
                 .first();
             await option.click();
             await this.page.waitForTimeout(300);
@@ -252,8 +260,14 @@ export class UsersPage extends BasePage {
             if (/catala/i.test(expectedLanguage)) pattern = 'Català|Catala';
             if (/espanol/i.test(expectedLanguage)) pattern = 'Español|Espanol';
             if (/valencia/i.test(expectedLanguage)) pattern = 'Valencià|Valencia';
+            if (/english/i.test(expectedLanguage)) pattern = 'English';
+            if (/italiano/i.test(expectedLanguage)) pattern = 'Italiano';
 
-            await expect(this.languageInput).toHaveValue(new RegExp(`^(${pattern})$`, 'i'), { timeout: 5000 });
+            const langInput = this.page.getByRole('combobox', { name: /Language|Idioma/i })
+                .or(this.languageInput)
+                .or(this.page.locator('.cbx-inputText-renderValue-container').filter({ hasText: /Language|Idioma/i }).locator('input'))
+                .first();
+            await expect(langInput).toHaveValue(new RegExp(`^(${pattern})$`, 'i'), { timeout: 5000 });
         });
     }
 

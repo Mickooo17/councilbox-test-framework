@@ -289,7 +289,20 @@ export class InstitutionsPage extends BasePage {
                 row = this.page.locator('table tbody tr').filter({ hasText: name }).first();
             }
             await row.waitFor({ state: 'visible', timeout: 10000 });
-            await row.locator('td:first-child').click();
+
+            // Click 3-dots menu button on row to access Edit option
+            const threeDotsBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button[aria-label*="Botón" i]').first();
+            await threeDotsBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await threeDotsBtn.click();
+            await this.page.waitForTimeout(400);
+
+            // Click Edit button in row dropdown menu
+            const editBtn = this.page.getByRole('button', { name: /Edit|Editar/i })
+                .or(this.page.locator('[role="menuitem"]:has-text("Edit"), button:has-text("Edit")'))
+                .first();
+            await editBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await editBtn.click();
+
             await this.page.waitForURL(/\/companies\/edit\/\d+/i, { timeout: 10000 });
         });
     }
@@ -302,12 +315,15 @@ export class InstitutionsPage extends BasePage {
             const adminTab = this.page.getByRole('button', { name: /Administration|Administración/i }).first();
             await adminTab.waitFor({ state: 'visible', timeout: 10000 });
             await adminTab.click();
-            await this.page.waitForTimeout(500);
+            await this.page.waitForTimeout(1000);
 
-            const agendaTab = this.page.locator('button').filter({ hasText: /Agenda/i }).first();
-            await agendaTab.waitFor({ state: 'visible', timeout: 5000 });
-            await agendaTab.click();
+            if (!this.page.url().includes('/administration/schedule')) {
+                const agendaTab = this.page.locator('button[role="tab"]:has-text("Agenda"), [role="tab"]:has-text("Agenda"), button:has-text("Agenda")').first();
+                await agendaTab.waitFor({ state: 'visible', timeout: 10000 });
+                await agendaTab.click();
+            }
             await this.page.waitForURL(/\/administration\/schedule/i, { timeout: 10000 });
+            await this.page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
         });
     }
 
@@ -318,11 +334,13 @@ export class InstitutionsPage extends BasePage {
         await test.step('Open edit schedule period drawer', async () => {
             const firstRow = this.page.locator('table tbody tr').first();
             await firstRow.waitFor({ state: 'visible', timeout: 10000 });
-            const threeDotsBtn = firstRow.locator('td:last-child button').first();
+            const threeDotsBtn = firstRow.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button[aria-label*="Botón" i]').first();
             await threeDotsBtn.click();
             await this.page.waitForTimeout(400);
 
-            const editOption = this.page.locator('#schedule_edit_button, [role="menuitem"]:has-text("Edit"), [role="button"]:has-text("Edit")').first();
+            const editOption = this.page.getByRole('button', { name: /Edit|Editar/i })
+                .or(this.page.locator('#schedule_edit_button, button:has-text("Edit"), [role="menuitem"]:has-text("Edit"), [role="button"]:has-text("Edit")'))
+                .first();
             await editOption.waitFor({ state: 'visible', timeout: 5000 });
             await editOption.click();
             await this.page.waitForTimeout(600);
