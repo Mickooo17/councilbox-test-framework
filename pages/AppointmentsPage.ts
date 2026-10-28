@@ -106,7 +106,7 @@ export class AppointmentsPage extends BasePage {
   async navigateToAppointmentsPage(companyId: number = 1112) {
     await test.step('Navigate to Appointments page', async () => {
       await this.page.goto(resolveCompanyUrl(companyId), { waitUntil: 'domcontentloaded' });
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('load');
       await this.dismissToastOrModal();
     }, {
       params: { companyId },
@@ -132,7 +132,7 @@ export class AppointmentsPage extends BasePage {
       // Close dropdown by pressing Escape or clicking outside
       await this.page.keyboard.press('Escape');
       await this.page.waitForTimeout(1000);
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('load');
     }, {
       params: { statusName },
       subtitle: 'Open status filter dropdown, select option, and close menu',
@@ -146,7 +146,7 @@ export class AppointmentsPage extends BasePage {
       await this.searchInput.fill(String(identifier));
       await this.searchInput.press('Enter');
       await this.page.waitForTimeout(1500);
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('load');
     }, {
       params: { identifier: String(identifier) },
       subtitle: 'Input identifier into search field and press Enter',
@@ -166,7 +166,7 @@ export class AppointmentsPage extends BasePage {
       const statusCell = row.locator('td').filter({ hasText: /Cancel/i }).first();
       await statusCell.waitFor({ state: 'visible', timeout: 10000 });
       await statusCell.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('load');
       await this.page.waitForTimeout(1500);
       await this.dismissToastOrModal();
     }, {
@@ -232,14 +232,14 @@ export class AppointmentsPage extends BasePage {
         const calendarItem = this.page.locator('text="Calendar view"').or(this.page.getByRole('menuitem', { name: /Calendar view/i })).first();
         await calendarItem.waitFor({ state: 'visible', timeout: 5000 });
         await calendarItem.click();
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('load');
         await this.page.waitForTimeout(1000);
       }
 
       // Switch to 'Day' view if available as described in XR-3139
       if (await this.dayViewRadio.isVisible({ timeout: 3000 }).catch(() => false)) {
         await this.dayViewRadio.click();
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('load');
         await this.page.waitForTimeout(1000);
       }
 

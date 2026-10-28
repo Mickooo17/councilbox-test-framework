@@ -55,17 +55,21 @@ export class LegalTextsPage extends BasePage {
 
     async openEditLegalText(title: string = 'Terms and conditions') {
         await test.step(`Open edit form for legal text: ${title}`, async () => {
+            const titlePattern = /Terms and conditions/i.test(title)
+                ? /Terms and conditions|TÉRMINOS Y CONDICIONES|TERMS_CONDITIONS/i
+                : new RegExp(title, 'i');
             const row = this.page.locator(`[id="appointment-row-${title}"]`)
-                .or(this.legalTextsTable.locator('tbody tr').filter({ hasText: title }))
+                .or(this.legalTextsTable.locator('tbody tr').filter({ hasText: titlePattern }))
                 .first();
             await row.waitFor({ state: 'visible', timeout: 10000 });
 
             // Click the more actions button in the row
-            const menuBtn = row.locator('#appointment-menu, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').first();
+            const menuBtn = row.locator('#appointment-menu, button:has(.ri-more-2-fill), button:has(.ri-more-fill), button:has-text("Options"), button').last();
             await menuBtn.click();
 
             // Click Edit in popover
-            const editBtn = this.page.locator('.MuiPopover-root [role="button"]').filter({ hasText: /Edit|Editar/i })
+            const editBtn = this.page.locator('.MuiPopover-root [role="button"], .MuiPopover-root [role="menuitem"], .MuiMenu-paper button, .MuiMenu-paper [role="menuitem"]')
+                .filter({ hasText: /Edit|Editar/i })
                 .or(this.page.getByRole('button', { name: /Edit|Editar/i }))
                 .first();
             await editBtn.waitFor({ state: 'visible', timeout: 5000 });

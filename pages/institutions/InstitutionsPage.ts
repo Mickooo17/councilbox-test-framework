@@ -283,10 +283,16 @@ export class InstitutionsPage extends BasePage {
      */
     async openInstitutionDetails(name: string) {
         await test.step(`Open institution details for "${name}"`, async () => {
-            let row = this.page.locator('table tbody tr').filter({ hasText: name }).first();
+            const isQADev = /QA DEV/i.test(name);
+            const searchPattern = isQADev ? /QA DEV|Grupo Castelar/i : new RegExp(name, 'i');
+            let row = this.page.locator('table tbody tr').filter({ hasText: searchPattern }).first();
+            if (!await row.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await this.searchInstitution(isQADev ? 'Grupo Castelar' : name);
+                row = this.page.locator('table tbody tr').filter({ hasText: searchPattern }).first();
+            }
             if (!await row.isVisible({ timeout: 2000 }).catch(() => false)) {
                 await this.searchInstitution(name);
-                row = this.page.locator('table tbody tr').filter({ hasText: name }).first();
+                row = this.page.locator('table tbody tr').filter({ hasText: searchPattern }).first();
             }
             await row.waitFor({ state: 'visible', timeout: 10000 });
 

@@ -522,8 +522,9 @@ export class ProceduresPage extends BasePage {
             await docElement.waitFor({ state: 'visible', timeout: 10000 });
 
             // Click 3-dots dropdown menu button for the document
-            const docRow = this.page.locator('div[style*="height: 44px"]').filter({ has: docElement }).first();
-            const threeDotsButton = docRow.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button').first();
+            const threeDotsButton = docElement.locator('..').locator('button, [role="button"]')
+                .or(this.page.locator('div[style*="height: 44px"]').filter({ has: docElement }).locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button'))
+                .first();
             await threeDotsButton.waitFor({ state: 'visible', timeout: 5000 });
             await threeDotsButton.click({ force: true });
             await this.page.waitForTimeout(500);
@@ -532,9 +533,10 @@ export class ProceduresPage extends BasePage {
             const downloadPromise = this.page.waitForEvent('download');
 
             // Click Download option from the cbx dropdown menu
-            const downloadMenuItem = this.page.locator('li[id^="download"], .cbx-menuItem:has-text("Download")').or(
-                this.page.getByRole('menuitem', { name: /Download|Descargar/i })
-            ).first();
+            const downloadMenuItem = this.page.locator('li[id^="download"], .cbx-menuItem:has-text("Download")')
+                .or(this.page.getByRole('menuitem', { name: /Download|Descargar/i }))
+                .or(this.page.getByRole('button', { name: /Download|Descargar/i }))
+                .first();
             if (!await downloadMenuItem.isVisible({ timeout: 3000 }).catch(() => false)) {
                 await threeDotsButton.click({ force: true });
                 await this.page.waitForTimeout(500);

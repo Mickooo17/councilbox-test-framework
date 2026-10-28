@@ -248,6 +248,8 @@ export class ActivityPage extends BasePage {
 
   async openCompletedAppointmentDetails() {
     await test.step('Navigate to completed appointment and click Details button', async () => {
+      await this.dismissToastOrModal();
+
       // Locate Completed badge on the appointment
       const completedBadge = this.page.getByText(/^Completed$|^Completada$/i).first();
       await completedBadge.scrollIntoViewIfNeeded();
@@ -258,9 +260,17 @@ export class ActivityPage extends BasePage {
       await detailsAccordionBtn.scrollIntoViewIfNeeded();
       await expect(detailsAccordionBtn).toBeVisible({ timeout: 10000 });
 
-      // Click to expand Details section
-      await detailsAccordionBtn.click();
-      await expect(detailsAccordionBtn).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 });
+      await this.dismissToastOrModal();
+
+      if (await detailsAccordionBtn.getAttribute('aria-expanded') !== 'true') {
+        await detailsAccordionBtn.click().catch(() => {});
+      }
+
+      if (await detailsAccordionBtn.getAttribute('aria-expanded') !== 'true') {
+        await detailsAccordionBtn.dispatchEvent('click').catch(() => {});
+      }
+
+      await expect(detailsAccordionBtn).toHaveAttribute('aria-expanded', 'true', { timeout: 10000 });
     }, {
       subtitle: 'Expand Details accordion for completed appointment'
     });

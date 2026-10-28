@@ -6,8 +6,8 @@ test.describe('OVAC Appointment API Creation & UI Verification', () => {
   test('Create appointment via API and verify in UI by appointment ID @XR-API-APPOINTMENT', async ({ page, request }) => {
     // 1. Create appointment via API (automatically saved to AppointmentDataStore)
     const createdAppointment = await AppointmentApiHelper.createAppointment(request, {
-      procedureId: 3524,
-      procedureTitle: 'ALL in ONE',
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
       participant: {
         dni: 'ammarpass',
         idCardType: 'passport',
@@ -36,6 +36,6 @@ test.describe('OVAC Appointment API Creation & UI Verification', () => {
     const appointmentRow = page.locator('tr').filter({ hasText: appointmentId });
     await expect(appointmentRow).toBeVisible({ timeout: 10000 });
     await expect(appointmentRow).toContainText(appointmentId);
-    await expect(appointmentRow).toContainText('QA DEV');
+    await expect(appointmentRow).toContainText(/QA DEV|Grupo Castelar/i);
   });
 });

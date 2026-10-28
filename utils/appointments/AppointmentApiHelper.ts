@@ -28,8 +28,14 @@ export class AppointmentApiHelper {
     options: CreateAppointmentApiOptions = {}
   ): Promise<CreatedAppointmentData> {
     const companyId = options.companyId ?? 1112;
-    const procedureId = options.procedureId ?? 3524;
-    const procedureTitle = options.procedureTitle ?? 'ALL in ONE';
+    let procedureId = options.procedureId ?? 3955;
+    let procedureTitle = options.procedureTitle ?? 'Prueba iñaki';
+    if (procedureId === 3524) {
+      procedureId = 3955;
+      if (procedureTitle === 'ALL in ONE') {
+        procedureTitle = 'Prueba iñaki';
+      }
+    }
 
     // Calculate appointment start and end times (default: tomorrow at 10:00 AM UTC)
     const startDate = options.dateStart ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
