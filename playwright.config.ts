@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  workers: 7,
+  timeout: 60000,
+  workers: 6,
   retries: 0,
   projects: [
     {

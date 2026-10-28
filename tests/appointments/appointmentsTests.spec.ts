@@ -27,8 +27,8 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await test.step('Create appointment via API', async () => {
       createdAppointment = await AppointmentApiHelper.createAppointment(request, {
         companyId: 1112,
-        procedureId: 3524,
-        procedureTitle: 'ALL in ONE',
+        procedureId: 3955,
+        procedureTitle: 'Prueba iñaki',
         participant: {
           dni: 'ammarpass',
           idCardType: 'passport',
@@ -101,7 +101,7 @@ test.describe('Appointments Management - Status Verification Tests', () => {
       dni: 'ammarpass',
       idCardType: 'passport',
     };
-    const procedureTitle = 'ALL in ONE';
+    const procedureTitle = 'Prueba iñaki';
 
     // Set appointment date for today at upcoming hour so it appears in daily/current calendar view
     const appointmentDate = new Date();
@@ -112,7 +112,7 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await test.step('Create appointment via API', async () => {
       createdAppointment = await AppointmentApiHelper.createAppointment(request, {
         companyId: 1112,
-        procedureId: 3524,
+        procedureId: 3955,
         procedureTitle: procedureTitle,
         dateStart: appointmentDate,
         participant: participant,
@@ -158,8 +158,8 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await test.step('Create appointment via API', async () => {
       createdAppointment = await AppointmentApiHelper.createAppointment(request, {
         companyId: 1112,
-        procedureId: 3524,
-        procedureTitle: 'ALL in ONE',
+        procedureId: 3955,
+        procedureTitle: 'Prueba iñaki',
         participant: {
           dni: 'ammarpass',
           idCardType: 'passport',

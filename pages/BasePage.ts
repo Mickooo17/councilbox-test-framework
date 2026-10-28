@@ -20,7 +20,10 @@ export class BasePage {
         this.documentationButton = page.locator('a[href*="/documentation"]').or(page.locator('#documentation-link')).first();
         this.usersButton = page.locator('a[href*="/users"]').or(page.getByRole('button', { name: /Users|Usuarios/i })).first();
         this.governmentIcon = page.locator('.ri-government-line, [class*="government"]').first();
-        this.qaDevMenuItem = page.getByRole('menuitem', { name: /company-logo QA DEV|QA DEV/i }).or(page.getByText(/QA DEV/i)).first();
+        this.qaDevMenuItem = page.getByRole('menuitem', { name: /company-logo QA DEV|QA DEV|Grupo Castelar/i })
+            .or(page.locator('[role="menuitem"]').filter({ hasText: /QA DEV|Grupo Castelar/i }))
+            .or(page.getByText(/QA DEV|Grupo Castelar/i))
+            .first();
     }
 
     async dismissModal() {
@@ -73,9 +76,15 @@ export class BasePage {
 
     async selectQADevCompany() {
         await test.step('Select QA DEV company', async () => {
-            await this.governmentIcon.click();
+            await this.dismissToastOrModal();
+            const isMenuOpen = await this.qaDevMenuItem.isVisible({ timeout: 500 }).catch(() => false);
+            if (!isMenuOpen) {
+                await this.governmentIcon.click();
+            }
+            await this.qaDevMenuItem.waitFor({ state: 'visible', timeout: 10000 });
             await this.qaDevMenuItem.click();
             await this.page.waitForTimeout(1000);
+            await this.dismissToastOrModal();
         });
     }
 
@@ -83,6 +92,9 @@ export class BasePage {
         await test.step('Navigate to Institutions page', async () => {
             await this.institutionsButton.waitFor({ state: 'visible', timeout: 10000 });
             await this.institutionsButton.click();
+            await this.page.waitForURL(/\/companies/i, { timeout: 10000 }).catch(() => {});
+            await this.page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+            await this.page.waitForTimeout(500);
         });
     }
 

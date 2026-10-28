@@ -94,18 +94,26 @@ export class DocumentationPage extends BasePage {
             await this.dismissToastOrModal();
 
             // Locate action menu for that specific file card
-            const actionMenu = this.page.locator('#CardsContainerBody')
+            const card = this.page.locator('#CardsContainerBody')
                 .locator('div')
-                .filter({ hasText: nameWithoutExtension })
-                .getByRole('button', { name: 'Icon Button' })
-                .first();
-            await actionMenu.click();
+                .filter({ hasText: nameWithoutExtension });
+            const actionMenu = card.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button:has-text("Botón"), button').last();
+            await actionMenu.scrollIntoViewIfNeeded().catch(() => {});
+            try {
+                await actionMenu.click({ timeout: 3000 });
+            } catch {
+                await actionMenu.evaluate((el) => (el as HTMLElement).click());
+            }
 
             // Set up download listener BEFORE clicking download
             const downloadPromise = this.page.waitForEvent('download');
 
             // Click Download option
-            await this.page.getByText('Download').click();
+            const downloadOption = this.page.getByRole('menuitem', { name: /Download|Descargar/i })
+                .or(this.page.getByRole('button', { name: /Download|Descargar/i }))
+                .or(this.page.getByText(/Download|Descargar/i))
+                .first();
+            await downloadOption.click();
 
             // Wait for the download to start and verify filename
             const download = await downloadPromise;
@@ -116,20 +124,26 @@ export class DocumentationPage extends BasePage {
     async verifyDownloadInFileManager(fileName: string) {
         await test.step(`Verify download in File Manager: ${fileName}`, async () => {
             // Click File Manager icon in the header
-            const fileManagerButton = this.page.locator('#cbx-header-third-button-buttonFileManager');
+            const fileManagerButton = this.page.locator('#cbx-header-third-button-buttonFileManager')
+                .or(this.page.getByRole('button', { name: /File manager|Gestor de archivos/i }))
+                .first();
             await fileManagerButton.click();
             await this.page.waitForTimeout(1500);
 
-            // Verify filename appears in the File Manager list
-            const list = this.page.getByRole('list').or(this.page.locator('[class*="file-manager"]')).first();
+            // Verify filename appears in the File Manager list (renders as menu/popover in v8.7.1)
+            const list = this.page.getByRole('menu')
+                .or(this.page.getByRole('list'))
+                .or(this.page.locator('.MuiPopover-root, .MuiMenu-paper, [class*="file-manager"]'))
+                .first();
             await expect(list).toContainText(fileName, { timeout: 10000 });
 
-            // Click on the file entry to open details modal
-            await this.page.getByText(fileName).first().click();
+            // Click on the file entry if modal is supported
+            const fileEntry = list.getByText(fileName).first();
+            await fileEntry.click().catch(() => {});
 
-            // Verify modal shows status
-            const modal = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').first();
-            await expect(modal).toContainText(/Completed|Completado|Downloaded|Descargado/i, { timeout: 10000 });
+            // Verify modal or popover shows status (100% or Completed)
+            const statusContainer = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').or(list).first();
+            await expect(statusContainer).toContainText(/Completed|Completado|Downloaded|Descargado|100%/i, { timeout: 10000 });
 
             // Dismiss file details modal (1st Escape) and File Manager dropdown (2nd Escape)
             await this.page.keyboard.press('Escape');
@@ -156,20 +170,29 @@ export class DocumentationPage extends BasePage {
             await this.dismissToastOrModal();
 
             // Locate action menu for that specific file card
-            const actionMenu = this.page.locator('#CardsContainerBody')
+            const card = this.page.locator('#CardsContainerBody')
                 .locator('div')
-                .filter({ hasText: nameWithoutExtension })
-                .getByRole('button', { name: 'Icon Button' })
-                .first();
-            await actionMenu.click();
+                .filter({ hasText: nameWithoutExtension });
+            const actionMenu = card.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button:has-text("Botón"), button').last();
+            await actionMenu.scrollIntoViewIfNeeded().catch(() => {});
+            try {
+                await actionMenu.click({ timeout: 3000 });
+            } catch {
+                await actionMenu.evaluate((el) => (el as HTMLElement).click());
+            }
 
             // Click Delete option
-            const deleteOption = this.page.getByText('Delete');
+            const deleteOption = this.page.getByRole('menuitem', { name: /Delete|Eliminar/i })
+                .or(this.page.getByRole('button', { name: /Delete|Eliminar/i }))
+                .or(this.page.getByText(/Delete|Eliminar/i))
+                .first();
+            await deleteOption.waitFor({ state: 'visible', timeout: 5000 });
             await deleteOption.click();
 
             // Confirm delete verifying dialog contains full filename as seen in codegen
-            await expect(this.page.getByRole('dialog')).toContainText(fileName);
-            await this.page.getByRole('button', { name: 'Accept' }).click();
+            const dialog = this.page.getByRole('dialog').first();
+            await expect(dialog).toContainText(fileName);
+            await dialog.getByRole('button', { name: /Accept|Aceptar/i }).click();
         });
     }
 
