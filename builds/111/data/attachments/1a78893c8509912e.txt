@@ -1,1 +1,0 @@
-[API Test] Successfully created Procedure ID: 5402, Title: "Automation Procedure 930720"
