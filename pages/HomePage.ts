@@ -38,11 +38,76 @@ export class HomePage extends BasePage {
     });
   }
 
+  async openAccountMenu() {
+    await test.step('Open Account dropdown menu', async () => {
+      await this.profileIcon.waitFor({ state: 'visible', timeout: 10000 });
+      await this.profileIcon.click();
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  async verifyOrganizationConfigOptionVisible(shouldBeVisible: boolean = true) {
+    await test.step(`Verify organization/entity configuration option in account menu is ${shouldBeVisible ? 'visible' : 'hidden'}`, async () => {
+      const orgOption = this.page.locator('.MuiPopover-root, [role="menu"], .cbx-header-dropdown')
+        .getByText(/Grupo Castelar|Organization|Organisation|Entidad|Organización/i)
+        .first();
+
+      if (shouldBeVisible) {
+        await expect(orgOption).toBeVisible({ timeout: 5000 });
+      } else {
+        await expect(orgOption).not.toBeVisible({ timeout: 5000 });
+      }
+    });
+  }
+
+  async clickOrganizationConfigOption() {
+    await test.step('Click organization configuration option in account menu', async () => {
+      const orgOption = this.page.locator('.MuiPopover-root, [role="menu"], .cbx-header-dropdown')
+        .getByText(/Grupo Castelar|Organization|Organisation|Entidad|Organización/i)
+        .first();
+      await expect(orgOption).toBeVisible({ timeout: 5000 });
+      await orgOption.click();
+      await this.page.waitForURL(/.*\/companies\/edit\/.*/i, { timeout: 15000 });
+    });
+  }
+
   async verifyRoleDisplayedOnHover(expectedRolePattern: RegExp = /administrator|admin|super administrator|global administrator|professional|calendar manager/i) {
     await test.step('Verify user role is displayed when hovering over Account icon', async () => {
       const tooltip = this.page.locator('.cbx-tooltip-options-container, [class*="cbx-tooltip"]').first();
       await expect(tooltip).toBeVisible({ timeout: 5000 });
       await expect(tooltip).toContainText(expectedRolePattern, { timeout: 5000 });
+    });
+  }
+
+  /**
+   * Simulates a user role (e.g. 'professional' or 'calendarManager') via GraphQL interception (XR-2522).
+   */
+  async simulateUserRole(role: 'professional' | 'calendarManager' | 'admin' | 'superadmin') {
+    await test.step(`Simulate user role as "${role}" via GraphQL interception`, async () => {
+      await this.page.route('**/graphql', async route => {
+        const postData = route.request().postDataJSON();
+        if (postData?.operationName === 'Me') {
+          const response = await route.fetch();
+          const json = await response.json();
+          if (json?.data?.me) {
+            json.data.me.roles = role;
+          }
+          await route.fulfill({ json });
+        } else if (postData?.operationName === 'UserCompanies') {
+          const response = await route.fetch();
+          const json = await response.json();
+          if (json?.data?.paginatedUserCompanies?.list) {
+            json.data.paginatedUserCompanies.list.forEach((item: any) => {
+              item.role = role;
+            });
+          }
+          await route.fulfill({ json });
+        } else {
+          await route.continue();
+        }
+      });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.dismissToastOrModal();
     });
   }
 }

@@ -382,5 +382,69 @@ export class InstitutionsPage extends BasePage {
             await this.dismissToastOrModal();
         });
     }
-}
 
+    /**
+     * Navigates to the company settings page (XR-2605 / XR-1626).
+     */
+    async navigateToCompanySettings(companyId: number = 1112) {
+        await test.step(`Navigate to company #${companyId} settings page`, async () => {
+            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}/general/settings`);
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+        });
+    }
+
+    /**
+     * Gets the Support Email from company settings (XR-2605).
+     */
+    async getSupportEmail(): Promise<string> {
+        return await test.step('Get current support email', async () => {
+            const supportEmailInput = this.page.locator('.cbx-inputText-container')
+                .filter({ hasText: /Support email|Email de soporte/i })
+                .locator('input')
+                .first();
+            await supportEmailInput.waitFor({ state: 'visible', timeout: 10000 });
+            return await supportEmailInput.inputValue();
+        });
+    }
+
+    /**
+     * Updates the Support Email in company settings (XR-2605).
+     */
+    async updateSupportEmail(email: string) {
+        await test.step(`Update support email to: ${email}`, async () => {
+            const supportEmailInput = this.page.locator('.cbx-inputText-container')
+                .filter({ hasText: /Support email|Email de soporte/i })
+                .locator('input')
+                .first();
+            await supportEmailInput.waitFor({ state: 'visible', timeout: 10000 });
+            await supportEmailInput.fill(email);
+            await supportEmailInput.blur();
+        });
+    }
+
+    /**
+     * Saves the company settings form (XR-1626 / XR-2605).
+     */
+    async saveCompanySettings() {
+        await test.step('Save company settings', async () => {
+            const saveBtn = this.page.getByRole('button', { name: /^Save$|^Guardar$/i })
+                .or(this.page.locator('button').filter({ hasText: /^Save$|^Guardar$/i }))
+                .first();
+            await saveBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await saveBtn.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    /**
+     * Verifies the success alert after saving company settings (XR-1626 / XR-2605).
+     */
+    async verifyCompanySettingsSavedAlert() {
+        await test.step('Verify company settings saved alert', async () => {
+            const alert = this.page.locator('[role="alert"], [class*="snackbar"], [class*="toast"]').first();
+            await expect(alert).toBeVisible({ timeout: 10000 });
+            await expect(alert).toContainText(/saved successfully|guardado con éxito|correctamente/i);
+        });
+    }
+}

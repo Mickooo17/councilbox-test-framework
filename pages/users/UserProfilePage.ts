@@ -79,4 +79,78 @@ export class UserProfilePage extends BasePage {
             expect(await this.isPasswordExpirationEnabled()).toBe(enable);
         });
     }
+
+    /**
+     * Navigates to user profile settings form from the Account dropdown (XR-1638).
+     */
+    async navigateToUserSettings() {
+        await test.step('Navigate to User settings section via Account dropdown', async () => {
+            await this.dismissModal();
+            await this.userDropdownButton.waitFor({ state: 'visible', timeout: 15000 });
+            await this.userDropdownButton.click();
+
+            await this.userSettingsMenuItem.waitFor({ state: 'visible', timeout: 10000 });
+            await this.userSettingsMenuItem.click();
+
+            await this.page.waitForURL(/\/user\/\d+/i, { timeout: 20000 });
+            await this.dismissModal();
+        });
+    }
+
+    /**
+     * Reads current name in user profile (XR-1638).
+     */
+    async getName(): Promise<string> {
+        return await test.step('Get user profile Name', async () => {
+            const nameInput = this.page.getByRole('textbox', { name: 'Name' }).or(this.page.getByLabel('Name')).first();
+            await nameInput.waitFor({ state: 'visible', timeout: 10000 });
+            return await nameInput.inputValue();
+        });
+    }
+
+    /**
+     * Reads current surname in user profile (XR-1638).
+     */
+    async getSurname(): Promise<string> {
+        return await test.step('Get user profile Surname', async () => {
+            const surnameInput = this.page.getByRole('textbox', { name: 'Surname' }).or(this.page.getByLabel('Surname')).first();
+            await surnameInput.waitFor({ state: 'visible', timeout: 10000 });
+            return await surnameInput.inputValue();
+        });
+    }
+
+    /**
+     * Edits name in user profile (XR-1638).
+     */
+    async editName(name: string) {
+        await test.step(`Edit user profile Name to: ${name}`, async () => {
+            const nameInput = this.page.getByRole('textbox', { name: 'Name' }).or(this.page.getByLabel('Name')).first();
+            await nameInput.waitFor({ state: 'visible', timeout: 10000 });
+            await nameInput.fill(name);
+        });
+    }
+
+    /**
+     * Saves user profile changes (XR-1638).
+     */
+    async saveProfile() {
+        await test.step('Click Save button on user profile form', async () => {
+            const saveBtn = this.page.getByRole('button', { name: /^Save$|^Guardar$/i }).first();
+            await saveBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await saveBtn.click();
+        });
+    }
+
+    /**
+     * Verifies profile saved confirmation alert (XR-1638).
+     */
+    async verifyProfileSavedAlert() {
+        await test.step('Verify user profile saved success alert', async () => {
+            const alert = this.page.getByRole('alert')
+                .or(this.page.locator('.MuiAlert-root, [class*="alert"], [class*="toast"], .cbx-toast'))
+                .first();
+            await expect(alert).toBeVisible({ timeout: 10000 });
+            await expect(alert).toContainText(/User successfully saved|guardado con éxito|correctamente/i);
+        });
+    }
 }

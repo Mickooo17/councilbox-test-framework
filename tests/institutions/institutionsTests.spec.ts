@@ -1,4 +1,5 @@
 import * as f from '../fixtures';
+import { expect } from '@playwright/test';
 import { DataGenerator } from '../../utils/DataGenerator';
 import { InstitutionData } from '../../pages/institutions/InstitutionsPage';
 
@@ -113,3 +114,52 @@ f.test.describe('Institutions - Table Columns & Administration Tests', () => {
     });
 });
 
+f.test.describe('Institutions - Organization & Company Settings Tests', () => {
+    f.test.beforeEach(async ({ homePage }) => {
+        await homePage.validateHomePageIsOpened();
+    });
+
+    f.test('The user can add or edit support email for organization @XR-2605 @OVAC-5387 @smoke @regression', async ({ institutionsPage }) => {
+        // 1. Navigate to company configuration settings
+        await institutionsPage.navigateToCompanySettings();
+
+        // 2. Read existing support email
+        const originalEmail = await institutionsPage.getSupportEmail();
+
+        // 3. Update support email and save
+        const newSupportEmail = `support_${DataGenerator.randomNumber(4)}@grupocastelar.es`;
+        await institutionsPage.updateSupportEmail(newSupportEmail);
+        await institutionsPage.saveCompanySettings();
+        await institutionsPage.verifyCompanySettingsSavedAlert();
+
+        // 4. Restore original support email to avoid side effects
+        await institutionsPage.updateSupportEmail(originalEmail);
+        await institutionsPage.saveCompanySettings();
+        await institutionsPage.verifyCompanySettingsSavedAlert();
+    });
+
+    f.test('The user is able to save all changes by clicking on the \'Save\' button - Company settings section @XR-1626 @OVAC-5767 @regression', async ({ institutionsPage }) => {
+        // 1. Navigate to company settings
+        await institutionsPage.navigateToCompanySettings();
+
+        // 2. Read original support email
+        const originalEmail = await institutionsPage.getSupportEmail();
+
+        // 3. Edit field with updated value
+        const updatedEmail = `edit_${DataGenerator.randomNumber(4)}@grupocastelar.es`;
+        await institutionsPage.updateSupportEmail(updatedEmail);
+
+        // 4. Click Save and verify confirmation alert
+        await institutionsPage.saveCompanySettings();
+        await institutionsPage.verifyCompanySettingsSavedAlert();
+
+        // 5. Verify the updated value persisted
+        const savedEmail = await institutionsPage.getSupportEmail();
+        expect(savedEmail).toBe(updatedEmail);
+
+        // 6. Cleanup: restore original email and save
+        await institutionsPage.updateSupportEmail(originalEmail);
+        await institutionsPage.saveCompanySettings();
+        await institutionsPage.verifyCompanySettingsSavedAlert();
+    });
+});

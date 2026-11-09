@@ -134,6 +134,54 @@ test.describe('Activity & Dashboard Tests', () => {
     // 7. Verify the "Details" section is displayed with accurate and correct data
     await activityPage.verifyCompletedAppointmentDetailsSection();
   });
+
+  test('On the Dashboard page, the user can use the "Date" filter @XR-2686 @OVAC-5388 @smoke @regression', async ({ activityPage }) => {
+    // 1. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 2. Select Date filter option (This week)
+    await activityPage.selectDashboardDateFilter(/This week|Esta semana/i);
+
+    // 3. Apply filter
+    await activityPage.applyDashboardFilters();
+
+    // 4. Verify selected date filter value
+    await activityPage.verifyDashboardDateFilter(/This week|Esta semana/i);
+  });
+
+  test('The user can hover over the pie chart "Statuses” @XR-2408 @OVAC-5557 @regression', async ({ activityPage }) => {
+    // 1. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 2. Hover mouse over Statuses pie chart
+    await activityPage.hoverDashboardStatusesChart();
+  });
+
+  test('The user can hover over the pie chart "Most requested procedures” @XR-2407 @OVAC-5563 @regression', async ({ activityPage }) => {
+    // 1. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 2. Hover mouse over Most requested procedures pie chart
+    await activityPage.hoverDashboardProceduresChart();
+  });
+
+  test('The user can hover over points on the graphic of appointments @XR-2406 @OVAC-5564 @regression', async ({ activityPage }) => {
+    // 1. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 2. Hover mouse over points on appointments graphic
+    await activityPage.hoverDashboardAppointmentsGraphic();
+  });
+
+  test('The user has the ability to change the month on the "Dashboard" @XR-2405 @OVAC-5559 @regression', async ({ activityPage }) => {
+    // 1. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 2. Change the displayed month/period
+    await activityPage.modifyDashboardMonth();
+  });
+
+
 });
 
 

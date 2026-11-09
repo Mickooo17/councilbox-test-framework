@@ -41,4 +41,34 @@ f.test.describe('HomePage - User Profile Tests', () => {
     // 2. Verify the user's role is displayed in the tooltip [Super administrator/Administrator/Professional/Calendar manager]
     await homePage.verifyRoleDisplayedOnHover(/administrator|admin|super administrator|global administrator|professional|calendar manager/i);
   });
+
+  f.test('Only the Super administrator and Administrator can configure the organization/entity from the "Account" icon @XR-2521 @OVAC-5603 @smoke @regression', async ({ homePage, page }) => {
+    // 1. Click on Account icon in header
+    await homePage.openAccountMenu();
+
+    // 2. Verify organization/entity configuration option is displayed for administrator
+    await homePage.verifyOrganizationConfigOptionVisible(true);
+
+    // 3. Click organization configuration option
+    await homePage.clickOrganizationConfigOption();
+
+    // 4. Verify user is redirected to organization configuration page
+    await expect(page).toHaveURL(/.*\/companies\/edit\/.*/i, { timeout: 15000 });
+  });
+
+  f.test('The Professional and Calendar managers don\'t see the Organization/Entity configuration under the "Account" icon @XR-2522 @OVAC-5600 @regression', async ({ homePage, page }) => {
+    // 1. Simulate non-admin role (Professional)
+    await homePage.simulateUserRole('professional');
+
+    // 2. Open Account dropdown menu
+    await homePage.openAccountMenu();
+
+    // 3. Verify organization/entity configuration option is NOT displayed for Professional
+    await homePage.verifyOrganizationConfigOptionVisible(false);
+
+    // 4. Verify common options (Support, End session) are still displayed
+    const menu = page.locator('.MuiPopover-root, [role="menu"], .cbx-header-dropdown').first();
+    await expect(menu.getByText(/Support|Soporte/i)).toBeVisible();
+    await expect(menu.getByText(/End session|Cerrar sesión|Logout/i)).toBeVisible();
+  });
 });

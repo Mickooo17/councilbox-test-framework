@@ -291,7 +291,168 @@ export class ActivityPage extends BasePage {
       subtitle: 'Validate Dates, Assignment, Request, Appointment, and Duration'
     });
   }
+
+  /**
+   * Navigates directly to the Dashboard Councils view (XR-2686 / XR-2408 / XR-2407 / XR-2406 / XR-2405 / XR-2404).
+   */
+  async navigateToDashboardCouncils(companyId: number = 1112) {
+    await test.step(`Navigate to Dashboard Councils page for company #${companyId}`, async () => {
+      await this.dismissToastOrModal();
+      await this.page.goto(resolveCompanyUrl(companyId, 'activity/dashboardCouncils'), { waitUntil: 'domcontentloaded' });
+      await this.page.waitForURL(/.*\/activity\/dashboardCouncils/i, { timeout: 15000 });
+      await this.dismissToastOrModal();
+    });
+  }
+
+  /**
+   * Opens the Date filter on Dashboard and selects an option (XR-2686).
+   */
+  async selectDashboardDateFilter(optionText: string | RegExp = /This week|Esta semana/i) {
+    await test.step(`Select Dashboard Date filter option: ${optionText}`, async () => {
+      await this.dismissToastOrModal();
+      const dateContainer = this.page.locator('.cbx-selectInput-container').filter({ hasText: /month|mes|hoy|today|week|semana/i }).first();
+      await dateContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await dateContainer.click();
+      await this.page.waitForTimeout(400);
+
+      const option = this.page.locator('[role="option"], li.MuiMenuItem-root').filter({ hasText: optionText }).first();
+      await option.waitFor({ state: 'visible', timeout: 5000 });
+      await option.click();
+      await this.page.waitForTimeout(400);
+    });
+  }
+
+  /**
+   * Applies the selected filters on the Dashboard (XR-2686 / XR-2404).
+   */
+  async applyDashboardFilters() {
+    await test.step('Apply Dashboard filters', async () => {
+      const applyBtn = this.page.getByRole('button', { name: /^Apply$|^Aplicar$/i }).first();
+      if (await applyBtn.isEnabled({ timeout: 2000 }).catch(() => false)) {
+        await applyBtn.click();
+        await this.page.waitForTimeout(1000);
+      }
+    });
+  }
+
+  /**
+   * Verifies that the Date filter displays the selected option (XR-2686).
+   */
+  async verifyDashboardDateFilter(expectedText: string | RegExp) {
+    await test.step(`Verify Dashboard Date filter displays: ${expectedText}`, async () => {
+      const dateContainer = this.page.locator('.cbx-selectInput-container').filter({ hasText: /month|mes|hoy|today|week|semana/i }).first();
+      await expect(dateContainer).toContainText(expectedText, { timeout: 5000 });
+    });
+  }
+
+  /**
+   * Selects an assign user from the Assign dropdown filter on Dashboard (XR-2404).
+   */
+  async selectDashboardAssignUser(userText?: string | RegExp) {
+    await test.step('Select user from Assign dropdown filter', async () => {
+      await this.dismissToastOrModal();
+      const userContainer = this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }).first();
+      await userContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await userContainer.click();
+      await this.page.waitForTimeout(400);
+
+      const visibleOption = userText
+        ? this.page.locator('[role="option"]:visible, li.MuiMenuItem-root:visible').filter({ hasText: userText }).first()
+        : this.page.locator('[role="option"]:visible, li.MuiMenuItem-root:visible').first();
+
+      if (await visibleOption.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await visibleOption.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(400);
+    });
+  }
+
+  /**
+   * Hovers over the Statuses pie chart on Dashboard (XR-2408).
+   */
+  async hoverDashboardStatusesChart() {
+    await test.step('Hover over Statuses pie chart on Dashboard', async () => {
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      const statusesSection = this.page.locator('div, section').filter({ hasText: /STATUSES/i }).filter({ has: this.page.locator('canvas') }).first();
+      await statusesSection.waitFor({ state: 'visible', timeout: 15000 });
+      const canvas = statusesSection.locator('canvas').first();
+      await canvas.waitFor({ state: 'visible', timeout: 10000 });
+      const box = await canvas.boundingBox();
+      expect(box?.width, 'Statuses chart canvas width must be greater than 0').toBeGreaterThan(0);
+      expect(box?.height, 'Statuses chart canvas height must be greater than 0').toBeGreaterThan(0);
+      await canvas.hover({ position: { x: box.width / 2, y: box.height / 2 } });
+      await this.page.waitForTimeout(500);
+      await expect(canvas).toBeVisible();
+    });
+  }
+
+  /**
+   * Hovers over Most requested procedures pie chart on Dashboard (XR-2407).
+   */
+  async hoverDashboardProceduresChart() {
+    await test.step('Hover over Most requested procedures pie chart on Dashboard', async () => {
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      const proceduresSection = this.page.locator('div, section').filter({ hasText: /MOST REQUESTED PROCEDURES/i }).filter({ has: this.page.locator('canvas') }).first();
+      await proceduresSection.waitFor({ state: 'visible', timeout: 15000 });
+      const canvas = proceduresSection.locator('canvas').first();
+      await canvas.waitFor({ state: 'visible', timeout: 10000 });
+      const box = await canvas.boundingBox();
+      expect(box?.width, 'Procedures chart canvas width must be greater than 0').toBeGreaterThan(0);
+      expect(box?.height, 'Procedures chart canvas height must be greater than 0').toBeGreaterThan(0);
+      await canvas.hover({ position: { x: box.width / 2, y: box.height / 2 } });
+      await this.page.waitForTimeout(500);
+      await expect(canvas).toBeVisible();
+    });
+  }
+
+  /**
+   * Hovers over points on the graphic of appointments on Dashboard (XR-2406).
+   */
+  async hoverDashboardAppointmentsGraphic() {
+    await test.step('Hover over graphic points of appointments on Dashboard', async () => {
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      const appointmentsSection = this.page.locator('div, section').filter({ hasText: /Total appointments/i }).filter({ has: this.page.locator('canvas') }).first();
+      await appointmentsSection.waitFor({ state: 'visible', timeout: 15000 });
+      const canvas = appointmentsSection.locator('canvas').first();
+      await canvas.waitFor({ state: 'visible', timeout: 10000 });
+      const box = await canvas.boundingBox();
+      expect(box?.width, 'Appointments graphic canvas width must be greater than 0').toBeGreaterThan(0);
+      expect(box?.height, 'Appointments graphic canvas height must be greater than 0').toBeGreaterThan(0);
+      for (const offset of [0.25, 0.5, 0.75]) {
+        await canvas.hover({ position: { x: box.width * offset, y: box.height / 2 } });
+        await this.page.waitForTimeout(300);
+      }
+      await expect(canvas).toBeVisible();
+    });
+  }
+
+  /**
+   * Modifies month on Dashboard and asserts month changes (XR-2405).
+   */
+  async modifyDashboardMonth() {
+    await test.step('Modify month on Dashboard and verify update', async () => {
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      const leftArrow = this.page.locator('.ri-arrow-left-s-line, button:has(.ri-arrow-left-s-line)').first();
+      const rightArrow = this.page.locator('.ri-arrow-right-s-line, button:has(.ri-arrow-right-s-line)').first();
+      const monthLocator = this.page.locator('text=/\\b(January|February|March|April|May|June|July|August|September|October|November|December|Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre)\\b.*\\d{4}/i').first();
+
+      await monthLocator.waitFor({ state: 'visible', timeout: 10000 });
+      const initialMonth = (await monthLocator.innerText()).trim();
+      expect(initialMonth).toBeTruthy();
+
+      // Click left arrow to navigate to previous month
+      await leftArrow.waitFor({ state: 'visible', timeout: 5000 });
+      await leftArrow.click();
+      await this.page.waitForTimeout(1000);
+      await expect(monthLocator).not.toHaveText(initialMonth, { timeout: 5000 });
+
+      // Click right arrow to return to original month
+      await rightArrow.waitFor({ state: 'visible', timeout: 5000 });
+      await rightArrow.click();
+      await this.page.waitForTimeout(1000);
+      await expect(monthLocator).toHaveText(initialMonth, { timeout: 5000 });
+    });
+  }
 }
-
-
-
