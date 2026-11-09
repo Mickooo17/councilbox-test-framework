@@ -181,7 +181,56 @@ test.describe('Activity & Dashboard Tests', () => {
     await activityPage.modifyDashboardMonth();
   });
 
+  test('From the dashboard page, the user can export appointments data @XR-2969 @OVAC-5278 @regression', async ({ activityPage }) => {
+    // 1-3. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
 
+    // 4. Click EXPORT and select Appointments data, verify file download
+    await activityPage.exportAppointmentsData();
+  });
+
+  test('On the dashboard page, the user can export a file with professionals for a specific time period @XR-2885 @OVAC-5596 @regression', async ({ activityPage }) => {
+    // 1-3. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 4-10. Open Professionals export drawer, configure fields, and export file
+    await activityPage.exportProfessionalsReport('Test Agent');
+  });
+
+  test('On the dashboard page, the user can export a file with participants for a specific time period @XR-2884 @OVAC-5587 @regression', async ({ activityPage }) => {
+    // 1-3. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 4-8. Open Participants export drawer, enter TIN, select fields, and export file
+    await activityPage.exportParticipantsReport('12345678Z');
+  });
+
+  test('The user can select the desired user from an "Assign" drop-down list @XR-2404 @OVAC-5561 @regression', async ({ activityPage }) => {
+    // 1-5. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 6-7. Open Assign dropdown, select user, and apply filter
+    await activityPage.selectDashboardAssignUser();
+    await activityPage.applyDashboardFilters();
+  });
+
+  test('The user can filter the "Dashboard" using the drop-down list "All procedures" @XR-2403 @OVAC-5567 @regression', async ({ activityPage }) => {
+    // 1-5. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 6-7. Open All procedures dropdown, select procedure, and apply filter
+    await activityPage.selectDashboardProcedureFilter();
+    await activityPage.applyDashboardFilters();
+  });
+
+  test('The user can filter the "Dashboard" using the drop-down list "All entities" @XR-2402 @OVAC-5565 @regression', async ({ activityPage }) => {
+    // 1-5. Navigate to Dashboard
+    await activityPage.navigateToDashboardCouncils();
+
+    // 6-7. Open All entities dropdown, select entity, and apply filter
+    await activityPage.selectDashboardEntityFilter();
+    await activityPage.applyDashboardFilters();
+  });
 });
 
 

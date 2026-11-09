@@ -153,4 +153,104 @@ export class UserProfilePage extends BasePage {
             await expect(alert).toContainText(/User successfully saved|guardado con éxito|correctamente/i);
         });
     }
+
+    /**
+     * Opens Change Password modal from profile 3-dots menu (XR-1637, XR-1636).
+     */
+    async openChangePasswordModal() {
+        await test.step('Open Change password modal via 3-dots action menu', async () => {
+            const threeDotsBtn = this.page.locator('button:has(.ri-more-2-fill)')
+                .or(this.page.locator('button').filter({ has: this.page.locator('.ri-more-2-fill') }))
+                .first();
+            await threeDotsBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await threeDotsBtn.click();
+            await this.page.waitForTimeout(400);
+
+            const changePasswordItem = this.page.getByRole('menuitem', { name: /Change password|Cambiar contraseña/i }).first();
+            await changePasswordItem.waitFor({ state: 'visible', timeout: 5000 });
+            await changePasswordItem.click();
+
+            const dialog = this.page.locator('[role="dialog"], .MuiDialog-root').first();
+            await expect(dialog).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Fills the Change Password modal form (XR-1637, XR-1636).
+     */
+    async fillChangePasswordForm(currentPass: string, newPass: string, confirmPass: string) {
+        await test.step('Fill Change password form fields', async () => {
+            const dialog = this.page.locator('[role="dialog"], .cbx-Modal-container').filter({ hasText: /Change password|Cambiar contraseña/i }).first();
+            await dialog.waitFor({ state: 'visible', timeout: 10000 });
+
+            const currentInput = dialog.locator('input').nth(0);
+            const newInput = dialog.locator('input').nth(1);
+            const confirmInput = dialog.locator('input').nth(2);
+
+            await currentInput.waitFor({ state: 'visible', timeout: 5000 });
+            await currentInput.fill(currentPass);
+
+            await newInput.waitFor({ state: 'visible', timeout: 5000 });
+            await newInput.fill(newPass);
+
+            await confirmInput.waitFor({ state: 'visible', timeout: 5000 });
+            await confirmInput.fill(confirmPass);
+        });
+    }
+
+    /**
+     * Clicks Save on Change Password modal (XR-1637, XR-1636).
+     */
+    async submitChangePassword() {
+        await test.step('Click Save in Change password dialog', async () => {
+            const dialog = this.page.locator('[role="dialog"], .cbx-Modal-container').filter({ hasText: /Change password|Cambiar contraseña/i }).first();
+            const saveBtn = dialog.getByRole('button', { name: /^Save$|^Guardar$/i }).first();
+            await saveBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await saveBtn.click();
+            await this.page.waitForTimeout(500);
+        });
+    }
+
+    /**
+     * Verifies error message when confirm password does not match (XR-1637).
+     */
+    async verifyConfirmPasswordMismatchError() {
+        await test.step('Verify error message below Confirm password field', async () => {
+            const dialog = this.page.locator('[role="dialog"], .cbx-Modal-container').filter({ hasText: /Change password|Cambiar contraseña/i }).first();
+            const errorMsg = dialog.getByText(/Passwords do not match|Las contraseñas no coinciden|Passwords must match|match/i)
+                .or(dialog.locator('.cbx-inputText-container-helpers, [class*="helper"], p.Mui-error'))
+                .first();
+            await expect(errorMsg).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    /**
+     * Verifies error message when current password is invalid (XR-1636).
+     */
+    async verifyCurrentPasswordInvalidError() {
+        await test.step('Verify error message below Current password field', async () => {
+            const dialog = this.page.locator('[role="dialog"], .cbx-Modal-container').filter({ hasText: /Change password|Cambiar contraseña/i }).first();
+            const errorMsg = dialog.getByText(/incorrect|inválida|not correct|error/i)
+                .or(this.page.getByRole('alert'))
+                .or(dialog.locator('.cbx-inputText-container-helpers, [class*="helper"], p.Mui-error'))
+                .first();
+            await expect(errorMsg).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Closes the Change Password modal (XR-1637, XR-1636).
+     */
+    async closeChangePasswordModal() {
+        await test.step('Close Change password modal', async () => {
+            const dialog = this.page.locator('[role="dialog"], .MuiDialog-root').first();
+            const cancelBtn = dialog.getByRole('button', { name: /^Cancel$|^Cancelar$/i }).first();
+            if (await cancelBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await cancelBtn.click();
+            } else {
+                await this.page.keyboard.press('Escape');
+            }
+            await expect(dialog).toBeHidden({ timeout: 5000 });
+        });
+    }
 }

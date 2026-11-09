@@ -1,5 +1,6 @@
 import * as f from './fixtures';
 import { expect } from '@playwright/test';
+import { resolveCompanyUrl } from '../utils/UrlHelper';
 
 /**
  * Home Page Test Suite
@@ -70,5 +71,25 @@ f.test.describe('HomePage - User Profile Tests', () => {
     const menu = page.locator('.MuiPopover-root, [role="menu"], .cbx-header-dropdown').first();
     await expect(menu.getByText(/Support|Soporte/i)).toBeVisible();
     await expect(menu.getByText(/End session|Cerrar sesión|Logout/i)).toBeVisible();
+  });
+
+  f.test("The organization or entity's logo should to be shown at the top of the all pages @XR-2886 @OVAC-5359 @regression", async ({ homePage, page }) => {
+    // 1-2. Verify home page loaded with logo
+    await homePage.verifyHeaderLogoVisible();
+
+    // 3-8. Verify logo visible at top across core sections: Dashboard, Activity, Procedures, Templates, Users
+    const routes = [
+      'activity/dashboardCouncils',
+      'activity',
+      'procedures',
+      'drafts',
+      'users'
+    ];
+
+    for (const route of routes) {
+      await page.goto(resolveCompanyUrl(1112, route), { waitUntil: 'domcontentloaded' });
+      await homePage.dismissToastOrModal();
+      await homePage.verifyHeaderLogoVisible();
+    }
   });
 });

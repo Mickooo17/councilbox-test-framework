@@ -301,6 +301,8 @@ export class ActivityPage extends BasePage {
       await this.page.goto(resolveCompanyUrl(companyId, 'activity/dashboardCouncils'), { waitUntil: 'domcontentloaded' });
       await this.page.waitForURL(/.*\/activity\/dashboardCouncils/i, { timeout: 15000 });
       await this.dismissToastOrModal();
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      await this.page.waitForTimeout(500);
     });
   }
 
@@ -346,22 +348,262 @@ export class ActivityPage extends BasePage {
   }
 
   /**
-   * Selects an assign user from the Assign dropdown filter on Dashboard (XR-2404).
+   * Selects an assign user from the Assign dropdown filter on Dashboard (XR-2404 / OVAC-5561).
    */
-  async selectDashboardAssignUser(userText?: string | RegExp) {
-    await test.step('Select user from Assign dropdown filter', async () => {
+  async selectDashboardAssignUser(userText?: string | RegExp): Promise<string> {
+    return await test.step('Select user from Assign dropdown filter', async () => {
       await this.dismissToastOrModal();
-      const userContainer = this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }).first();
+      const userContainer = this.page.getByRole('combobox', { name: /Users|Usuarios/i })
+        .or(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }))
+        .first();
       await userContainer.waitFor({ state: 'visible', timeout: 10000 });
       await userContainer.click();
       await this.page.waitForTimeout(400);
 
-      const visibleOption = userText
-        ? this.page.locator('[role="option"]:visible, li.MuiMenuItem-root:visible').filter({ hasText: userText }).first()
-        : this.page.locator('[role="option"]:visible, li.MuiMenuItem-root:visible').first();
+      const optionsContainer = this.page.locator('[role="listbox"], .cbx-selectInput-options-container-open, ul.cbx-selectInput-options').first();
+      if (!(await optionsContainer.isVisible().catch(() => false))) {
+        await userContainer.click();
+        await this.page.waitForTimeout(400);
+      }
+      await expect(optionsContainer).toBeVisible({ timeout: 5000 });
 
-      if (await visibleOption.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await visibleOption.click();
+      const targetOption = userText
+        ? optionsContainer.locator('li[role="option"]').filter({ hasText: userText }).first()
+        : optionsContainer.locator('li[role="option"]').nth(1);
+
+      await targetOption.waitFor({ state: 'visible', timeout: 5000 });
+      const selectedText = (await targetOption.innerText()).trim();
+      await targetOption.click();
+      await this.page.waitForTimeout(300);
+
+      // Close dropdown
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(400);
+
+      // Verify user container reflects selected option
+      await expect(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }).first()).toContainText(selectedText, { timeout: 5000 });
+      return selectedText;
+    });
+  }
+
+  /**
+   * Selects an entity from the All Entities dropdown filter on Dashboard (XR-2402 / OVAC-5565).
+   */
+  async selectDashboardEntityFilter(entityText?: string | RegExp): Promise<string> {
+    return await test.step('Select entity from All Entities dropdown filter', async () => {
+      await this.dismissToastOrModal();
+      const entityContainer = this.page.getByRole('combobox', { name: /Entities|Entidades/i })
+        .or(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Entities|Entidades/i }))
+        .first();
+      await entityContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await entityContainer.click();
+      await this.page.waitForTimeout(400);
+
+      const optionsContainer = this.page.locator('[role="listbox"], .cbx-selectInput-options-container-open, ul.cbx-selectInput-options').first();
+      if (!(await optionsContainer.isVisible().catch(() => false))) {
+        await entityContainer.click();
+        await this.page.waitForTimeout(400);
+      }
+      await expect(optionsContainer).toBeVisible({ timeout: 5000 });
+
+      const targetOption = entityText
+        ? optionsContainer.locator('li[role="option"]').filter({ hasText: entityText }).first()
+        : optionsContainer.locator('li[role="option"]').nth(1);
+
+      await targetOption.waitFor({ state: 'visible', timeout: 5000 });
+      const selectedText = (await targetOption.innerText()).trim();
+      await targetOption.click();
+      await this.page.waitForTimeout(300);
+
+      // Close dropdown
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(400);
+
+      // Verify entity container reflects selection
+      await expect(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Entities|Entidades/i }).first()).toContainText(selectedText, { timeout: 5000 });
+      return selectedText;
+    });
+  }
+
+  /**
+   * Selects a procedure from the All Procedures dropdown filter on Dashboard (XR-2403 / OVAC-5567).
+   */
+  async selectDashboardProcedureFilter(procText?: string | RegExp): Promise<string> {
+    return await test.step('Select procedure from All Procedures dropdown filter', async () => {
+      await this.dismissToastOrModal();
+      const procContainer = this.page.getByRole('combobox', { name: /Types of procedures|procedimientos/i })
+        .or(this.page.locator('.cbx-selectInput-container').filter({ hasText: /procedures|procedimientos/i }))
+        .first();
+      await procContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await procContainer.click();
+      await this.page.waitForTimeout(400);
+
+      const optionsContainer = this.page.locator('[role="listbox"], .cbx-selectInput-options-container-open, ul.cbx-selectInput-options').first();
+      if (!(await optionsContainer.isVisible().catch(() => false))) {
+        await procContainer.click();
+        await this.page.waitForTimeout(400);
+      }
+      await expect(optionsContainer).toBeVisible({ timeout: 5000 });
+
+      const targetOption = procText
+        ? optionsContainer.locator('li[role="option"]').filter({ hasText: procText }).first()
+        : optionsContainer.locator('li[role="option"]').nth(1);
+
+      await targetOption.waitFor({ state: 'visible', timeout: 5000 });
+      const selectedText = (await targetOption.innerText()).trim();
+      await targetOption.click();
+      await this.page.waitForTimeout(300);
+
+      // Close dropdown
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(400);
+
+      // Verify procedure container reflects selection
+      await expect(this.page.locator('.cbx-selectInput-container').filter({ hasText: /procedures|procedimientos/i }).first()).toContainText(selectedText, { timeout: 5000 });
+      return selectedText;
+    });
+  }
+
+  /**
+   * Opens the Dashboard EXPORT button dropdown menu (XR-2969, XR-2884, XR-2885).
+   */
+  async openExportMenu() {
+    await test.step('Open Dashboard Export dropdown menu', async () => {
+      await this.dismissToastOrModal();
+      const exportBtn = this.page.getByRole('button', { name: /^EXPORT$|^EXPORTAR$/i }).first();
+      await exportBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await exportBtn.click();
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Exports Appointments data directly from Dashboard export menu (XR-2969 / OVAC-5278).
+   */
+  async exportAppointmentsData() {
+    await test.step('Click Appointments data in export menu and verify file download', async () => {
+      await this.openExportMenu();
+      const appointmentsOption = this.page.getByText(/^Appointments data$|^Datos de citas$/i).first();
+      await appointmentsOption.waitFor({ state: 'visible', timeout: 5000 });
+
+      const [download] = await Promise.all([
+        this.page.waitForEvent('download', { timeout: 15000 }),
+        appointmentsOption.click()
+      ]);
+
+      expect(download).toBeTruthy();
+      const filename = download.suggestedFilename();
+      expect(filename).toBeTruthy();
+    });
+  }
+
+  /**
+   * Opens Participants export drawer and exports file (XR-2884 / OVAC-5587).
+   */
+  async exportParticipantsReport(tin: string = '12345678Z') {
+    await test.step(`Export participants report for TIN "${tin}"`, async () => {
+      await this.openExportMenu();
+      const participantsOption = this.page.getByText(/^Participants$|^Participantes$/i).first();
+      await participantsOption.waitFor({ state: 'visible', timeout: 5000 });
+      await participantsOption.click();
+
+      // Drawer panel appears
+      const drawer = this.page.locator('.MuiDrawer-paper, [role="dialog"], div[class*="drawer"]').last();
+      await expect(drawer).toBeVisible({ timeout: 10000 });
+      await expect(drawer.getByText(/Participants|Participantes/i).first()).toBeVisible({ timeout: 5000 });
+
+      // Enter TIN
+      const tinInput = drawer.locator('input[type="text"]').last();
+      await tinInput.waitFor({ state: 'visible', timeout: 5000 });
+      await tinInput.fill(tin);
+
+      // Select first field checkbox if not already checked
+      const checkbox = drawer.locator('input[type="checkbox"]').first();
+      if (await checkbox.isVisible({ timeout: 3000 }).catch(() => false)) {
+        if (!(await checkbox.isChecked())) {
+          await checkbox.check();
+        }
+      }
+
+      // Click EXPORT inside drawer and verify download
+      const exportBtn = drawer.getByRole('button', { name: /^EXPORT$|^EXPORTAR$/i }).first();
+      await exportBtn.waitFor({ state: 'visible', timeout: 5000 });
+
+      const [download] = await Promise.all([
+        this.page.waitForEvent('download', { timeout: 15000 }),
+        exportBtn.click()
+      ]);
+
+      expect(download).toBeTruthy();
+      expect(download.suggestedFilename()).toBeTruthy();
+
+      // Close drawer if still open
+      await this.closeExportDrawer();
+    });
+  }
+
+  /**
+   * Opens Professionals / Agents export drawer and exports file (XR-2885 / OVAC-5596).
+   */
+  async exportProfessionalsReport(agentName: string = 'Test Agent') {
+    await test.step(`Export professionals report for agent "${agentName}"`, async () => {
+      await this.openExportMenu();
+      const userReports = this.page.getByText(/User reports|Informes de usuarios/i).first();
+      await userReports.waitFor({ state: 'visible', timeout: 5000 });
+      await userReports.hover();
+      await this.page.waitForTimeout(300);
+
+      const agentsOption = this.page.getByText(/Agents with video attention|Agentes con videoatención/i).first();
+      if (await agentsOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await agentsOption.click();
+      } else {
+        await userReports.click();
+      }
+
+      // Drawer panel appears
+      const drawer = this.page.locator('.MuiDrawer-paper, [role="dialog"], div[class*="drawer"]').last();
+      await expect(drawer).toBeVisible({ timeout: 10000 });
+      await expect(drawer.getByText(/Professional|Profesional|Report|Informe/i).first()).toBeVisible({ timeout: 5000 });
+
+      // Enter professional / agent name
+      const nameInput = drawer.locator('input[type="text"]').last();
+      if (await nameInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await nameInput.fill(agentName);
+      }
+
+      // Select field checkbox
+      const checkbox = drawer.locator('input[type="checkbox"]').first();
+      if (await checkbox.isVisible({ timeout: 3000 }).catch(() => false)) {
+        if (!(await checkbox.isChecked())) {
+          await checkbox.check();
+        }
+      }
+
+      // Click EXPORT inside drawer and verify download
+      const exportBtn = drawer.getByRole('button', { name: /^EXPORT$|^EXPORTAR$/i }).first();
+      await exportBtn.waitFor({ state: 'visible', timeout: 5000 });
+
+      const [download] = await Promise.all([
+        this.page.waitForEvent('download', { timeout: 15000 }),
+        exportBtn.click()
+      ]);
+
+      expect(download).toBeTruthy();
+      expect(download.suggestedFilename()).toBeTruthy();
+
+      // Close drawer if still open
+      await this.closeExportDrawer();
+    });
+  }
+
+  /**
+   * Closes any open export drawer or popover.
+   */
+  async closeExportDrawer() {
+    await test.step('Close open export drawer or popover', async () => {
+      const closeBtn = this.page.locator('.MuiDrawer-paper, [role="dialog"]').locator('button:has(.ri-close-line), button[aria-label*="close" i]').first();
+      if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await closeBtn.click();
       } else {
         await this.page.keyboard.press('Escape');
       }

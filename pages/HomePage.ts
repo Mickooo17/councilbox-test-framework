@@ -31,6 +31,13 @@ export class HomePage extends BasePage {
     });
   }
 
+  async verifyHeaderLogoVisible() {
+    await test.step('Verify entity/organization logo is visible at the top of the page', async () => {
+      const logo = this.page.locator('header img, #cbx-header-third-logo-right, img[alt*="Logo"]').first();
+      await expect(logo).toBeVisible({ timeout: 10000 });
+    });
+  }
+
   async hoverAccountIcon() {
     await test.step('Hover over Account icon in header', async () => {
       await this.profileIcon.waitFor({ state: 'visible', timeout: 10000 });

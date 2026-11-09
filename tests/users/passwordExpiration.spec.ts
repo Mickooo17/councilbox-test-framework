@@ -55,4 +55,55 @@ f.test.describe('User Profile & Password Expiration Settings', () => {
         await userProfilePage.togglePasswordExpiration();
         f.expect(await userProfilePage.isPasswordExpirationEnabled()).toBe(true);
     });
+
+    f.test('Password expiration can be disabled or enabled by the user @XR-2959 @OVAC-5219 @smoke @regression', async ({ userProfilePage }) => {
+        // 1-4. Navigate to User settings -> Options tab
+        await userProfilePage.navigateToProfileOptions();
+
+        // 5. Toggle password expiration switch and accept dialog if shown
+        const initialState = await userProfilePage.isPasswordExpirationEnabled();
+        await userProfilePage.togglePasswordExpiration();
+        const toggledState = await userProfilePage.isPasswordExpirationEnabled();
+        expect(toggledState).toBe(!initialState);
+
+        // 6. Cleanup: Toggle back to maintain original state
+        await userProfilePage.togglePasswordExpiration();
+        expect(await userProfilePage.isPasswordExpirationEnabled()).toBe(initialState);
+    });
+
+    f.test('The user is not able to change password with invalid input in the Confirmed field - User settings section @XR-1637 @OVAC-5789 @regression', async ({ userProfilePage }) => {
+        // 1-4. Navigate to User profile settings
+        await userProfilePage.navigateToUserSettings();
+
+        // 5. Open Change password modal from 3-dots action menu
+        await userProfilePage.openChangePasswordModal();
+
+        // 6-8. Enter valid Current password, valid New password, and mismatching/invalid Confirm password
+        await userProfilePage.fillChangePasswordForm('ValidPass123!', 'NewPass123!', 'MismatchingPass123!');
+
+        // 9. Click Save and verify validation error below Confirm label
+        await userProfilePage.submitChangePassword();
+        await userProfilePage.verifyConfirmPasswordMismatchError();
+
+        // Cleanup: Close modal
+        await userProfilePage.closeChangePasswordModal();
+    });
+
+    f.test('The user is not able to change password with invalid input in the Current password field - User settings section @XR-1636 @OVAC-5790 @regression', async ({ userProfilePage }) => {
+        // 1-4. Navigate to User profile settings
+        await userProfilePage.navigateToUserSettings();
+
+        // 5. Open Change password modal from 3-dots action menu
+        await userProfilePage.openChangePasswordModal();
+
+        // 6-8. Enter invalid Current password, and matching new passwords
+        await userProfilePage.fillChangePasswordForm('WrongCurrentPassword123!', 'NewPass123!', 'NewPass123!');
+
+        // 9. Click Save and verify validation error below Current password label
+        await userProfilePage.submitChangePassword();
+        await userProfilePage.verifyCurrentPasswordInvalidError();
+
+        // Cleanup: Close modal
+        await userProfilePage.closeChangePasswordModal();
+    });
 });
