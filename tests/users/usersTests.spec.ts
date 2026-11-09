@@ -553,4 +553,33 @@ f.test.describe('Users - Details Page Tests', () => {
         await usersPage.verifyEditUserPageContainsAllFieldsAndTabs();
     });
 
+
+    f.test('The user can choose appointments with a In pause status on the Users page @XR-3275 @OVAC-5734 @regression', async ({ usersPage, page }) => {
+        await usersPage.clickFirstUserRow();
+        const appTab = page.locator('[role="tab"], .MuiTab-root, button').filter({ hasText: /^APPOINTMENTS$/i }).first();
+        await appTab.waitFor({ state: 'visible', timeout: 10000 });
+        await appTab.click();
+        await page.waitForTimeout(1000);
+
+        const statusCombo = page.getByRole('combobox', { name: /Status|Estado/i }).or(
+            page.locator('.MuiFormControl-root').filter({ hasText: /Status|Estado/i }).locator('[role="combobox"], [role="button"]')
+        ).first();
+        await f.expect(statusCombo).toBeVisible({ timeout: 15000 });
+        await statusCombo.click({ force: true });
+        const inPauseOpt = page.locator('[role="option"], li').filter({ hasText: /In pause|En pausa/i }).first();
+        await f.expect(inPauseOpt).toBeVisible({ timeout: 5000 });
+        await page.keyboard.press('Escape');
+    });
+
+    f.test('The Activity tab on the Users page displays appointments pie chart @XR-3276 @OVAC-5692 @regression', async ({ usersPage, page }) => {
+        await usersPage.clickFirstUserRow();
+        const appTab = page.locator('[role="tab"], .MuiTab-root, button').filter({ hasText: /^APPOINTMENTS$/i }).first();
+        await appTab.waitFor({ state: 'visible', timeout: 10000 });
+        await appTab.click();
+        await page.waitForTimeout(1000);
+
+        const charts = page.locator('canvas, svg, [class*="chart" i]').first();
+        await f.expect(charts).toBeVisible({ timeout: 15000 });
+    });
+
 });

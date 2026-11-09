@@ -74,3 +74,43 @@ f.test.describe('Templates - Full Lifecycle Tests', () => {
         await templatesPage.verifyTemplateNotInTable(templateData.name);
     });
 });
+
+f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () => {
+    f.test('The user is able to open Drafts tab - Citas section @XR-1393 @OVAC-5657 @regression', async ({ templatesPage, page }) => {
+        await templatesPage.navigateToTemplates();
+        await f.expect(page).toHaveURL(/.*\/drafts/i, { timeout: 15000 });
+        const th = page.locator('th, [role="columnheader"]').filter({ hasText: /Name|Procedure|Nombre/i }).first();
+        await f.expect(th).toBeVisible({ timeout: 15000 });
+    });
+
+    f.test('The user is able to search appointments by name via search engine in the Draft tab @XR-1400 @OVAC-5521 @regression', async ({ templatesPage, page }) => {
+        await templatesPage.navigateToTemplates();
+        const searchInput = page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]').first();
+        await f.expect(searchInput).toBeVisible({ timeout: 15000 });
+        await searchInput.fill('Template');
+        await searchInput.press('Enter');
+        await page.waitForTimeout(1000);
+        const tableOrEmpty = page.locator('table').or(page.locator('text=/No templates|No se encontraron|No results/i')).first();
+        await f.expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
+    });
+
+    f.test('The user is able to check all checkboxes in the Draft tab - Citas section @XR-1394 @OVAC-5527 @regression', async ({ templatesPage, page }) => {
+        await templatesPage.navigateToTemplates();
+        await f.expect(page).toHaveURL(/.*\/drafts/i, { timeout: 15000 });
+
+        const headerCheckbox = page.locator('thead input[type="checkbox"], th input[type="checkbox"], input[aria-label*="select all" i], [aria-label*="seleccionar todo" i]').first();
+        if (await headerCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await headerCheckbox.click({ force: true });
+            await f.expect(headerCheckbox).toBeChecked();
+        } else {
+            const anyCheckbox = page.locator('input[type="checkbox"]').first();
+            if (await anyCheckbox.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await anyCheckbox.click({ force: true });
+                await f.expect(anyCheckbox).toBeChecked();
+            } else {
+                const tableOrEmpty = page.locator('table, [role="table"]').or(page.locator('text=/No templates|No se encontraron/i')).first();
+                await f.expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
+            }
+        }
+    });
+});

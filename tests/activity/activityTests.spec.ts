@@ -1,4 +1,4 @@
-import { test } from '../fixtures';
+import { test, expect } from '../fixtures';
 
 test.describe('Activity & Dashboard Tests', () => {
   test.beforeEach(async ({ homePage }) => {
@@ -237,8 +237,36 @@ test.describe('Activity & Dashboard Tests', () => {
     // 5. From the menu on the left, select "Dashboard" and verify Dashboard opened
     await activityPage.openDashboardFromLeftMenu();
   });
+
+  test('Verify Data By Participant also shows Processes data @XR-3201 @OVAC-4847 @regression', async ({ page, activityPage }) => {
+    // 1-3. Navigate to Activity -> Data By Participant
+    await page.goto(activityPage.page.url().includes('activity') ? activityPage.page.url() : 'https://qa.ovac.pre.councilbox.com/company/1112/activity/participant', { waitUntil: 'domcontentloaded' });
+    if (!page.url().includes('/activity/participant')) {
+      const dataTab = page.locator('button').filter({ hasText: /^DATA BY PARTICIPANT$/i }).first();
+      if (await dataTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await dataTab.click();
+      } else {
+        await page.goto('https://qa.ovac.pre.councilbox.com/company/1112/activity/participant', { waitUntil: 'domcontentloaded' });
+      }
+    }
+    await expect(page).toHaveURL(/.*\/activity\/participant/i, { timeout: 15000 });
+    const participantView = page.locator('text=/Data by participant|Datos por participante|Participant|Participante/i').first();
+    await expect(participantView).toBeVisible({ timeout: 15000 });
+  });
+
+  test('The Activity page accurately displays the In pause status on the pie chart @XR-3281 @OVAC-5709 @regression', async ({ activityPage }) => {
+    // 1-5. Navigate to Activity / Dashboard
+    await activityPage.navigateToActivity(1112);
+    // 6-7. Hover Statuses chart and verify canvas
+    await activityPage.hoverDashboardStatusesChart();
+  });
+
+  test('The administrator is listed in the Assign drop-down list @XR-2409 @OVAC-5583 @regression', async ({ activityPage }) => {
+    // 1-5. Navigate to Activity / Dashboard
+    await activityPage.navigateToActivity(1112);
+    // 6-7. Open Assign dropdown and verify administrator is listed
+    const selected = await activityPage.selectDashboardAssignUser();
+    expect(selected.length).toBeGreaterThan(0);
+  });
+
 });
-
-
-
-

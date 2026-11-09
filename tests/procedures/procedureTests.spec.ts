@@ -313,4 +313,13 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.clickPrevious();
         await expect(proceduresPage.page).toHaveURL(/.*\/companies/i);
     });
+
+    test('The user can review procedure in Procedures section @XR-2471 @OVAC-5793 @regression', async ({ proceduresPage, page }) => {
+        // 1-3. Navigate to Procedures page
+        await proceduresPage.navigateToProcedures();
+        await expect(page).toHaveURL(/.*\/procedures/i, { timeout: 15000 });
+        const procTable = page.locator('table, [role="table"]').first();
+        await expect(procTable).toBeVisible({ timeout: 15000 });
+    });
+
 });

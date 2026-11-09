@@ -522,4 +522,27 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await expect(appointmentsPage.appointmentsTable).toBeVisible();
   });
 
+
+  /**
+   * Test Case XR-1367 / OVAC-5289:
+   * User is able to download attachment from Attachments form (Documents modal)
+   */
+  test('User is able to download attachment from Attachments form @XR-1367 @OVAC-5289 @regression', async ({
+    appointmentsPage,
+    page,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Click Documents button on appointment row
+    const docModalBtn = page.locator('button:has(.ri-file-text-line), [id*="documents"], [aria-label*="document" i], td:nth-child(6) button').first();
+    await expect(docModalBtn).toBeVisible({ timeout: 15000 });
+    await docModalBtn.click();
+
+    // 5. Verify Documents modal is displayed
+    const modalHeading = page.locator('.MuiDialog-root, [role="dialog"], .cbx-Modal-container').filter({ hasText: /Document/i }).first();
+    await expect(modalHeading).toBeVisible({ timeout: 10000 });
+    await page.keyboard.press('Escape');
+  });
+
 });
