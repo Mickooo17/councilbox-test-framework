@@ -351,4 +351,175 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await expect(appointmentsPage.appointmentsTable).toBeVisible();
   });
 
+
+  /**
+   * Test Case XR-1387 / OVAC-5653:
+   * The user is able to open Confirmed appointment tab - Citas section
+   */
+  test('The user is able to open Confirmed appointment tab - Citas section @XR-1387 @OVAC-5653 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Confirmed" appointments from dropdown and verify list is displayed
+    await appointmentsPage.filterByStatus('Confirmed');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1388 / OVAC-5650:
+   * The user is able to open In progress tab - Citas section
+   */
+  test('The user is able to open In progress tab - Citas section @XR-1388 @OVAC-5650 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "In progress" appointments from dropdown and verify list is displayed
+    await appointmentsPage.filterByStatus('In progress');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1389 / OVAC-5648:
+   * The user is able to open Pending report tab - Citas section
+   */
+  test('The user is able to open Pending report tab - Citas section @XR-1389 @OVAC-5648 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Pending report" appointments from dropdown and verify list is displayed
+    await appointmentsPage.filterByStatus('Pending report');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1390 / OVAC-5660:
+   * The user is able to open Completed appointments tab - Citas section
+   */
+  test('The user is able to open Completed appointments tab - Citas section @XR-1390 @OVAC-5660 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Completed" appointments from dropdown and verify list is displayed
+    await appointmentsPage.filterByStatus('Completed');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1401 / OVAC-5519:
+   * The user is able to search appointments by name via search engine in the Scheduled appointments tab - Citas section
+   */
+  test('The user is able to search appointments by name via search engine in the Scheduled appointments tab @XR-1401 @OVAC-5519 @regression', async ({
+    appointmentsPage,
+    page,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.dismissToastOrModal();
+
+    // 4. Select "Confirmed" / Scheduled appointments
+    await appointmentsPage.filterByStatus('Confirmed');
+
+    // 5. Search by appointment name / query
+    await appointmentsPage.searchAppointment('TEST');
+    const tableOrEmpty = appointmentsPage.appointmentsTable.or(page.locator('text=/No appointments|No hay citas|No results/i')).first();
+    await expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
+  });
+
+  /**
+   * Test Case XR-1402 / OVAC-5542:
+   * The user is able to search appointments by name via search engine in the In progress tab - Citas section
+   */
+  test('The user is able to search appointments by name via search engine in the In progress tab @XR-1402 @OVAC-5542 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "In progress" appointments
+    await appointmentsPage.filterByStatus('In progress');
+
+    // 5. Search by appointment name / term
+    await appointmentsPage.searchAppointment('TEST');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1403 / OVAC-5541:
+   * The user is able to search appointments by name via search engine in the Pending report tab - Citas section
+   */
+  test('The user is able to search appointments by name via search engine in the Pending report tab @XR-1403 @OVAC-5541 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Pending report" appointments
+    await appointmentsPage.filterByStatus('Pending report');
+
+    // 5. Search by appointment name / term
+    await appointmentsPage.searchAppointment('TEST');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1404 / OVAC-5540:
+   * The user is able to search appointments by name via search engine in the Completed appointments tab - Citas section
+   */
+  test('The user is able to search appointments by name via search engine in the Completed appointments tab @XR-1404 @OVAC-5540 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Completed" appointments
+    await appointmentsPage.filterByStatus('Completed');
+
+    // 5. Search by appointment name / term
+    await appointmentsPage.searchAppointment('TEST');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-1414 / OVAC-5569:
+   * The user is able to go back from the Citas form - Citas section
+   */
+  test('The user is able to go back from the Citas form - Citas section @XR-1414 @OVAC-5569 @regression', async ({
+    appointmentsPage,
+    activityPage,
+    page,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.dismissToastOrModal();
+    const tableOrEmpty = appointmentsPage.appointmentsTable.or(page.locator('text=/No appointments|No hay citas|No results/i')).first();
+    await expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
+
+    // 4. Navigate back to Dashboard via left menu
+    await activityPage.openDashboardFromLeftMenu();
+    await expect(page).toHaveURL(/.*\/activity\/dashboardCouncils/i, { timeout: 15000 });
+  });
+
+  /**
+   * Test Case XR-1364 / OVAC-5304:
+   * User is able to search Appointments by search engine (Period filter)
+   */
+  test('User is able to search Appointments by search engine period filter @XR-1364 @OVAC-5304 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4-5. Change date / period filter to "This month"
+    await appointmentsPage.filterByPeriod('This month');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
 });

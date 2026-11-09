@@ -59,8 +59,22 @@ export class BasePage {
                 await closeBtn.click({ timeout: 1000, force: true }).catch(() => {});
             }
 
+            const versionModal = this.page.locator('.MuiDialog-root, [role="dialog"], .cbx-Modal-container').filter({ hasText: /New version|Nueva versión/i }).first();
+            if (await versionModal.isVisible({ timeout: 500 }).catch(() => false)) {
+                const closeBtn = versionModal.locator('button').first();
+                if (await closeBtn.isVisible().catch(() => false)) {
+                    await closeBtn.click().catch(() => {});
+                } else {
+                    await this.page.keyboard.press('Escape');
+                }
+            }
+
             await this.page.evaluate(() => {
-                document.querySelectorAll('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation, [class*="Toastify__toast"], #modal.cbx-Modal-container, .cbx-Modal-backdrop').forEach(el => (el as HTMLElement).remove());
+                document.querySelectorAll('.slide-in, .cbx-dropdown-backdrop, .cbx-dropdown-presentation, [class*="Toastify__toast"], #modal.cbx-Modal-container, .cbx-Modal-backdrop, .MuiDialog-root, .MuiBackdrop-root').forEach(el => {
+                    if (el.textContent?.includes('New version') || el.classList.contains('MuiBackdrop-root') || el.classList.contains('cbx-Modal-backdrop')) {
+                        (el as HTMLElement).remove();
+                    }
+                });
             }).catch(() => {});
         });
     }

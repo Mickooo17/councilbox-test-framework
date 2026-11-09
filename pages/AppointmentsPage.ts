@@ -139,6 +139,29 @@ export class AppointmentsPage extends BasePage {
     });
   }
 
+  async filterByPeriod(periodName: string = 'This month') {
+    await test.step(`Filter appointments by period: "${periodName}"`, async () => {
+      await this.dismissToastOrModal();
+      await this.periodFilterButton.waitFor({ state: 'visible', timeout: 10000 });
+      await this.periodFilterButton.locator('..').click({ force: true });
+      await this.page.waitForTimeout(500);
+
+      const optionRegex = new RegExp(periodName, 'i');
+      const periodOption = this.page.getByRole('option', { name: optionRegex }).or(
+        this.page.locator('li, [role="menuitem"]').filter({ hasText: optionRegex })
+      ).first();
+      await periodOption.waitFor({ state: 'visible', timeout: 5000 });
+      await periodOption.click();
+
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(1000);
+      await this.page.waitForLoadState('load');
+    }, {
+      params: { periodName },
+      subtitle: 'Open period filter dropdown, select option, and close menu',
+    });
+  }
+
   async searchAppointment(identifier: string | number) {
     await test.step(`Search appointment by identifier: "${identifier}"`, async () => {
       await this.dismissToastOrModal();
