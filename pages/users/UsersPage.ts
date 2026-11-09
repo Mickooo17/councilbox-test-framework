@@ -655,4 +655,43 @@ export class UsersPage extends BasePage {
             await expect(chart).toBeVisible();
         });
     }
+
+    /**
+     * Clicks on the first user row in the table (XR-2564 / OVAC-5197).
+     */
+    async clickFirstUserRow() {
+        await test.step('Click on first user row in the table', async () => {
+            await this.dismissModal();
+            const row = this.page.locator('table tbody tr').first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+            const cell = row.locator('td:first-child');
+            await cell.click();
+            await this.page.waitForURL(/\/users\/\d+\/edit/i, { timeout: 10000 });
+        });
+    }
+
+    /**
+     * Verifies that the Edit User page contains all required fields and tabs (XR-2564 / OVAC-5197).
+     */
+    async verifyEditUserPageContainsAllFieldsAndTabs() {
+        await test.step('Verify Edit User page contains all fields and tabs', async () => {
+            await this.dismissModal();
+            // Verify tabs
+            const tabsContainer = this.page.locator('.MuiTabs-root, nav, [role="tablist"]').first();
+            await expect(tabsContainer).toBeVisible({ timeout: 10000 });
+            await expect(this.page.locator('[role="tab"], button').filter({ hasText: /^DETAILS$|^DETALLES$/i }).first()).toBeVisible();
+            await expect(this.page.locator('[role="tab"], button').filter({ hasText: /^ENTITIES$|^ENTIDADES$|^INSTITUTIONS$/i }).first()).toBeVisible();
+            await expect(this.page.locator('[role="tab"], button').filter({ hasText: /^APPOINTMENTS$|^CITAS$/i }).first()).toBeVisible();
+
+            // Verify form fields
+            await expect(this.page.locator('label, div').filter({ hasText: /^Name|^Nombre/i }).first()).toBeVisible();
+            await expect(this.page.locator('label, div').filter({ hasText: /^Surname|^Apellidos/i }).first()).toBeVisible();
+            await expect(this.page.locator('label, div').filter({ hasText: /^Mobile phone|^Teléfono/i }).first()).toBeVisible();
+            await expect(this.page.locator('label, div').filter({ hasText: /^DNI|^TIN|^NIF/i }).first()).toBeVisible();
+            await expect(this.page.locator('label, div').filter({ hasText: /^Language|^Idioma/i }).first()).toBeVisible();
+            await expect(this.page.locator('label, div').filter({ hasText: /^E-mail|^Email|^Correo/i }).first()).toBeVisible();
+            await expect(this.page.locator('label, div').filter({ hasText: /^External ID|^ID externo/i }).first()).toBeVisible();
+        });
+    }
+
 }

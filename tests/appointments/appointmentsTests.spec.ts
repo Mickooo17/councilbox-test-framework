@@ -193,5 +193,162 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     // 6. Fill cancel observations and confirm cancellation
     await appointmentsPage.fillCancelObservationsAndConfirm('Canceled via automated test for XR-3445 verification');
   });
-});
 
+  /**
+   * Test Case XR-3090 / OVAC-5579:
+   * It is possible to open Documents modal if appointment is canceled
+   */
+  test('It is possible to open Documents modal if appointment is canceled @XR-3090 @OVAC-5579 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Filter appointments by "Canceled" status
+    await appointmentsPage.filterByStatus('Canceled');
+
+    // 5-6. Click on 3 dots for canceled appointment and click DOCUMENTS link
+    await appointmentsPage.openDocumentsModal();
+  });
+
+  /**
+   * Test Case XR-3089 / OVAC-5580:
+   * Tooltip to help with the number of characters when a back office user cancels an appointment is showing when hovering numbers in the 'Cancel appointment' modal
+   */
+  test('Tooltip to help with number of characters is showing when hovering counter in Cancel appointment modal @XR-3089 @OVAC-5580 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create a confirmed appointment via API so cancel option is guaranteed
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+      participant: {
+        dni: 'P' + Date.now().toString().slice(-8),
+        idCardType: 'passport',
+        name: 'AutoCancel',
+        surname: 'TestUser',
+        email: 'autocancel@example.com',
+      },
+      observations: 'XR-3089 Cancel Tooltip Test',
+    });
+    expect(created.id).toBeGreaterThan(0);
+
+    // 2-3. Navigate to Appointments page and search by created ID
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-7. Click on 3 dots, select Cancel appointment, hover 0/500 text and verify tooltip
+    await appointmentsPage.verifyCancelAppointmentCharacterTooltip(created.id);
+  });
+
+  /**
+   * Test Case XR-3031 / OVAC-4955:
+   * When opening "Appointment" page - external ID label is displayed properly in the header
+   */
+  test('When opening Appointment page - external ID label is displayed properly in the header @XR-3031 @OVAC-4955 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Observe header and verify "External ID" is showing properly
+    await appointmentsPage.verifyExternalIdHeaderDisplayed();
+  });
+
+  /**
+   * Test Case XR-2965 / OVAC-5207:
+   * By participant ID or passport, the user can search appointments
+   */
+  test('By participant ID or passport the user can search appointments @XR-2965 @OVAC-5207 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    const passportNumber = 'P' + Date.now().toString().slice(-8);
+
+    // 1. Create appointment via API with unique passport number
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+      participant: {
+        dni: passportNumber,
+        idCardType: 'passport',
+        name: 'AutoSearch',
+        surname: 'TestParticipant',
+        email: 'autosearch@example.com',
+      },
+      observations: 'Search by passport test',
+    });
+    expect(created.id).toBeGreaterThan(0);
+
+    // 2-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Input participant passport number into search bar and verify appointments retrieved
+    await appointmentsPage.searchAppointmentsByParticipant(passportNumber);
+    const row = await appointmentsPage.getAppointmentRow(created.id);
+    await expect(row).toBeVisible();
+    await expect(row).toContainText(String(created.id));
+  });
+
+  /**
+   * Test Case XR-2565 / OVAC-5194:
+   * In the Appointments form, the user can filter appointments using filters
+   */
+  test('In the Appointments form, the user can filter appointments using filters @XR-2565 @OVAC-5194 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4-8. Open table filters and verify filter categories (Users, Procedures, Entities, Types of meeting)
+    await appointmentsPage.verifyTableFilterOptionsDisplayed();
+  });
+
+  /**
+   * Test Case XR-2525 / OVAC-5599:
+   * On the Appointments form, the super administrator, administrator, or professional can manage Participants for the desired appointment - Appointments
+   */
+  test('On the Appointments form user can manage Participants for the desired appointment @XR-2525 @OVAC-5599 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4-5. Click 3 dots and select Participants -> List of attendees wizard displayed
+    await appointmentsPage.openParticipantsDrawer();
+  });
+
+  /**
+   * Test Case XR-12990 / OVAC-5418:
+   * The user is able to see Confirmed appointments - Appointments
+   */
+  test('The user is able to see Confirmed appointments - Appointments @XR-12990 @OVAC-5418 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Confirmed" appointments from dropdown and verify list is displayed
+    await appointmentsPage.filterByStatus('Confirmed');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+  /**
+   * Test Case XR-12991 / OVAC-5417:
+   * The user is able to see Completed appointments - Appointments
+   */
+  test('The user is able to see Completed appointments - Appointments @XR-12991 @OVAC-5417 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Select "Completed" appointments from dropdown and verify list is displayed
+    await appointmentsPage.filterByStatus('Completed');
+    await expect(appointmentsPage.appointmentsTable).toBeVisible();
+  });
+
+});

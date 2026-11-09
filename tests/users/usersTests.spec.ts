@@ -545,5 +545,12 @@ f.test.describe('Users - Details Page Tests', () => {
         await usersPage.clickActivityTabOnUserDetails();
         await usersPage.hoverOverActivityChart();
     });
-});
 
+    f.test('Verify that "Edit user" page contains all fields @XR-2564 @OVAC-5197 @regression', async ({ usersPage }) => {
+        // 1-3. Logged in and navigate to Users
+        // 4. Click on user row and verify all edit fields and tabs are displayed
+        await usersPage.clickFirstUserRow();
+        await usersPage.verifyEditUserPageContainsAllFieldsAndTabs();
+    });
+
+});

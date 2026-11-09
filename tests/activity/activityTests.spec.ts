@@ -231,7 +231,14 @@ test.describe('Activity & Dashboard Tests', () => {
     await activityPage.selectDashboardEntityFilter();
     await activityPage.applyDashboardFilters();
   });
+
+  test('Verify that user is able to open "Dashboard" @XR-2401 @OVAC-5566 @regression', async ({ activityPage }) => {
+    // 1-4. User is logged in
+    // 5. From the menu on the left, select "Dashboard" and verify Dashboard opened
+    await activityPage.openDashboardFromLeftMenu();
+  });
 });
+
 
 
 

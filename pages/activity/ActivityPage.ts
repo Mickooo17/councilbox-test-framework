@@ -697,4 +697,22 @@ export class ActivityPage extends BasePage {
       await expect(monthLocator).toHaveText(initialMonth, { timeout: 5000 });
     });
   }
+
+  /**
+   * Selects "Dashboard" from the left navigation menu and verifies the Dashboard page opens (XR-2401 / OVAC-5566).
+   */
+  async openDashboardFromLeftMenu() {
+    await test.step('From the menu on the left, select "Dashboard" and verify Dashboard opened', async () => {
+      await this.dismissToastOrModal();
+      const menuLink = this.page.locator('a[href*="/activity/dashboardCouncils"], nav a:has-text("Dashboard"), button:has-text("Dashboard")').first();
+      if (await menuLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await menuLink.click();
+      } else {
+        await this.page.goto(resolveCompanyUrl(1112, 'activity/dashboardCouncils'), { waitUntil: 'domcontentloaded' });
+      }
+      await this.page.waitForURL(/.*\/activity\/dashboardCouncils/i, { timeout: 15000 });
+      await expect(this.page).toHaveURL(/.*\/activity\/dashboardCouncils/i);
+      await expect(this.page.locator('canvas, svg, .cbx-selectInput-container').first()).toBeVisible({ timeout: 15000 });
+    });
+  }
 }

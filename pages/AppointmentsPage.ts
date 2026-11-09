@@ -340,5 +340,162 @@ export class AppointmentsPage extends BasePage {
       subtitle: 'Click CLOSE button to dismiss cancellation modal',
     });
   }
-}
 
+  /**
+   * Opens the Documents modal from the 3-dots menu of an appointment (XR-3090 / OVAC-5579).
+   */
+  async openDocumentsModal(identifier?: string | number) {
+    await test.step('Open Documents modal from appointment 3-dots menu', async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const docsOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Documents$|^Documentos$/i).first();
+      await docsOption.waitFor({ state: 'visible', timeout: 5000 });
+      await docsOption.click();
+
+      const docsModal = this.page.locator('[role="dialog"], .cbx-Modal-container')
+        .filter({ hasText: /Documents|Documentos/i }).first();
+      await expect(docsModal).toBeVisible({ timeout: 15000 });
+
+      // Close modal
+      const closeBtn = docsModal.locator('button:has(.ri-close-line), button:has-text("Close"), button:has-text("Cerrar")').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Opens Cancel modal and verifies tooltip on the 0/500 character counter (XR-3089 / OVAC-5580).
+   */
+  async verifyCancelAppointmentCharacterTooltip(identifier: string | number) {
+    await test.step('Hover character counter in Cancel modal and verify tooltip', async () => {
+      await this.openCancelAppointmentModal(identifier);
+
+      // Find character counter e.g. 0/500
+      const counter = this.cancelModal.locator('text=/\d+\s*\/\s*500/i').or(this.cancelModal.getByText(/\/500/)).first();
+      await expect(counter).toBeVisible({ timeout: 5000 });
+
+      // Hover over counter
+      await counter.hover();
+      await this.page.waitForTimeout(500);
+
+      const tooltip = this.page.locator('[role="tooltip"]:visible, .MuiTooltip-tooltip:visible').first();
+      await expect(tooltip).toBeVisible({ timeout: 5000 });
+      await expect(tooltip).toContainText(/maximum number of character|caracteres/i);
+
+      // Close modal
+      await this.closeCancelModal();
+    });
+  }
+
+  /**
+   * Verifies External ID column header is visible in appointments table (XR-3031 / OVAC-4955).
+   */
+  async verifyExternalIdHeaderDisplayed() {
+    await test.step('Observe header and verify External ID label is displayed properly', async () => {
+      await this.dismissToastOrModal();
+      const extIdHeader = this.appointmentsTable.locator('th').filter({ hasText: /External ID/i }).first();
+      await expect(extIdHeader).toBeVisible({ timeout: 15000 });
+    });
+  }
+
+  /**
+   * Searches appointments by participant ID / passport / TIN (XR-2965 / OVAC-5207).
+   */
+  async searchAppointmentsByParticipant(idOrPassport: string) {
+    await test.step(`Search appointments by participant ID/passport: "${idOrPassport}"`, async () => {
+      await this.searchAppointment(idOrPassport);
+      await this.page.waitForTimeout(1000);
+      const rows = this.tableRows;
+      const rowCount = await rows.count();
+      if (rowCount > 0) {
+        await expect(rows.first()).toBeVisible();
+      } else {
+        const noData = this.page.locator('text=/No appointments|No hay citas|No results|No se encontraron/i').first();
+        await expect(noData).toBeVisible({ timeout: 5000 });
+      }
+    });
+  }
+
+  /**
+   * Opens table filters via the equalizer button and verifies filter options (XR-2565 / OVAC-5194).
+   */
+  async verifyTableFilterOptionsDisplayed() {
+    await test.step('Open table filters via Equalizer button and verify filter categories', async () => {
+      await this.dismissToastOrModal();
+      const eqBtn = this.page.locator('button:has(.ri-equalizer-line)').first();
+      await expect(eqBtn).toBeVisible({ timeout: 10000 });
+      await eqBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const heading = this.page.getByRole('heading', { name: /Filters|Filtros/i }).first();
+      await expect(heading).toBeVisible({ timeout: 10000 });
+
+      // Verify filter sections
+      await expect(this.page.getByRole('combobox', { name: /Users|Usuarios/i }).first()).toBeVisible();
+      await expect(this.page.getByRole('combobox', { name: /procedures|trámites/i }).first()).toBeVisible();
+      await expect(this.page.getByRole('combobox', { name: /Entities|Entidades/i }).first()).toBeVisible();
+
+      // Close filter panel using Escape key
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Opens Participants drawer from appointment 3-dots menu (XR-2525 / OVAC-5599).
+   */
+  async openParticipantsDrawer(identifier?: string | number) {
+    await test.step('Open Participants drawer from appointment 3-dots menu', async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const partOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Participants$|^Participantes$/i).first();
+      await partOption.waitFor({ state: 'visible', timeout: 5000 });
+      await partOption.click();
+
+      // Verify attendees drawer is open
+      const drawer = this.page.locator('.MuiDrawer-root:visible, [role="dialog"]:visible')
+        .filter({ hasText: /List of attendees|Participantes|Attendees/i }).first();
+      await expect(drawer).toBeVisible({ timeout: 15000 });
+
+      // Close drawer
+      const closeBtn = drawer.locator('button:has(.ri-close-line), button[aria-label*="close" i]').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+}
