@@ -269,4 +269,17 @@ test.describe('Activity & Dashboard Tests', () => {
     expect(selected.length).toBeGreaterThan(0);
   });
 
+
+    test('Verify Management tab is displayed in Activity page @XR-3274 @OVAC-5321 @regression', async ({ activityPage, page }) => {
+        // 1-3. Navigate to Activity page
+        await activityPage.navigateToActivity(1112);
+        await activityPage.dismissToastOrModal();
+
+        // 4. Validate Management/Processes tab is displayed
+        await activityPage.verifyProcessesTabVisible();
+
+        // 5. Click on the Management tab and verify redirection
+        await activityPage.clickProcessesTab();
+        await expect(page).toHaveURL(/.*\/activity\/dashboardManagements/i);
+    });
 });

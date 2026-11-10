@@ -92,4 +92,16 @@ f.test.describe('HomePage - User Profile Tests', () => {
       await homePage.verifyHeaderLogoVisible();
     }
   });
+
+  f.test('Admin is able to Log out from the page @XR-1361 @OVAC-5656 @smoke @regression', async ({ homePage }) => {
+    // 1-2. Verify user is on home page
+    await homePage.validateHomePageIsOpened();
+
+    // 3. Click on the "Account" icon
+    await homePage.openAccountMenu();
+
+    // 4. Click on the "Sign off" button and verify redirect to login page
+    await homePage.clickSignOff();
+  });
 });
+

@@ -430,4 +430,78 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.verifyProcedureNotInTable(procData.name);
     });
 
+
+    test('Verify that creation of appointment contains all steps @XR-1376 @OVAC-5191 @regression', async ({ proceduresPage, page }) => {
+        // 1-3. Navigate to Procedures page and open create procedure drawer
+        await proceduresPage.openCreateProcedureDrawer();
+
+        // 4. Choose Video-appointment procedure type and click Continue
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // Verify wizard stepper contains all required steps: Details, Entities, Consents, Documentation, Configuration, Review
+        const stepperText = await page.locator('.cbx-stepper-item-contentText, .cbx-stepper-item-text, nav button').allInnerTexts();
+        const joined = stepperText.join(' ');
+        expect(joined).toMatch(/Details|Detalles/i);
+        expect(joined).toMatch(/Entities|Entidades/i);
+        expect(joined).toMatch(/Steps of the procedure|Consents|Consentimientos|Pasos/i);
+        expect(joined).toMatch(/Documentation|Documentación/i);
+        expect(joined).toMatch(/Configuration|Configuración/i);
+        expect(joined).toMatch(/Review|Revisión/i);
+    });
+
+    test('The user is not able to go Continue without populating Description field - Details tab @XR-1372 @OVAC-5269 @regression', async ({ proceduresPage }) => {
+        // 1-4. Open create procedure drawer and select Video-appointment
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 5. Populate Name only, leave Description field empty
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill('');
+
+        // 6. Verify Continue button is disabled when Description is empty
+        expect(await proceduresPage.continueButton.isDisabled()).toBe(true);
+    });
+
+    test('The user is able to save all changes by clicking on the Continue button - Details tab @XR-1374 @OVAC-5264 @regression', async ({ proceduresPage, page }) => {
+        // 1-4. Open create procedure drawer and select Video-appointment
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 5. Fill valid Name and Description
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await expect(proceduresPage.continueButton).toBeEnabled({ timeout: 5000 });
+
+        // Click Continue and verify advancement to next step
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/companies/i, { timeout: 15000 });
+        expect(page.url()).toContain('/companies');
+    });
+
+    test('When creating appointment and navigating to the Details step the URL is changing properly @XR-2475 @OVAC-4926 @regression', async ({ proceduresPage, page }) => {
+        // 1-3. Navigate to Procedures page
+        // 4. Start creation flow and select Video-appointment
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 5. Observe URL - verify /procedures/new route
+        await page.waitForTimeout(500);
+        expect(page.url()).toMatch(/.*\/procedures\/new.*/i);
+    });
+
+    test('When creating appointment and navigating to the Consents step the URL is changing properly @XR-2473 @OVAC-4934 @regression', async ({ proceduresPage, page }) => {
+        // 1-4. Start creation flow and populate Details
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+
+        // 5. Click Continue from Companies step to Consents step
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+
+        // 6. Observe URL - verify /consents is in the URL
+        expect(page.url()).toContain('/consents');
+    });
 });

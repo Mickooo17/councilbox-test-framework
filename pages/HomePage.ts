@@ -78,6 +78,34 @@ export class HomePage extends BasePage {
     });
   }
 
+  async clickSignOff() {
+    await test.step('Click Sign off button in account menu', async () => {
+      // Intercept Logout mutation to prevent invalidating shared session for parallel test workers
+      await this.page.route('**/graphql', async (route) => {
+        const postData = route.request().postDataJSON();
+        if (postData?.operationName === 'Logout') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ data: { logout: { success: true, __typename: 'LogoutResponse' } } }),
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      const signOffBtn = this.page.locator('.MuiPopover-root, [role="menu"], .cbx-header-dropdown')
+        .getByText(/End session|Cerrar sesión|Sign off|Log out/i)
+        .or(this.page.getByRole('menuitem', { name: /End session|Cerrar sesión|Sign off|Log out/i }))
+        .first();
+      await expect(signOffBtn).toBeVisible({ timeout: 5000 });
+      await signOffBtn.click();
+      await this.page.waitForURL(/.*(\/login|\/admin)/i, { timeout: 15000 });
+      await expect(this.page).toHaveURL(/.*(\/login|\/admin)/i);
+      await expect(this.page.getByRole('heading', { name: /Login/i }).or(this.page.getByRole('button', { name: /Access|Acceder/i })).first()).toBeVisible({ timeout: 10000 });
+    });
+  }
+
   async verifyRoleDisplayedOnHover(expectedRolePattern: RegExp = /administrator|admin|super administrator|global administrator|professional|calendar manager/i) {
     await test.step('Verify user role is displayed when hovering over Account icon', async () => {
       const tooltip = this.page.locator('.cbx-tooltip-options-container, [class*="cbx-tooltip"]').first();

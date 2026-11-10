@@ -142,4 +142,36 @@ f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () =
         await templatesPage.searchTemplate(draftData.name);
         await templatesPage.verifyTemplateNotInTable(draftData.name);
     });
+
+    f.test('User is able to click on the Tags button @XR-1393 @OVAC-5626 @regression', async ({ templatesPage, tagsPage, page }) => {
+        // 1-2. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 3. Click on Tags tab from Templates view
+        await tagsPage.navigateToTagsTab();
+        await page.waitForTimeout(500);
+
+        // Verify Tags view is displayed and URL ends with /tags
+        await f.expect(page).toHaveURL(/.*\/tags/i);
+        await f.expect(tagsPage.searchInput).toBeVisible({ timeout: 10000 });
+    });
+
+    f.test('User is able to click on the Templates button @XR-1394 @OVAC-5627 @regression', async ({ templatesPage, tagsPage, page }) => {
+        // 1-2. Navigate to Templates and switch to Tags tab first
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+        await tagsPage.navigateToTagsTab();
+        await f.expect(page).toHaveURL(/.*\/tags/i);
+
+        // 3. Click on Templates tab (Drafts)
+        const templatesTab = page.locator('button, [role="tab"]').filter({ hasText: /^Templates$|^Plantillas$|^Drafts$/i }).first();
+        await templatesTab.waitFor({ state: 'visible', timeout: 10000 });
+        await templatesTab.click();
+        await page.waitForTimeout(500);
+
+        // Verify Templates view is displayed and URL ends with /drafts
+        await f.expect(page).toHaveURL(/.*\/drafts/i);
+        await f.expect(templatesPage.searchInput).toBeVisible({ timeout: 10000 });
+    });
 });

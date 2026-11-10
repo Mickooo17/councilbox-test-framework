@@ -222,4 +222,18 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         // Restore original email
         await institutionsPage.updateCompanyContactEmail(originalContactEmail);
     });
+
+    f.test('The user is able to change the language to English - Company settings section @XR-1627 @OVAC-5768 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Company Settings
+        await institutionsPage.navigateToCompanySettings(1112);
+
+        // 5. Modify Main language field to English and save
+        await institutionsPage.updateCompanyMainLanguage('English');
+        await institutionsPage.saveCompanySettings();
+        await institutionsPage.verifyCompanySettingsSavedAlert();
+
+        // Verify the Main language reflects English
+        const currentLang = await institutionsPage.getCompanyMainLanguage();
+        expect(currentLang).toContain('English');
+    });
 });

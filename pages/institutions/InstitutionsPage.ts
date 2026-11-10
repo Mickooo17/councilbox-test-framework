@@ -539,4 +539,39 @@ export class InstitutionsPage extends BasePage {
             await this.dismissToastOrModal();
         });
     }
+
+    /**
+     * Gets the company Main language setting text (OVAC-5768 / XR-1627).
+     */
+    async getCompanyMainLanguage(): Promise<string> {
+        return await test.step('Get company main language', async () => {
+            const langContainer = this.page.locator('.cbx-inputText-container, .MuiFormControl-root')
+                .filter({ hasText: /Main language|Idioma principal/i })
+                .first();
+            await langContainer.waitFor({ state: 'visible', timeout: 10000 });
+            return (await langContainer.innerText()).trim();
+        });
+    }
+
+    /**
+     * Updates the company Main language selector (OVAC-5768 / XR-1627).
+     */
+    async updateCompanyMainLanguage(languageName: string = 'English') {
+        await test.step(`Update company main language to: "${languageName}"`, async () => {
+            const langContainer = this.page.locator('.cbx-inputText-container, .MuiFormControl-root')
+                .filter({ hasText: /Main language|Idioma principal/i })
+                .first();
+            await langContainer.waitFor({ state: 'visible', timeout: 10000 });
+            const combobox = langContainer.locator('[role="combobox"], [role="button"], input').first();
+            await combobox.click({ force: true });
+            await this.page.waitForTimeout(500);
+
+            const option = this.page.locator('[role="option"], li.MuiMenuItem-root')
+                .filter({ hasText: new RegExp(`^${languageName}$`, 'i') })
+                .first();
+            await option.waitFor({ state: 'visible', timeout: 5000 });
+            await option.click();
+            await this.page.waitForTimeout(500);
+        });
+    }
 }

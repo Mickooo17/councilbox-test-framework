@@ -63,6 +63,21 @@ export class ActivityPage extends BasePage {
     });
   }
 
+  async verifyProcessesTabVisible() {
+    await test.step('Verify Management / Processes tab is displayed on Activity page', async () => {
+      await expect(this.processesTab).toBeVisible({ timeout: 10000 });
+    });
+  }
+
+  async clickProcessesTab() {
+    await test.step('Click on Management / Processes tab on Activity page', async () => {
+      await this.processesTab.waitFor({ state: 'visible', timeout: 10000 });
+      await this.processesTab.click();
+      await this.page.waitForURL(/.*\/activity\/dashboardManagements/i, { timeout: 10000 });
+      await expect(this.page).toHaveURL(/.*\/activity\/dashboardManagements/i);
+    });
+  }
+
   async verifyActivityPageLoaded() {
     await test.step('Verify Activity page is accurately presented', async () => {
       await expect(this.page).toHaveURL(/.*\/activity/i, { timeout: 15000 });
