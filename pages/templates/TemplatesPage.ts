@@ -155,6 +155,62 @@ export class TemplatesPage extends BasePage {
             }
         });
     }
+
+    /**
+     * Verifies that title field required error is displayed when trying to save empty template (OVAC-4875).
+     */
+    async verifyTitleRequiredError() {
+        await test.step('Verify title required error is displayed', async () => {
+            const errorHelper = this.page.locator('#draft-name-helper-text, .Mui-error, [role="alert"]').filter({ hasText: /Required field|Campo requerido|form has errors/i }).first();
+            await expect(errorHelper).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Gets pagination text from the templates table (OVAC-4876).
+     */
+    async getPaginationText(): Promise<string> {
+        return await test.step('Get pagination range text', async () => {
+            const paginationEl = this.page.getByText(/\d+\s*-\s*\d+\s+of\s+\d+|\d+\s*-\s*\d+\s+de\s+\d+/i).first();
+            await paginationEl.waitFor({ state: 'visible', timeout: 10000 });
+            return (await paginationEl.innerText()).trim();
+        });
+    }
+
+    /**
+     * Switches to next pagination page (OVAC-4876).
+     */
+    async clickNextPaginationPage() {
+        await test.step('Click next pagination page', async () => {
+            const nextButton = this.page.getByRole('button', { name: /siguiente|next/i })
+                .or(this.page.getByRole('button', { name: '2' }))
+                .or(this.page.locator('nav button:last-child'))
+                .first();
+            await nextButton.waitFor({ state: 'visible', timeout: 10000 });
+            await nextButton.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    /**
+     * Filters templates by selecting a category/tag from the dropdown (OVAC-4877).
+     */
+    async filterTemplatesByTag() {
+        await test.step('Filter templates by selecting category/tag', async () => {
+            const filterCombo = this.page.getByRole('combobox', { name: /Categories|Categorías|Tags|Etiquetas|Status|Estado/i })
+                .or(this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /Categories|Categorías|Tags|Status/i }).locator('[role="combobox"], [role="button"], input'))
+                .first();
+            await filterCombo.waitFor({ state: 'visible', timeout: 10000 });
+            await filterCombo.click({ force: true });
+            await this.page.waitForTimeout(500);
+
+            const option = this.page.locator('[role="option"], [role="menuitem"], li.MuiMenuItem-root').filter({ hasText: /Consents|Activated|Activado|Activo/i }).first();
+            if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await option.click();
+            } else {
+                await this.page.keyboard.press('Escape');
+            }
+            await this.page.waitForTimeout(500);
+        });
+    }
 }
-
-

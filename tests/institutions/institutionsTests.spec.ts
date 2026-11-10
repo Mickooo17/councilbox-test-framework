@@ -236,4 +236,14 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         const currentLang = await institutionsPage.getCompanyMainLanguage();
         expect(currentLang).toContain('English');
     });
+
+    f.test('The user is able to change the Organization logo - Company settings section @XR-1632 @OVAC-5769 @regression', async ({ institutionsPage, page }) => {
+        // 1-4. Navigate to Customization -> Appearance
+        await institutionsPage.navigateToCustomizationAppearance(1112);
+
+        // 5-7. Upload organization logo and save
+        await institutionsPage.uploadOrganizationLogo('test-data/test-logo.png');
+        await institutionsPage.saveCompanySettings();
+        await institutionsPage.verifyCompanySettingsSavedAlert();
+    });
 });

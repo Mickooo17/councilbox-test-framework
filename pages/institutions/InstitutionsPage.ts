@@ -1,3 +1,4 @@
+import * as path from 'path';
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { MESSAGES } from '../../utils/Constants';
@@ -572,6 +573,30 @@ export class InstitutionsPage extends BasePage {
             await option.waitFor({ state: 'visible', timeout: 5000 });
             await option.click();
             await this.page.waitForTimeout(500);
+        });
+    }
+
+    /**
+     * Navigates to Customization -> Appearance tab (OVAC-5769 / XR-1632).
+     */
+    async navigateToCustomizationAppearance(companyId: number = 1112) {
+        await test.step(`Navigate to Customization -> Appearance for company #${companyId}`, async () => {
+            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}/personalization/appearance`);
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+        });
+    }
+
+    /**
+     * Uploads an organization logo in the Appearance settings (OVAC-5769 / XR-1632).
+     */
+    async uploadOrganizationLogo(filePath: string = 'test-data/test-logo.png') {
+        await test.step('Upload organization logo in appearance settings', async () => {
+            const logoInput = this.page.locator('#raised-button-file-subdomain-logo');
+            await expect(logoInput).toBeAttached();
+            const resolvedPath = path.resolve(filePath);
+            await logoInput.setInputFiles(resolvedPath);
+            await this.page.waitForTimeout(1000);
         });
     }
 }

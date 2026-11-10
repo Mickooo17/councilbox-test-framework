@@ -694,4 +694,113 @@ export class UsersPage extends BasePage {
         });
     }
 
+    /**
+     * Verifies that the Process / Processes tab is visible on the user edit page (OVAC-5048).
+     */
+    async verifyProcessesTabDisplayed() {
+        await test.step('Verify Process tab is displayed on user edit page', async () => {
+            const processTab = this.page.locator('[role="tab"]').filter({ hasText: /^PROCESSES$|^PROCESS$|^PROCESOS$/i }).first();
+            await expect(processTab).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Navigates to the Processes / Managements tab on the user details page (OVAC-5047, OVAC-5045).
+     */
+    async clickProcessesTabOnUserDetails() {
+        await test.step('Click Processes tab on user details', async () => {
+            const processTab = this.page.locator('[role="tab"]').filter({ hasText: /^PROCESSES$|^PROCESS$|^PROCESOS$/i }).first();
+            await processTab.waitFor({ state: 'visible', timeout: 10000 });
+            await processTab.click();
+            await this.page.waitForURL(/\/managements/i, { timeout: 10000 });
+        });
+    }
+
+    /**
+     * Verifies that the user processes table and accurate process count are displayed (OVAC-5047).
+     */
+    async verifyUserProcessesTableDisplayed(): Promise<string> {
+        return await test.step('Verify user processes table and process count are displayed', async () => {
+            const table = this.page.locator('table').first();
+            await expect(table).toBeVisible({ timeout: 10000 });
+
+            const countLocator = this.page.locator('.MuiTablePagination-root, [class*="pagination"]').or(
+                this.page.getByText(/No results were found/i)
+            ).first();
+            await expect(countLocator).toBeVisible({ timeout: 10000 });
+            const countText = await countLocator.innerText();
+            expect(countText).toBeTruthy();
+            return countText;
+        });
+    }
+
+    /**
+     * Verifies that filters on the Processes tab can be accessed and used (OVAC-5045).
+     */
+    async verifyProcessesFiltersDisplayed() {
+        await test.step('Verify procedure type and entity filters on Processes tab', async () => {
+            const statusFilter = this.page.getByRole('combobox', { name: /Status|Estado/i }).or(
+                this.page.locator('.MuiFormControl-root, .cbx-inputText-container').filter({ hasText: /Status|Estado/i })
+            ).first();
+            await expect(statusFilter).toBeVisible({ timeout: 10000 });
+
+            const procTypeFilter = this.page.getByRole('combobox', { name: /Types of procedures|Tipos de procedimientos/i }).or(
+                this.page.locator('.MuiFormControl-root, .cbx-inputText-container').filter({ hasText: /Types of procedures|Tipos de procedimientos/i })
+            ).first();
+            await expect(procTypeFilter).toBeVisible({ timeout: 10000 });
+
+            const entityFilter = this.page.getByRole('combobox', { name: /Entities|Entidades/i }).or(
+                this.page.locator('.MuiFormControl-root, .cbx-inputText-container').filter({ hasText: /Entities|Entidades/i })
+            ).first();
+            await expect(entityFilter).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Triggers export on the Users page via the User reports modal (OVAC-5280).
+     */
+    async exportUsersReport(): Promise<string> {
+        return await test.step('Export users file via User reports modal', async () => {
+            await this.dismissModal();
+            const openExportBtn = this.page.getByRole('button', { name: /Export|Exportar/i })
+                .or(this.page.locator('button:has(.ri-download-line)'))
+                .first();
+            await openExportBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await openExportBtn.click();
+
+            const modal = this.page.locator('[role="dialog"], .cbx-Modal-container')
+                .filter({ hasText: /User reports|Informes de usuarios/i })
+                .first();
+            await expect(modal).toBeVisible({ timeout: 10000 });
+
+            const modalExportBtn = modal.getByRole('button', { name: /Export|Exportar/i }).first();
+            await modalExportBtn.waitFor({ state: 'visible', timeout: 5000 });
+
+            const [download] = await Promise.all([
+                this.page.waitForEvent('download', { timeout: 15000 }),
+                modalExportBtn.click(),
+            ]);
+
+            return download.suggestedFilename();
+        });
+    }
+
+    /**
+     * Triggers export of appointments history on a specific user's page (OVAC-5294).
+     */
+    async exportUserAppointments(): Promise<string> {
+        return await test.step('Export appointments history for user', async () => {
+            const exportBtn = this.page.getByRole('button', { name: /Export|Exportar/i })
+                .or(this.page.locator('button:has(.ri-download-line)'))
+                .first();
+            await exportBtn.waitFor({ state: 'visible', timeout: 10000 });
+
+            const [download] = await Promise.all([
+                this.page.waitForEvent('download', { timeout: 15000 }),
+                exportBtn.click(),
+            ]);
+
+            return download.suggestedFilename();
+        });
+    }
 }

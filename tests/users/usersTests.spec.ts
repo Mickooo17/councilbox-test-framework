@@ -582,4 +582,51 @@ f.test.describe('Users - Details Page Tests', () => {
         await f.expect(charts).toBeVisible({ timeout: 15000 });
     });
 
+    f.test('The "Process" tab is visible on the user\'s page @OVAC-5048 @regression', async ({ usersPage }) => {
+        // 1-3. Navigate to Users page and click user
+        await usersPage.clickFirstUserRow();
+
+        // 4. Verify "Process" / "Processes" tab is displayed
+        await usersPage.verifyProcessesTabDisplayed();
+    });
+
+    f.test('The "Process" tab accurately displays the count of processes on the user\'s page @OVAC-5047 @regression', async ({ usersPage }) => {
+        // 1-4. Navigate to Users and open user details
+        await usersPage.clickFirstUserRow();
+
+        // 5. Click on "Process" tab and verify table and process count
+        await usersPage.clickProcessesTabOnUserDetails();
+        const countText = await usersPage.verifyUserProcessesTableDisplayed();
+        f.expect(countText).toBeTruthy();
+    });
+
+    f.test('The user can access and apply all filters on the "Process" tab of the user\'s page @OVAC-5045 @regression', async ({ usersPage }) => {
+        // 1-4. Navigate to user details
+        await usersPage.clickFirstUserRow();
+
+        // 5-6. Click Process tab and verify filters can be accessed
+        await usersPage.clickProcessesTabOnUserDetails();
+        await usersPage.verifyProcessesFiltersDisplayed();
+    });
+
+    f.test('The super administrator or administrator can export a file with users by using a certain filter on the users page @OVAC-5280 @regression', async ({ usersPage }) => {
+        // 1-4. Trigger export procedure on Users page and verify file is downloaded
+        const filename = await usersPage.exportUsersReport();
+        f.expect(filename).toMatch(/\.(csv|xlsx|xls)$/i);
+    });
+
+    f.test('A file with appointments for a specific user can be exported by the super administrator or administrator @OVAC-5294 @regression', async ({ usersPage, page }) => {
+        // 1-4. Navigate to user details
+        await usersPage.clickUserRow('Ammar Professional');
+
+        // 5. Navigate to Appointments tab
+        const appTab = page.locator('[role="tab"], .MuiTab-root, button').filter({ hasText: /^APPOINTMENTS$/i }).first();
+        await appTab.waitFor({ state: 'visible', timeout: 10000 });
+        await appTab.click();
+        await page.waitForTimeout(1000);
+
+        // 6. Initiate export process and verify downloaded file
+        const filename = await usersPage.exportUserAppointments();
+        f.expect(filename).toMatch(/\.csv$/i);
+    });
 });

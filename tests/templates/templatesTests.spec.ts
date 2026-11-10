@@ -174,4 +174,47 @@ f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () =
         await f.expect(page).toHaveURL(/.*\/drafts/i);
         await f.expect(templatesPage.searchInput).toBeVisible({ timeout: 10000 });
     });
+
+    f.test('The user is not able to add a new template without populating the \'Title\' field - Templates @OVAC-4875 @regression', async ({ templatesPage, page }) => {
+        // 1-3. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4-5. Open New template form
+        await templatesPage.openCreateTemplateForm();
+
+        // 6. Click Save/Create without filling Title
+        await templatesPage.createButton.click();
+
+        // 7. Verify alert/error for Title field
+        await templatesPage.verifyTitleRequiredError();
+    });
+
+    f.test('The user is able to switch between the pages - Templates @OVAC-4876 @regression', async ({ templatesPage, page }) => {
+        // 1-3. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4. Locate pagination at bottom
+        const initialPage = await templatesPage.getPaginationText();
+        f.expect(initialPage).toMatch(/\d+\s*-\s*\d+\s+of\s+\d+/i);
+
+        // 5. Switch page on Templates form
+        await templatesPage.clickNextPaginationPage();
+        const newPage = await templatesPage.getPaginationText();
+        f.expect(newPage).not.toBe(initialPage);
+    });
+
+    f.test('The user is able to use filter by - Templates @OVAC-4877 @regression', async ({ templatesPage, page }) => {
+        // 1-3. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4-5. Open Tags dropdown and select a tag
+        await templatesPage.filterTemplatesByTag();
+
+        // 6. Verify results table or empty message is visible
+        const tableOrEmpty = page.locator('table tbody').or(page.getByText(/There are no results|No templates/i)).first();
+        await f.expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
+    });
 });

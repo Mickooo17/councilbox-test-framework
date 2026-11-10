@@ -504,4 +504,24 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 6. Observe URL - verify /consents is in the URL
         expect(page.url()).toContain('/consents');
     });
+
+    test('When creating appointment and navigating to the "Documentation" step - the URL is changing properly /documentation is added at the end of the URL @XR-2471 @OVAC-4929 @regression', async ({ proceduresPage, page }) => {
+        // 1-4. Start creation flow and populate Details
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+
+        // 5. Click Continue from Companies step to Consents step
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+
+        // 6. Click Continue from Consents step to Documentation step
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/documentation/i, { timeout: 15000 });
+
+        // 7. Observe URL - verify /documentation is at the end of the URL
+        expect(page.url()).toMatch(/.*\/documentation(\?.*)?$/i);
+    });
 });
