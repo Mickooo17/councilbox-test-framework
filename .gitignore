@@ -41,4 +41,7 @@ gh-pages-temp/
 test-results.json
 
 # Local tools & MCP servers
-tools/
+tools/
+dashboard-report.html
+dashboard-report.html.history.json
+*.trace-backup-*

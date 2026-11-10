@@ -1,0 +1,12 @@
+{
+  "name": "councilbox-trace-report",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A self-contained local Playwright HTML dashboard that runs alongside Allure.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "generate": "node scripts/generate.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

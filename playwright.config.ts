@@ -46,7 +46,8 @@ export default defineConfig({
   reporter: [
     ['line'],
     ['junit', { outputFile: 'junit-results/results.xml' }],
-    ['allure-playwright']
+    ['allure-playwright'],
+    ['./trace-dashboard/reporter.mjs', { outputFile: 'dashboard-report.html', title: 'Councilbox' }]
   ],
   use: {
     trace: 'retain-on-failure',

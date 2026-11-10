@@ -13,7 +13,8 @@
     "clean": "node clean-folders.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "report:ci": "node generate-allure-meta.js && allure generate allure-results -o allure-report"
+    "report:ci": "node generate-allure-meta.js && allure generate allure-results -o allure-report",
+    "report:dashboard": "node trace-dashboard/scripts/generate.mjs allure-report dashboard-report.html Councilbox"
   },
   "keywords": [],
   "author": "",

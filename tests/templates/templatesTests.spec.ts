@@ -113,4 +113,33 @@ f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () =
             }
         }
     });
+
+    f.test('The user is able to delete the meeting from Drafts tab - Citas section @XR-1392 @OVAC-5515 @regression', async ({ templatesPage }) => {
+        // 1-3. Navigate to Templates / Drafts page
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4. Create a draft template to delete
+        const draftData = DataGenerator.randomTemplateData();
+        await templatesPage.createTemplate(draftData);
+        await templatesPage.verifySuccessAlert();
+
+        // 5. Search for the draft and select its checkbox
+        await templatesPage.searchTemplate(draftData.name);
+        const row = templatesPage.tableBody.locator('tr', { hasText: draftData.name }).first();
+        await f.expect(row).toBeVisible({ timeout: 5000 });
+        const checkbox = row.locator('input[type="checkbox"]').first();
+        if (await checkbox.isVisible()) {
+            await checkbox.click({ force: true });
+            await f.expect(checkbox).toBeChecked();
+        }
+
+        // 6. Delete the draft and verify success alert
+        await templatesPage.deleteTemplate(draftData.name);
+        await templatesPage.verifyDeleteSuccessAlert();
+
+        // 7. Verify no longer in Drafts table
+        await templatesPage.searchTemplate(draftData.name);
+        await templatesPage.verifyTemplateNotInTable(draftData.name);
+    });
 });

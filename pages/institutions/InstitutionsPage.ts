@@ -447,4 +447,96 @@ export class InstitutionsPage extends BasePage {
             await expect(alert).toContainText(/saved successfully|guardado con éxito|correctamente/i);
         });
     }
+
+    /**
+     * Gets the company Name input value (OVAC-5741 / XR-1630).
+     */
+    async getCompanyName(): Promise<string> {
+        return await test.step('Get company Name', async () => {
+            const input = this.page.locator('input[name*="name" i], [id*="name" i]').or(
+                this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /^Name|^Nombre/i }).locator('input')
+            ).first();
+            await input.waitFor({ state: 'visible', timeout: 10000 });
+            return await input.inputValue();
+        });
+    }
+
+    /**
+     * Updates the company Name input (OVAC-5741 / XR-1630).
+     */
+    async updateCompanyName(name: string) {
+        await test.step(`Update company name to: ${name}`, async () => {
+            const input = this.page.locator('input[name*="name" i], [id*="name" i]').or(
+                this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /^Name|^Nombre/i }).locator('input')
+            ).first();
+            await input.waitFor({ state: 'visible', timeout: 10000 });
+            await input.fill(name);
+            await input.blur();
+        });
+    }
+
+    /**
+     * Gets the company VAT NO/CIF input value (OVAC-5746 / XR-1629).
+     */
+    async getCompanyCif(): Promise<string> {
+        return await test.step('Get company VAT NO/CIF', async () => {
+            const input = this.page.locator('input[name*="cif" i], input[name*="vat" i], input[name*="tax" i], [id*="cif" i], [id*="vat" i]').or(
+                this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /CIF|VAT|TAX/i }).locator('input')
+            ).first();
+            await input.waitFor({ state: 'visible', timeout: 10000 });
+            return await input.inputValue();
+        });
+    }
+
+    /**
+     * Updates the company VAT NO/CIF input (OVAC-5746 / XR-1629).
+     */
+    async updateCompanyCif(cif: string) {
+        await test.step(`Update company CIF to: ${cif}`, async () => {
+            const input = this.page.locator('input[name*="cif" i], input[name*="vat" i], input[name*="tax" i], [id*="cif" i], [id*="vat" i]').or(
+                this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /CIF|VAT|TAX/i }).locator('input')
+            ).first();
+            await input.waitFor({ state: 'visible', timeout: 10000 });
+            await input.fill(cif);
+            await input.blur();
+        });
+    }
+
+    /**
+     * Gets the contact e-mail input value (OVAC-5745 / XR-1628).
+     */
+    async getCompanyContactEmail(): Promise<string> {
+        return await test.step('Get company contact email', async () => {
+            const input = this.page.locator('input[name*="email" i], [id*="email" i], input[type="email"]').or(
+                this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /email|correo/i }).locator('input')
+            ).first();
+            await input.waitFor({ state: 'visible', timeout: 10000 });
+            return await input.inputValue();
+        });
+    }
+
+    /**
+     * Updates the contact e-mail input (OVAC-5745 / XR-1628).
+     */
+    async updateCompanyContactEmail(email: string) {
+        await test.step(`Update company contact email to: ${email}`, async () => {
+            const input = this.page.locator('input[name*="email" i], [id*="email" i], input[type="email"]').or(
+                this.page.locator('.cbx-inputText-container, .MuiFormControl-root').filter({ hasText: /email|correo/i }).locator('input')
+            ).first();
+            await input.waitFor({ state: 'visible', timeout: 10000 });
+            await input.fill(email);
+            await input.blur();
+        });
+    }
+
+    /**
+     * Navigates to Customization -> Notifications tab (OVAC-5224).
+     */
+    async navigateToCustomizationNotifications(companyId: number = 1112) {
+        await test.step(`Navigate to Customization -> Notifications for company #${companyId}`, async () => {
+            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}/personalization/notifications`);
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+        });
+    }
 }

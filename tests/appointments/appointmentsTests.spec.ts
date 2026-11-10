@@ -545,4 +545,32 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await page.keyboard.press('Escape');
   });
 
+  /**
+   * Test Case XR-3037 / OVAC-4868:
+   * Users have the option to add a "Type" column on the appointment page
+   */
+  test('Users have the option to add a Type column on the appointment page @XR-3037 @OVAC-4868 @regression', async ({
+    appointmentsPage,
+    page,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.dismissToastOrModal();
+
+    // 4. Click gear button in the table header to open column customization
+    const gearBtn = page.locator('th button:has([class*="settings" i]), th button:has(.ri-settings-3-line), th [aria-label*="Settings" i], th [class*="Settings" i]').first();
+    await expect(gearBtn).toBeVisible({ timeout: 10000 });
+    await gearBtn.click();
+    await page.waitForTimeout(500);
+
+    // 5. Select "Type" option from the menu
+    const typeOption = page.locator('[role="menuitem"], [role="option"], label, span').filter({ hasText: /^Type$|^Tipo$/i }).first();
+    await expect(typeOption).toBeVisible({ timeout: 5000 });
+    await typeOption.click();
+
+    // 6. Verify "Type" column header is now added to the table
+    const typeHeader = page.getByRole('columnheader', { name: /Type|Tipo/i });
+    await expect(typeHeader).toBeVisible({ timeout: 5000 });
+  });
+
 });

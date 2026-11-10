@@ -322,4 +322,112 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await expect(procTable).toBeVisible({ timeout: 15000 });
     });
 
+    test('The user has the ability to create a new procedure type "Process" @XR-2469 @OVAC-5781 @regression', async ({ proceduresPage, page, request }) => {
+        test.slow();
+        const procData = DataGenerator.randomProcedureData();
+
+        // 1-3. Navigate to Procedures page
+        await proceduresPage.navigateToProcedures();
+
+        // 4. Click "+" button
+        await proceduresPage.openCreateProcedureDrawer();
+
+        // 5. Click "Process"
+        const processOption = page.locator('[role="dialog"], .cbx-drawerPanel-container').getByText(/^Process$|^Proceso$/i).first();
+        await expect(processOption).toBeVisible({ timeout: 5000 });
+        await processOption.click();
+
+        // 6. Fill details and continue
+        await proceduresPage.fillProcedureDetails(procData);
+        await proceduresPage.clickContinue();
+
+        // 7-13. Advance through wizard and publish
+        await proceduresPage.advanceToReviewTab();
+        await proceduresPage.publishProcedure();
+
+        // 14. Verify procedure is created and displayed in the table
+        await proceduresPage.searchProcedure(procData.name);
+        await proceduresPage.verifyProcedureInTable(procData.name);
+
+        // Cleanup
+        await proceduresPage.deleteProcedureByNameViaApi(request, procData.name).catch(() => {});
+    });
+
+    test('The user can edit the procedure type "Process" @XR-2470 @OVAC-5797 @regression', async ({ proceduresPage, page, request }) => {
+        test.slow();
+        // 1-3. Create procedure via API
+        const procData = DataGenerator.randomProcedureData();
+        const created = await proceduresPage.createProcedureViaApi(request, {
+            title: procData.name,
+            description: procData.description,
+            companyId: 1112,
+        });
+
+        // 4. Navigate to procedures and locate row
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.searchProcedure(procData.name);
+        const row = proceduresPage.tableBody.locator('tr', { hasText: procData.name }).first();
+        await expect(row).toBeVisible({ timeout: 10000 });
+
+        // 5. Click 3-dots and select Edit
+        const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').first();
+        await actionButton.click();
+        const editItem = page.getByRole('button', { name: /Edit|Editar/i }).or(page.getByRole('menuitem', { name: /Edit|Editar/i })).first();
+        await expect(editItem).toBeVisible({ timeout: 5000 });
+        await editItem.click();
+
+        // 6. Verify Edit procedure form is opened
+        await expect(page).toHaveURL(new RegExp(`.*/procedures/${created.id}.*`, 'i'), { timeout: 10000 });
+
+        // Cleanup
+        await proceduresPage.deleteProcedureByNameViaApi(request, procData.name).catch(() => {});
+    });
+
+    test('The user can duplicate the procedure type "Process" @XR-2472 @OVAC-5796 @regression', async ({ proceduresPage, page, request }) => {
+        test.slow();
+        // 1-3. Create procedure via API
+        const procData = DataGenerator.randomProcedureData();
+        await proceduresPage.createProcedureViaApi(request, {
+            title: procData.name,
+            description: procData.description,
+            companyId: 1112,
+        });
+
+        // 4. Navigate to procedures and search
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.searchProcedure(procData.name);
+        const row = proceduresPage.tableBody.locator('tr', { hasText: procData.name }).first();
+        await expect(row).toBeVisible({ timeout: 10000 });
+
+        // 5. Click 3-dots and verify Duplicate option is present
+        const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').first();
+        await actionButton.click();
+        const dupItem = page.getByRole('button', { name: /Duplicate|Duplicar/i }).or(page.getByRole('menuitem', { name: /Duplicate|Duplicar/i })).first();
+        await expect(dupItem).toBeVisible({ timeout: 5000 });
+
+        // Cleanup
+        await page.keyboard.press('Escape');
+        await proceduresPage.deleteProcedureByNameViaApi(request, procData.name).catch(() => {});
+    });
+
+    test('The user has the capability to delete the procedure type "Process" @XR-2473 @OVAC-5795 @regression', async ({ proceduresPage, request }) => {
+        test.slow();
+        // 1-3. Create procedure via API
+        const procData = DataGenerator.randomProcedureData();
+        await proceduresPage.createProcedureViaApi(request, {
+            title: procData.name,
+            description: procData.description,
+            companyId: 1112,
+        });
+
+        // 4. Navigate to procedures and delete via UI
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.deleteProcedure(procData.name);
+        await proceduresPage.verifyDeleteSuccessAlert();
+
+        // 5. Verify no longer in table
+        await proceduresPage.searchProcedure(procData.name);
+        await proceduresPage.verifyProcedureNotInTable(procData.name);
+    });
+
 });

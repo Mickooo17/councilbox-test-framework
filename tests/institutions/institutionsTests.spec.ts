@@ -162,4 +162,64 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         await institutionsPage.saveCompanySettings();
         await institutionsPage.verifyCompanySettingsSavedAlert();
     });
+
+    f.test('Verify there is Process Created notification option @XR-3277 @OVAC-5224 @regression', async ({ institutionsPage, page }) => {
+        // 1-3. Navigate to Company settings -> Customization -> Notifications
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+
+        // 4. Verify Process Created notification option is displayed
+        const processCreatedOption = page.locator('text=/Process created|Proceso creado/i').first();
+        await expect(processCreatedOption).toBeVisible({ timeout: 10000 });
+    });
+
+    f.test('The user is able to change the Name of the company - Company settings section @XR-1630 @OVAC-5741 @regression', async ({ institutionsPage }) => {
+        // 1-3. Navigate to Company settings
+        await institutionsPage.navigateToCompanySettings(1112);
+
+        // 4. Get current name and verify it can be updated
+        const originalName = await institutionsPage.getCompanyName();
+        expect(originalName).toBeTruthy();
+
+        const testName = `${originalName} Test`;
+        await institutionsPage.updateCompanyName(testName);
+        const updatedName = await institutionsPage.getCompanyName();
+        expect(updatedName).toBe(testName);
+
+        // Restore original name
+        await institutionsPage.updateCompanyName(originalName);
+    });
+
+    f.test('The user is able to change the VAT NO/CIF - Company settings section @XR-1629 @OVAC-5746 @regression', async ({ institutionsPage }) => {
+        // 1-3. Navigate to Company settings
+        await institutionsPage.navigateToCompanySettings(1112);
+
+        // 4. Get current CIF and verify it can be edited
+        const originalCif = await institutionsPage.getCompanyCif();
+        expect(originalCif).toBeTruthy();
+
+        const testCif = 'B12345678';
+        await institutionsPage.updateCompanyCif(testCif);
+        const updatedCif = await institutionsPage.getCompanyCif();
+        expect(updatedCif).toBe(testCif);
+
+        // Restore original CIF
+        await institutionsPage.updateCompanyCif(originalCif);
+    });
+
+    f.test('The user is able to change the contact e-mail - Company settings section @XR-1628 @OVAC-5745 @regression', async ({ institutionsPage }) => {
+        // 1-3. Navigate to Company settings
+        await institutionsPage.navigateToCompanySettings(1112);
+
+        // 4. Get current contact email and verify it can be edited
+        const originalContactEmail = await institutionsPage.getCompanyContactEmail();
+        expect(originalContactEmail).toBeTruthy();
+
+        const testEmail = `contact_${DataGenerator.randomNumber(4)}@grupocastelar.es`;
+        await institutionsPage.updateCompanyContactEmail(testEmail);
+        const updatedEmail = await institutionsPage.getCompanyContactEmail();
+        expect(updatedEmail).toBe(testEmail);
+
+        // Restore original email
+        await institutionsPage.updateCompanyContactEmail(originalContactEmail);
+    });
 });

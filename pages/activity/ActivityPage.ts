@@ -622,9 +622,10 @@ export class ActivityPage extends BasePage {
       const canvas = statusesSection.locator('canvas').first();
       await canvas.waitFor({ state: 'visible', timeout: 10000 });
       const box = await canvas.boundingBox();
+      expect(box, 'Statuses chart canvas bounding box should exist').toBeTruthy();
       expect(box?.width, 'Statuses chart canvas width must be greater than 0').toBeGreaterThan(0);
       expect(box?.height, 'Statuses chart canvas height must be greater than 0').toBeGreaterThan(0);
-      await canvas.hover({ position: { x: box.width / 2, y: box.height / 2 } });
+      await canvas.hover({ position: { x: box!.width / 2, y: box!.height / 2 } });
       await this.page.waitForTimeout(500);
       await expect(canvas).toBeVisible();
     });
@@ -641,9 +642,10 @@ export class ActivityPage extends BasePage {
       const canvas = proceduresSection.locator('canvas').first();
       await canvas.waitFor({ state: 'visible', timeout: 10000 });
       const box = await canvas.boundingBox();
+      expect(box, 'Procedures chart canvas bounding box should exist').toBeTruthy();
       expect(box?.width, 'Procedures chart canvas width must be greater than 0').toBeGreaterThan(0);
       expect(box?.height, 'Procedures chart canvas height must be greater than 0').toBeGreaterThan(0);
-      await canvas.hover({ position: { x: box.width / 2, y: box.height / 2 } });
+      await canvas.hover({ position: { x: box!.width / 2, y: box!.height / 2 } });
       await this.page.waitForTimeout(500);
       await expect(canvas).toBeVisible();
     });
@@ -660,10 +662,11 @@ export class ActivityPage extends BasePage {
       const canvas = appointmentsSection.locator('canvas').first();
       await canvas.waitFor({ state: 'visible', timeout: 10000 });
       const box = await canvas.boundingBox();
+      expect(box, 'Appointments graphic canvas bounding box should exist').toBeTruthy();
       expect(box?.width, 'Appointments graphic canvas width must be greater than 0').toBeGreaterThan(0);
       expect(box?.height, 'Appointments graphic canvas height must be greater than 0').toBeGreaterThan(0);
       for (const offset of [0.25, 0.5, 0.75]) {
-        await canvas.hover({ position: { x: box.width * offset, y: box.height / 2 } });
+        await canvas.hover({ position: { x: box!.width * offset, y: box!.height / 2 } });
         await this.page.waitForTimeout(300);
       }
       await expect(canvas).toBeVisible();
