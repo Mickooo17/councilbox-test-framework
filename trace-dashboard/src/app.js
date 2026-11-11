@@ -3,6 +3,20 @@
   let report = validateReport(JSON.parse(document.getElementById('report-data').textContent));
   const state = { view: 'overview', status: 'all', query: '', project: 'all', page: 1, pageSize: 15, sort: 'default', test: null, detailTab: 'overview', attempt: 0 };
   const $ = id => document.getElementById(id);
+  const mobileNavigation = window.matchMedia('(max-width: 760px)');
+  function setSidebar(open, restoreFocus = false) {
+    const wasOpen = $('sidebar').classList.contains('open');
+    open = open && mobileNavigation.matches;
+    $('sidebar').classList.toggle('open', open);
+    $('sidebar').inert = mobileNavigation.matches && !open;
+    $('nav-scrim').hidden = !open;
+    $('menu-toggle').setAttribute('aria-expanded', String(open));
+    document.querySelector('.app-shell').inert = open;
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) $('sidebar').querySelector('a,button')?.focus();
+    else if (wasOpen && restoreFocus) $('menu-toggle').focus();
+  }
+  mobileNavigation.addEventListener('change', () => setSidebar(false));
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const icon = (name, extra = '') => `<svg class="icon ${extra}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const label = status => ({ passed: 'Passed', failed: 'Failed', flaky: 'Flaky', skipped: 'Skipped' }[status] || status);
@@ -46,7 +60,7 @@
     state.status = state.view === 'failures' ? 'failed' : 'all';
     state.query = ''; state.project = 'all'; state.page = 1;
     history.replaceState(null, '', `#${state.view}`);
-    $('sidebar').classList.remove('open'); $('menu-toggle').setAttribute('aria-expanded', 'false');
+    setSidebar(false, true);
     render();
   }
 
@@ -124,11 +138,12 @@
 
   function renderTable(compact) {
     const c = counts(), filtered = filteredTests(), pages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+    const hasFilters = state.query || state.project !== 'all' || state.status !== (state.view === 'failures' ? 'failed' : 'all');
     state.page = Math.min(state.page, pages);
     const start = (state.page - 1) * state.pageSize, rows = filtered.slice(start, start + state.pageSize);
     const options = state.view === 'failures' ? ['failed'] : ['all', 'passed', 'failed', 'flaky', 'skipped'];
     return `<section class="panel table-panel" aria-label="Test results"><div class="table-toolbar"><div class="filter-tabs" role="group" aria-label="Filter by test status">${options.map(s => `<button class="filter-tab ${state.status === s ? 'active' : ''}" data-status="${s}" aria-pressed="${state.status === s}">${s === 'all' ? 'All tests' : label(s)}<small>${s === 'all' ? c.total : c[s]}</small></button>`).join('')}</div><div class="table-actions"><label class="search-wrap">${icon('search')}<input id="test-search" type="search" placeholder="Search tests…" aria-label="Search tests" value="${esc(state.query)}"><kbd>/</kbd></label><select id="project-filter" aria-label="Filter project"><option value="all">All projects</option>${projects().map(p => `<option value="${esc(p)}" ${state.project === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>${rows.length ? `<div class="table-scroll"><table><thead><tr><th scope="col"><button class="table-sort" data-sort="name">Test name ${state.sort === 'name' ? '↑' : '↕'}</button></th><th scope="col">Status</th><th scope="col">Project</th><th scope="col"><button class="table-sort" data-sort="duration">Duration ${state.sort === 'duration' ? '↓' : '↕'}</button></th><th scope="col">Retries</th><th scope="col"><span class="muted">Detail</span></th></tr></thead><tbody>${rows.map(t => `<tr><td class="test-cell"><button class="test-title" data-test="${t.index}">${esc(t.title)}</button><div class="test-file">${esc(t.file)}${t.line ? `:${t.line}` : ''}</div></td><td>${badge(t.status)}</td><td><span class="browser-label">${icon('browser')}${esc(t.project || 'default')}</span></td><td class="duration">${esc(duration(t.duration))}</td><td class="retry-cell">${retries(t) || '—'}</td><td><button class="row-open" data-test="${t.index}" aria-label="Open ${esc(t.title)}">${icon('chevron')}</button></td></tr>`).join('')}</tbody></table></div>` : empty('No matching tests', state.query || state.status !== 'all' || state.project !== 'all' ? 'Try a different search or clear the filters.' : 'This run did not record any tests.', 'search')}
-      <div class="table-footer"><span>${filtered.length ? `Showing ${start + 1}–${start + rows.length} of ${filtered.length} tests` : '0 tests'}${filtered.length !== report.tests.length ? ` · ${report.tests.length} in this run` : ''}</span><div class="pagination"><button data-page="${state.page - 1}" ${state.page <= 1 ? 'disabled' : ''} aria-label="Previous page">←</button><span>${state.page} / ${pages}</span><button data-page="${state.page + 1}" ${state.page >= pages ? 'disabled' : ''} aria-label="Next page">→</button></div></div></section>`;
+      <div class="table-footer"><span role="status">${filtered.length ? `Showing ${start + 1}–${start + rows.length} of ${filtered.length} tests` : '0 tests'}${filtered.length !== report.tests.length ? ` · ${report.tests.length} in this run` : ''}${hasFilters ? ' <button class="button-link clear-filters" id="clear-filters">Clear filters</button>' : ''}</span><div class="pagination"><button data-page="${state.page - 1}" ${state.page <= 1 ? 'disabled' : ''} aria-label="Previous page">←</button><span>${state.page} / ${pages}</span><button data-page="${state.page + 1}" ${state.page >= pages ? 'disabled' : ''} aria-label="Next page">→</button></div></div></section>`;
   }
 
   function empty(title, message, image = 'check') {
@@ -206,9 +221,10 @@
   document.addEventListener('click', async event => {
     const el = event.target.closest('button,[data-nav]');
     if (!el || el.disabled) return;
-    if (el.dataset.nav) navigate(el.dataset.nav);
+    if (el.dataset.nav) { event.preventDefault(); navigate(el.dataset.nav); }
     else if (el.dataset.stat) { navigate('tests'); state.status = el.dataset.stat; render(); }
     else if (el.dataset.status) { state.status = el.dataset.status; state.page = 1; refreshTable(); }
+    else if (el.id === 'clear-filters') { state.status = state.view === 'failures' ? 'failed' : 'all'; state.query = ''; state.project = 'all'; state.page = 1; refreshTable(); $('test-search')?.focus(); }
     else if (el.dataset.test !== undefined) showTest(Number(el.dataset.test), el.dataset.attachmentAttempt !== undefined ? 'attachments' : 'overview', el.dataset.attachmentAttempt !== undefined ? Number(el.dataset.attachmentAttempt) : undefined);
     else if (el.dataset.detailTab) { state.detailTab = el.dataset.detailTab; renderDetail(); }
     else if (el.dataset.page) { state.page = Number(el.dataset.page); refreshTable(); }
@@ -224,7 +240,8 @@
       const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
       const a = document.createElement('a'); a.href = url; a.download = `trace-results-${report.startTime.slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Report exported as JSON');
     }
-    else if (el.id === 'menu-toggle') { const open = $('sidebar').classList.toggle('open'); el.setAttribute('aria-expanded', String(open)); }
+    else if (el.id === 'menu-toggle') setSidebar(!$('sidebar').classList.contains('open'));
+    else if (el.id === 'nav-scrim') setSidebar(false, true);
   });
   document.addEventListener('input', event => { if (event.target.id === 'test-search') { state.query = event.target.value; state.page = 1; refreshTable(); } });
   document.addEventListener('change', async event => {
@@ -246,9 +263,15 @@
     if ((event.key === '/' || (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey))) && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && !$('test-dialog').open) {
       event.preventDefault(); if (!$('test-search')) navigate('tests'); $('test-search')?.focus();
     }
-    if (event.key === 'Escape') { $('sidebar').classList.remove('open'); $('menu-toggle').setAttribute('aria-expanded', 'false'); }
+    if (event.key === 'Escape') setSidebar(false, true);
+    if (event.key === 'Tab' && $('sidebar').classList.contains('open')) {
+      const items = [...$('sidebar').querySelectorAll('a,button')];
+      const first = items[0], last = items.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
   });
   $('test-dialog').addEventListener('click', event => { if (event.target === $('test-dialog')) { const rect = event.target.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close(); } });
-  window.addEventListener('hashchange', () => navigate(location.hash.slice(1)));
+  window.addEventListener('hashchange', () => { const view = location.hash.slice(1); if (views.some(v => v.id === view)) navigate(view); });
   navigate(location.hash.slice(1) || 'overview');
 })();

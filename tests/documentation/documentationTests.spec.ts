@@ -36,4 +36,35 @@ f.test.describe.serial('Documentation - Upload and Download Document Tests', () 
         await documentationPage.deleteDocument(testDocumentName);
         await documentationPage.verifyDeleteSuccessAlert();
     });
+
+    f.test('The user is able to create a new folder - Documentation @OVAC-5292 @regression', async ({ documentationPage }) => {
+        const uniqueId = new Date().getTime();
+        const folderName = `Folder_${uniqueId}`;
+
+        // Create new folder
+        await documentationPage.createFolder(folderName);
+
+        // Verify folder appears in documentation container
+        await documentationPage.verifyFolderInContainer(folderName);
+
+        // Cleanup
+        await documentationPage.deleteFolder(folderName);
+    });
+
+    f.test('The user is able to open the folder - Documentation @OVAC-5120 @regression', async ({ documentationPage }) => {
+        // Open an existing or standard documentation folder
+        const targetFolder = '01_Inmobiliario_y_Compraventas';
+        await documentationPage.openFolder(targetFolder);
+        await f.expect(documentationPage.page.locator('#CardsContainerBody')).toBeVisible({ timeout: 10000 });
+    });
+
+    f.test('The user is able to search documents/folders by name using a search engine - Documentation @OVAC-5122 @regression', async ({ documentationPage }) => {
+        const targetItem = '01_Inmobiliario';
+
+        // Search for item by name
+        await documentationPage.searchDocument(targetItem);
+
+        // Verify search result contains target item
+        await documentationPage.verifyDocumentInTable(targetItem);
+    });
 });

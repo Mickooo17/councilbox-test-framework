@@ -21,7 +21,7 @@ f.test.describe('Templates - Tags Tests', () => {
         }
     });
 
-    f.test('should create a new tag and verify it appears in the list @smoke @regression', async ({ tagsPage }) => {
+    f.test('The user is able to search tag by code - Tags @OVAC-4873 @smoke @regression', async ({ tagsPage }) => {
         tagData = DataGenerator.randomTagData();
         await tagsPage.createTag(tagData);
         await tagsPage.searchTag(tagData.key);

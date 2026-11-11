@@ -255,6 +255,18 @@ export class InstitutionsPage extends BasePage {
     }
 
     /**
+     * Observes header and verifies that External ID label is displayed properly in Institutions table (OVAC-4959).
+     */
+    async verifyExternalIdHeaderDisplayed() {
+        await test.step('Observe header and verify External ID label is displayed properly in Institutions table', async () => {
+            const externalIdHeader = this.page.locator('table thead th, .MuiTableHead-root th')
+                .filter({ hasText: /External ID|ID externo/i })
+                .first();
+            await expect(externalIdHeader).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
      * Verifies that the Level column displays correct values (Entity / Organization) (XR-2303).
      */
     async verifyLevelColumnValues() {

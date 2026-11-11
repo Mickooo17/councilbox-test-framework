@@ -112,6 +112,23 @@ f.test.describe('Institutions - Table Columns & Administration Tests', () => {
         await institutionsPage.setMinimumAdvanceNotice(3);
         await institutionsPage.saveSchedulePeriod();
     });
+
+    f.test('When opening "Institutions" page - external ID label is displayed properly in the header @OVAC-4959 @regression', async ({ institutionsPage }) => {
+        await institutionsPage.verifyExternalIdHeaderDisplayed();
+    });
+
+    f.test('When logged in to one organization, an admin or superadmin user can view the "Institutions" entry in the left menu @OVAC-5105 @regression', async ({ institutionsPage }) => {
+        await expect(institutionsPage.institutionsButton).toBeVisible({ timeout: 10000 });
+        await expect(institutionsPage.institutionsButton).toBeEnabled();
+    });
+
+    f.test('Verify filter by type and type column in entities table are removed @OVAC-4914 @regression', async ({ page }) => {
+        const typeColumn = page.locator('table thead th, .MuiTableHead-root th').filter({ hasText: /^Type$|^Tipo$/i });
+        await expect(typeColumn).not.toBeVisible({ timeout: 5000 });
+        const filterByType = page.locator('.MuiFormControl-root, .cbx-inputText-container')
+            .filter({ hasText: /Filter by type|All type|Filtrar por tipo|Todos los tipos/i });
+        await expect(filterByType).not.toBeVisible({ timeout: 5000 });
+    });
 });
 
 f.test.describe('Institutions - Organization & Company Settings Tests', () => {

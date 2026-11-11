@@ -57,8 +57,9 @@ export async function writeReport(report, outputFile, { historyFile, historyLimi
     const entry = { startTime: report.startTime, duration: report.duration, ...summary(report.tests), errors: report.errors?.length || 0 };
     report.history = [...history.filter(h => h.startTime !== entry.startTime), entry].slice(-historyLimit);
   }
-  const [template, css, app, data] = await Promise.all(['template.html', 'styles.css', 'app.js', 'data.mjs'].map(file => readFile(path.join(here, file), 'utf8')));
+  const [template, css, app, data, theme] = await Promise.all(['template.html', 'styles.css', 'app.js', 'data.mjs', 'theme.js'].map(file => readFile(path.join(here, file), 'utf8')));
   const html = template.replace('/* INLINE_STYLES */', () => css)
+    .replace('/* INLINE_THEME */', () => theme)
     .replace('/* INLINE_APP */', () => `${data.replace(/^export /gm, '')}\n${app}`)
     .replace('/* INLINE_DATA */', () => serializeForHTML(report));
   await writeFile(output, html, 'utf8');

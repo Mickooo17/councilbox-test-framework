@@ -202,4 +202,83 @@ export class DocumentationPage extends BasePage {
             await this.page.waitForLoadState('networkidle');
         });
     }
+
+    /**
+     * Creates a new folder in Documentation (OVAC-5292).
+     */
+    async createFolder(folderName: string) {
+        await test.step(`Create new folder: ${folderName}`, async () => {
+            const fab = this.page.locator('.MuiFab-root, #add-document-button, button:has(.ri-add-line)').first();
+            await fab.waitFor({ state: 'visible', timeout: 10000 });
+            await fab.click();
+
+            const newFolderOption = this.page.getByRole('menuitem', { name: /New folder|Nueva carpeta/i })
+                .or(this.page.getByText(/New folder|Nueva carpeta/i))
+                .first();
+            await newFolderOption.waitFor({ state: 'visible', timeout: 5000 });
+            await newFolderOption.click();
+
+            const dialog = this.page.getByRole('dialog').or(this.page.locator('.MuiDialog-paper')).first();
+            await dialog.waitFor({ state: 'visible', timeout: 5000 });
+
+            const nameInput = dialog.locator('input').first();
+            await nameInput.waitFor({ state: 'visible', timeout: 5000 });
+            await nameInput.fill(folderName);
+
+            const acceptBtn = dialog.getByRole('button', { name: /Accept|Aceptar|OK/i }).first();
+            await acceptBtn.click();
+            await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        });
+    }
+
+    /**
+     * Verifies folder is visible in documentation container (OVAC-5292).
+     */
+    async verifyFolderInContainer(folderName: string) {
+        await test.step(`Verify folder "${folderName}" appears in documentation container`, async () => {
+            const folderCard = this.page.locator('#CardsContainerBody').getByText(folderName).first();
+            await expect(folderCard).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Opens an existing folder in Documentation (OVAC-5120).
+     */
+    async openFolder(folderName: string) {
+        await test.step(`Open folder: ${folderName}`, async () => {
+            const folderItem = this.page.locator('#CardsContainerBody')
+                .locator('div')
+                .filter({ hasText: folderName })
+                .first();
+            await folderItem.waitFor({ state: 'visible', timeout: 10000 });
+            await folderItem.click();
+            await this.page.waitForTimeout(1000);
+            await expect(this.page.getByText(folderName).first()).toBeVisible({ timeout: 10000 });
+        });
+    }
+
+    /**
+     * Deletes a folder in Documentation.
+     */
+    async deleteFolder(folderName: string) {
+        await test.step(`Delete folder: ${folderName}`, async () => {
+            await this.dismissToastOrModal();
+            const card = this.page.locator('#CardsContainerBody')
+                .locator('div')
+                .filter({ hasText: folderName });
+            const actionMenu = card.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button').last();
+            await actionMenu.waitFor({ state: 'visible', timeout: 5000 });
+            await actionMenu.click();
+
+            const deleteOption = this.page.getByRole('menuitem', { name: /Delete|Eliminar/i })
+                .or(this.page.getByText(/Delete|Eliminar/i))
+                .first();
+            await deleteOption.waitFor({ state: 'visible', timeout: 5000 });
+            await deleteOption.click();
+
+            const dialog = this.page.getByRole('dialog').first();
+            await dialog.getByRole('button', { name: /Accept|Aceptar/i }).click();
+            await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        });
+    }
 }

@@ -56,6 +56,7 @@ Playwright JSON files should be produced with its JSON reporter. Prefixes from d
 
 ## Features
 
+- Light, dark, and system appearance, with a saved browser preference and no external assets.
 - Run totals, duration, pass rate, and results by browser/project.
 - Search test names, files, tags, suites, and errors. Filter by status and project; sort by name or duration.
 - Failure patterns, complete error messages, nested steps, retry attempts, and console output.
@@ -63,6 +64,7 @@ Playwright JSON files should be produced with its JSON reporter. Prefixes from d
 - Actual execution timeline by worker and project.
 - Up to 30 run summaries with the live reporter, persisted next to the HTML as `dashboard-report.html.history.json`.
 - JSON import/export, keyboard search (`/` or Ctrl/Cmd+K), accessible details dialog, responsive layout, and print styles.
+- Clear active filters in one click; mobile navigation supports backdrop dismissal, Escape, and keyboard focus.
 
 Screenshots, videos, and traces are embedded up to 5 MB per attachment and 30 MB total by default. Screenshots get priority. Missing or larger artifacts are explicitly labeled unavailable. The reporter accepts `maxAttachmentBytes` and `maxTotalAttachmentBytes` to change these limits. Pass `history: false` to disable history. Keep the history file between test runs; the HTML itself remains fully portable.
 

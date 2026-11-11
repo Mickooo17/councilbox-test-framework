@@ -524,4 +524,35 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 7. Observe URL - verify /documentation is at the end of the URL
         expect(page.url()).toMatch(/.*\/documentation(\?.*)?$/i);
     });
+
+    test('User is able to click on the \'Procedures\' button @OVAC-5625 @regression', async ({ proceduresPage, page }) => {
+        await proceduresPage.proceduresButton.click();
+        await expect(page).toHaveURL(/.*\/procedures/i, { timeout: 15000 });
+        await expect(proceduresPage.addProcedureButton).toBeVisible({ timeout: 10000 });
+    });
+
+    test('Verify new add consent window is added to create the procedures page @OVAC-4890 @regression', async ({ proceduresPage, page }) => {
+        // 1-4. Start creation flow and populate Details
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+
+        // 5. Click Continue from Companies step to Consents step
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+
+        // 6. Click Add button to open add consent window / drawer
+        const addConsentBtn = page.getByRole('button', { name: /^Add$|^Añadir$/i })
+            .or(page.locator('.MuiFab-root, button.MuiFab-primary'))
+            .first();
+        await addConsentBtn.waitFor({ state: 'visible', timeout: 10000 });
+        await addConsentBtn.click({ force: true });
+
+        // 7. Verify add procedure step / consent dialog is visible with Consents option
+        const stepDialog = page.getByRole('dialog').filter({ hasText: /Add procedure step|Consents|Consentimientos|Añadir paso del procedimiento/i }).first();
+        await expect(stepDialog).toBeVisible({ timeout: 10000 });
+        await expect(stepDialog.getByText(/Consents|Consentimientos/i).first()).toBeVisible({ timeout: 5000 });
+    });
 });

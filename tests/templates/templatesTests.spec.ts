@@ -43,6 +43,24 @@ f.test.describe('Templates - Search Tests', () => {
         await templatesPage.searchTemplate(nonExistentName);
         await templatesPage.verifyNoSearchResults();
     });
+
+    f.test('The user is able to search templates by name - Templates @OVAC-4872 @regression', async ({ templatesPage }) => {
+        const templateData = DataGenerator.randomTemplateData();
+
+        // 1. Create a template to search for
+        await templatesPage.createTemplate(templateData);
+        await templatesPage.verifySuccessAlert();
+
+        // 2. Search template by name
+        await templatesPage.searchTemplate(templateData.name);
+
+        // 3. Verify matching template is displayed in table
+        await templatesPage.verifyTemplateInTable(templateData.name);
+
+        // 4. Cleanup
+        await templatesPage.deleteTemplate(templateData.name);
+        await templatesPage.verifyDeleteSuccessAlert();
+    });
 });
 
 f.test.describe('Templates - Full Lifecycle Tests', () => {
