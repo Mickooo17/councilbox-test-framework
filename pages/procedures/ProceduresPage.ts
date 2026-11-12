@@ -97,13 +97,13 @@ export class ProceduresPage extends BasePage {
         this.addConsentButton = page.getByRole('button', { name: /^Add$|^Añadir$/i }).or(page.locator('.MuiFab-root, button.MuiFab-primary')).first();
         this.folderTitleInput = page.locator('#document-editor-title-input').or(page.getByLabel(/Title/i)).first();
         this.consentTitleInput = page.locator('#agenda-editor-title-input').or(page.getByLabel(/Title/i)).first();
-        this.searchProceduresInput = page.getByPlaceholder('Search for procedures').or(page.locator('input[placeholder*="Search" i]')).first();
+        this.searchProceduresInput = page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
         this.tableBody = page.locator('tbody');
 
         // Configuration - General
         this.generalHeading = page.getByRole('heading', { name: /General/i }).or(page.getByText(/^General$/i)).first();
         this.languagesHeading = page.getByRole('heading', { name: /Languages|Idiomas/i }).or(page.getByText(/^LANGUAGES$|^IDIOMAS$/i)).first();
-        this.languagesDescription = page.getByText(/Languages available for the procedure|Idiomas disponibles/i).first();
+        this.languagesDescription = page.getByText(/Languages available for the procedure|Idiomas disponibles|Idiomas en los que se encuentra disponible/i).first();
         this.languageOptionEspanol = page.getByText('Español').first();
         this.languageOptionEnglish = page.getByText('English').first();
         this.languageOptionGalego = page.getByText('Galego').first();
@@ -613,7 +613,7 @@ export class ProceduresPage extends BasePage {
                 await acceptBtn.click({ force: true });
             }
 
-            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForLoadState('domcontentloaded');
             await this.page.waitForTimeout(2000);
         });
     }
@@ -628,7 +628,7 @@ export class ProceduresPage extends BasePage {
     async openProcedureFromList(name: string) {
         await test.step(`Open procedure from list: "${name}"`, async () => {
             await this.navigateToProcedures();
-            const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
+            const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
             await searchInput.waitFor({ state: 'visible', timeout: 10000 });
             await searchInput.fill(name);
             await this.page.waitForTimeout(1000);
@@ -697,7 +697,7 @@ export class ProceduresPage extends BasePage {
 
     async searchProcedure(name: string) {
         await test.step(`Search procedure: "${name}"`, async () => {
-            const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
+            const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
             await searchInput.waitFor({ state: 'visible', timeout: 10000 });
             await searchInput.fill(name);
             await this.page.waitForTimeout(1000);
@@ -739,9 +739,39 @@ export class ProceduresPage extends BasePage {
         });
     }
 
+    async openEditProcedureFromRow(name: string) {
+        await test.step(`Open Edit form for procedure: "${name}"`, async () => {
+            const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
+            if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+                await searchInput.fill(name);
+                await this.page.waitForTimeout(1000);
+            }
+            const row = this.page.getByRole('row', { name: new RegExp(name, 'i') }).or(
+                this.tableBody.locator('tr').filter({ hasText: name })
+            ).first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+            await row.hover().catch(() => {});
+
+            const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').or(
+                row.getByRole('button')
+            ).first();
+            await actionButton.scrollIntoViewIfNeeded();
+            await actionButton.click();
+            await this.page.waitForTimeout(500);
+
+            const editMenuItem = this.page.getByRole('button', { name: /Edit|Editar/i })
+                .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+                .or(this.page.getByText(/^Edit$|^Editar$/i))
+                .first();
+            await editMenuItem.waitFor({ state: 'visible', timeout: 5000 });
+            await editMenuItem.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
     async deleteProcedure(name: string, reason: string = 'test something') {
         await test.step(`Delete procedure: ${name}`, async () => {
-            const searchInput = this.page.getByPlaceholder('Search for procedures').or(this.page.locator('input[placeholder*="Search" i]')).first();
+            const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
 
             // Only navigate if search input is not already on screen
             if (!await searchInput.isVisible({ timeout: 1500 }).catch(() => false)) {

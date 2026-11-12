@@ -555,4 +555,147 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await expect(stepDialog).toBeVisible({ timeout: 10000 });
         await expect(stepDialog.getByText(/Consents|Consentimientos/i).first()).toBeVisible({ timeout: 5000 });
     });
+
+    test('When creating appointment and navigating to the "Configuration" step - the URL is changing properly /configuration is added at the end of the URL @OVAC-4930 @regression', async ({ proceduresPage, page }) => {
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/documentation/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+        expect(page.url()).toMatch(/.*\/configuration(\?.*)?$/i);
+    });
+
+    test('When creating appointment and navigating to the "Review" step - the URL is changing properly /review is added at the end of the URL @OVAC-4924 @regression', async ({ proceduresPage, page }) => {
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/documentation/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/review/i, { timeout: 15000 });
+        expect(page.url()).toMatch(/.*\/review(\?.*)?$/i);
+    });
+
+    test('Verify that all fields on the Configuration tab are displayed while creating the procedure - Procedure @OVAC-5029 @regression', async ({ proceduresPage, page }) => {
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/documentation/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+
+        // Verify Configuration tab sections: General, Languages, Security, Evidence
+        await expect(page.getByRole('heading', { name: /General/i }).first()).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(/Español|Spanish/i).first()).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText(/English/i).first()).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: /Security|Seguridad/i }).or(page.getByText(/Security|Seguridad/i)).first()).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText(/Identificación personal|Personal identification/i).first()).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText(/Grabación|Recording|Evidencias|Evidence/i).first()).toBeVisible({ timeout: 5000 });
+
+        // Advance to Review
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/review/i, { timeout: 15000 });
+        expect(page.url()).toMatch(/.*\/review(\?.*)?$/i);
+    });
+
+    test('Ovac - Browsing beetwen tabs in new Procedure creation @OVAC-5094 @regression', async ({ proceduresPage, page }) => {
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/companies/i, { timeout: 15000 });
+
+        await proceduresPage.clickStepperTab('Documentation');
+        await page.waitForURL(/.*\/documentation/i, { timeout: 15000 });
+        expect(page.url()).toContain('/documentation');
+
+        await proceduresPage.clickStepperTab('Configuration');
+        await page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+        expect(page.url()).toContain('/configuration');
+
+        await proceduresPage.clickStepperTab('Details');
+        await page.waitForURL(/.*\/details/i, { timeout: 15000 });
+        expect(page.url()).toContain('/details');
+    });
+
+    test('Without the consents, new procedures can be created - Procedures @OVAC-5293 @regression', async ({ proceduresPage, page }) => {
+        test.slow();
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/consents/i, { timeout: 15000 });
+
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/documentation/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/configuration/i, { timeout: 15000 });
+        await proceduresPage.clickContinue();
+        await page.waitForURL(/.*\/review/i, { timeout: 15000 });
+
+        await proceduresPage.publishProcedure();
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.searchProcedure(procedureData.name);
+        await proceduresPage.verifyProcedureInTable(procedureData.name);
+    });
+
+    test('The user is able to add procedure - Procedures @OVAC-4892 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.publishProcedure();
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.searchProcedure(procedureData.name);
+        await proceduresPage.verifyProcedureInTable(procedureData.name);
+    });
+
+    test('The user is able to Edit already existing procedure - Procedures @OVAC-4896 @regression', async ({ proceduresPage, page }) => {
+        test.slow();
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.clickContinue();
+        await proceduresPage.publishProcedure();
+
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.openEditProcedureFromRow(procedureData.name);
+
+        const updatedDescription = `${procedureData.description} - Edited`;
+        await proceduresPage.procedureDescriptionEditor.waitFor({ state: 'visible', timeout: 10000 });
+        await proceduresPage.procedureDescriptionEditor.fill(updatedDescription);
+        await proceduresPage.clickContinue();
+        await expect(page).toHaveURL(/.*\/companies/i, { timeout: 15000 });
+    });
 });

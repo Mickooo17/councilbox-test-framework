@@ -34,6 +34,106 @@ f.test.describe('User Profile & Password Expiration Settings', () => {
         await userProfilePage.verifyProfileSavedAlert();
     });
 
+    f.test('The user is able to change the Name - Users settings section @OVAC-5763 @regression', async ({ userProfilePage }) => {
+        await userProfilePage.navigateToUserSettings();
+        const originalName = await userProfilePage.getName();
+        expect(originalName).toBeTruthy();
+
+        const testName = `${originalName}Test`;
+        await userProfilePage.editName(testName);
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+
+        expect(await userProfilePage.getName()).toBe(testName);
+
+        // Restore original name
+        await userProfilePage.editName(originalName);
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+    });
+
+    f.test('The user is able to change the Surname - Users settings section @OVAC-5762 @regression', async ({ userProfilePage }) => {
+        await userProfilePage.navigateToUserSettings();
+        const originalSurname = await userProfilePage.getSurname();
+        expect(originalSurname).toBeTruthy();
+
+        const testSurname = `${originalSurname}Test`;
+        await userProfilePage.editSurname(testSurname);
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+
+        expect(await userProfilePage.getSurname()).toBe(testSurname);
+
+        // Restore original surname
+        await userProfilePage.editSurname(originalSurname);
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+    });
+
+    f.test('The user is able to change the Telephone number - Users settings section @OVAC-5765 @regression', async ({ userProfilePage }) => {
+        await userProfilePage.navigateToUserSettings();
+        const originalPhone = await userProfilePage.getTelephone();
+
+        const testPhone = `6${Math.floor(10000000 + Math.random() * 90000000)}`;
+        await userProfilePage.editTelephone(testPhone);
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+
+        expect(await userProfilePage.getTelephone()).toContain(testPhone);
+
+        // Restore original phone
+        if (originalPhone) {
+            await userProfilePage.editTelephone(originalPhone);
+            await userProfilePage.saveProfile();
+            await userProfilePage.verifyProfileSavedAlert();
+        }
+    });
+
+    f.test('The user is able to change the Language to Español - Users settings section @OVAC-5645 @regression', async ({ userProfilePage, page }) => {
+        await userProfilePage.navigateToUserSettings();
+        await userProfilePage.selectLanguage('Español');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+        expect(await userProfilePage.getLanguage()).toMatch(/Español|Spanish/i);
+    });
+
+    f.test('The user is able to change the Language to English - Users settings section @OVAC-5787 @regression', async ({ userProfilePage, page }) => {
+        await userProfilePage.navigateToUserSettings();
+        await userProfilePage.selectLanguage('English');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+        expect(await userProfilePage.getLanguage()).toMatch(/English|Inglés|Ingles/i);
+    });
+
+    f.test('The user is able to change the Language to Catalá - Users settings section @OVAC-5646 @regression', async ({ userProfilePage, page }) => {
+        await userProfilePage.navigateToUserSettings();
+        await userProfilePage.selectLanguage('Català');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+        expect(await userProfilePage.getLanguage()).toMatch(/Català|Catala/i);
+    });
+
+    f.test('The user is able to change the Language to Euskera - Users settings section @OVAC-5647 @regression', async ({ userProfilePage, page }) => {
+        await userProfilePage.navigateToUserSettings();
+        await userProfilePage.selectLanguage('Euskera');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+        expect(await userProfilePage.getLanguage()).toMatch(/Euskera|Basque/i);
+    });
+
+    f.test('The user is able to change the Language to Italiano - Users settings section @OVAC-5651 @regression', async ({ userProfilePage, page }) => {
+        await userProfilePage.navigateToUserSettings();
+        await userProfilePage.selectLanguage('Italiano');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+        expect(await userProfilePage.getLanguage()).toMatch(/Italiano|Italian/i);
+
+        // Restore back to English
+        await userProfilePage.selectLanguage('English');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+    });
+
     f.test('Verify user is able to deactivate password expiration @XR-3054 @smoke @regression', async ({ userProfilePage }) => {
         await userProfilePage.navigateToProfileOptions();
 
