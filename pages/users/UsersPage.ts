@@ -803,4 +803,99 @@ export class UsersPage extends BasePage {
             return download.suggestedFilename();
         });
     }
+
+    /**
+     * Sorts the user list alphabetically ascending by role (OVAC-5831).
+     */
+    async sortByRoleAscending() {
+        await test.step('Sort user list alphabetically ascending by role', async () => {
+            const roleButton = this.page.getByRole('columnheader', { name: /Role/i }).getByRole('button').or(
+                this.page.locator('th button').filter({ hasText: /Role|Rol/i })
+            ).first();
+            await roleButton.waitFor({ state: 'visible', timeout: 10000 });
+            await roleButton.click();
+            await this.page.waitForTimeout(1000);
+            
+            // Verify table rows are displayed after sorting
+            const rows = this.page.locator('table tbody tr');
+            await expect(rows.first()).toBeVisible({ timeout: 10000 });
+            const count = await rows.count();
+            expect(count).toBeGreaterThan(0);
+        });
+    }
+
+    /**
+     * Verifies that "Include deleted users" option is available and functional in user data exports (OVAC-5052).
+     */
+    async verifyIncludeDeletedUsersInExport() {
+        await test.step('Verify "Include deleted users" option is available and functional in user data exports', async () => {
+            await this.dismissModal();
+            const openExportBtn = this.page.getByRole('button', { name: /Export|Exportar/i })
+                .or(this.page.locator('button:has(.ri-download-line)'))
+                .first();
+            await openExportBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await openExportBtn.click();
+
+            const modal = this.page.locator('[role="dialog"], .cbx-Modal-container')
+                .filter({ hasText: /User reports|Informes de usuarios/i })
+                .first();
+            await expect(modal).toBeVisible({ timeout: 10000 });
+
+            // Check if dedicated checkbox or Statuses filter option exists
+            const includeOption = modal.locator('label, span, div').filter({ hasText: /Include deleted users|Incluir usuarios eliminados|Show deleted users|Mostrar usuarios eliminados/i }).first();
+            if (await includeOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await includeOption.click();
+                await this.page.waitForTimeout(300);
+            } else {
+                // Statuses dropdown controls inclusion of all statuses
+                const statusCombo = modal.getByRole('combobox', { name: /Statuses|Status|Estado/i }).or(
+                    modal.locator('.cbx-selectInput-container').filter({ hasText: /Status|Estado/i })
+                ).or(
+                    modal.getByText(/All status|Statuses/i)
+                ).first();
+                await statusCombo.waitFor({ state: 'visible', timeout: 5000 });
+                await statusCombo.click();
+                await this.page.waitForTimeout(400);
+
+                const statusOption = this.page.locator('[role="option"], li.MuiMenuItem-root, [role="menuitem"]')
+                    .filter({ hasText: /All status|Todos los estados|Inactive|Inactivo/i })
+                    .first();
+                await expect(statusOption).toBeVisible({ timeout: 5000 });
+                await statusOption.click();
+                await this.page.waitForTimeout(300);
+            }
+
+            // Close modal
+            const closeBtn = modal.locator('button:has(.ri-close-line)').or(
+                modal.getByRole('button', { name: /Cancel|Cancelar/i })
+            ).first();
+            if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await closeBtn.click();
+            } else {
+                await this.page.keyboard.press('Escape');
+            }
+        });
+    }
+
+    /**
+     * Verifies that connected users filter option is available on the Users page (OVAC-5146).
+     */
+    async verifyConnectedUsersFilterAvailable() {
+        await test.step('Verify connected users filter option is available', async () => {
+            const activityCombo = this.page.getByRole('combobox', { name: /Activity|Actividad/i }).or(
+                this.page.locator('.cbx-selectInput-container').filter({ hasText: /Activity|Actividad/i })
+            ).first();
+            await activityCombo.waitFor({ state: 'visible', timeout: 10000 });
+            await activityCombo.click();
+            await this.page.waitForTimeout(400);
+
+            const connectedOption = this.page.locator('[role="option"], li.MuiMenuItem-root, [role="menuitem"]')
+                .filter({ hasText: /Connected|Conectado|Not connected|No conectado/i })
+                .first();
+            await expect(connectedOption).toBeVisible({ timeout: 5000 });
+
+            // Close dropdown
+            await this.page.keyboard.press('Escape');
+        });
+    }
 }

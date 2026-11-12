@@ -859,4 +859,51 @@ export class ProceduresPage extends BasePage {
             await expect(alert).toContainText(MESSAGES.PROCEDURE_DELETED, { timeout: 10000 });
         });
     }
+
+    /**
+     * Filters procedures by Status (Draft or Published) (OVAC-4932).
+     */
+    async filterProceduresByStatus(status: 'Draft' | 'Published') {
+        await test.step(`Filter procedures by status: ${status}`, async () => {
+            const statusFilter = this.page.locator('.cbx-selectInput-container').filter({ hasText: /Status|Estado/i }).first();
+            await statusFilter.waitFor({ state: 'visible', timeout: 10000 });
+            await statusFilter.click();
+            await this.page.waitForTimeout(400);
+
+            const statusRegex = status === 'Draft' ? /^Draft$|^Borrador$/i : /^Published$|^Publicado$/i;
+            const option = this.page.locator('[role="option"], li.MuiMenuItem-root, .MuiMenuItem-root')
+                .filter({ hasText: statusRegex }).first();
+            await option.waitFor({ state: 'visible', timeout: 5000 });
+            await option.click();
+            await this.page.waitForTimeout(1000);
+        });
+    }
+
+    /**
+     * Verifies procedure status filter retains the expected status (OVAC-4932).
+     */
+    async verifyProcedureStatusFilterPreserved(expectedStatus: 'Draft' | 'Published') {
+        await test.step(`Verify procedure status filter retains: ${expectedStatus}`, async () => {
+            const statusFilter = this.page.locator('.cbx-selectInput-container').filter({ hasText: /Status|Estado/i }).first();
+            await expect(statusFilter).toBeVisible({ timeout: 10000 });
+            const statusRegex = expectedStatus === 'Draft' ? /Draft|Borrador/i : /Published|Publicado/i;
+            await expect(statusFilter).toContainText(statusRegex);
+        });
+    }
+
+    /**
+     * Renames an existing procedure from the procedures list (OVAC-4897).
+     */
+    async renameProcedure(oldName: string, newName: string) {
+        await test.step(`Rename procedure from "${oldName}" to "${newName}"`, async () => {
+            await this.openEditProcedureFromRow(oldName);
+            await this.procedureNameInput.waitFor({ state: 'visible', timeout: 10000 });
+            await this.procedureNameInput.fill(newName);
+            await this.clickContinue();
+            await this.page.waitForTimeout(1000);
+            await this.navigateToProcedures();
+            await this.searchProcedure(newName);
+            await this.verifyProcedureInTable(newName);
+        });
+    }
 }

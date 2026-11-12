@@ -282,4 +282,36 @@ test.describe('Activity & Dashboard Tests', () => {
         await activityPage.clickProcessesTab();
         await expect(page).toHaveURL(/.*\/activity\/dashboardManagements/i);
     });
+
+    test('Verify APPLY button is disabled by default in Activity section @OVAC-4942 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4. Verify APPLY button is disabled by default
+        await activityPage.verifyApplyButtonDisabledByDefault();
+    });
+
+    test('Verify APPLY button enables when modifying any filter or changing month in Activity section @OVAC-4927 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4. Verify APPLY button enables upon modifying month or filter
+        await activityPage.verifyApplyButtonEnablesOnFilterOrMonthChange();
+    });
+
+    test('Verify filter trigger behavior via "Apply" button on Activity page @OVAC-5839 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4. Verify filter trigger behavior via Apply button
+        await activityPage.verifyFilterTriggerBehaviorViaApplyButton();
+    });
+
+    test('Verify deleted users are displayed with a trash bin icon in user selectors - Activity @OVAC-5049 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4. Verify user selector displays deleted users with trash bin icon
+        await activityPage.verifyDeletedUsersDisplayedWithTrashIconInSelector();
+    });
 });

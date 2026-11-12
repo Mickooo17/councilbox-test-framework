@@ -235,4 +235,25 @@ f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () =
         const tableOrEmpty = page.locator('table tbody').or(page.getByText(/There are no results|No templates/i)).first();
         await f.expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
     });
+
+    f.test('The user is able to edit already existing template - Templates @OVAC-4871 @regression', async ({ templatesPage, page }) => {
+        // 1-3. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4. Create initial template
+        const initialData = DataGenerator.randomTemplateData();
+        await templatesPage.createTemplate(initialData);
+
+        // 5. Edit existing template to new name
+        const updatedName = `${initialData.name}_EDITED`;
+        await templatesPage.editTemplate(initialData.name, updatedName);
+
+        // 6. Search for updated template name and verify in table
+        await templatesPage.searchTemplate(updatedName);
+        await templatesPage.verifyTemplateInTable(updatedName);
+
+        // 7. Cleanup
+        await templatesPage.deleteTemplate(updatedName);
+    });
 });

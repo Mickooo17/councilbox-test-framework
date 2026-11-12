@@ -521,4 +521,139 @@ export class AppointmentsPage extends BasePage {
     });
   }
 
+  /**
+   * Verifies "Type of meetings" filter contains all available appointment types (OVAC-5142).
+   */
+  async verifyMeetingTypesFilterContainsTypes() {
+    await test.step('Verify "Type of meetings" filter contains all available appointment types in the appointment list', async () => {
+      await this.dismissToastOrModal();
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      const eqBtn = this.page.locator('button:has(.ri-equalizer-line)').first();
+      await eqBtn.waitFor({ state: 'visible', timeout: 15000 });
+      await eqBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const filterDialog = this.page.getByRole('dialog').filter({ hasText: /Filters|Filtros/i }).first();
+      await expect(filterDialog).toBeVisible({ timeout: 10000 });
+
+      // In the filter drawer, find the combobox for Type of meeting
+      const meetingTypeCombo = filterDialog.getByRole('combobox', { name: /Type of meeting|Tipo de cita/i });
+      await meetingTypeCombo.waitFor({ state: 'attached', timeout: 5000 });
+      await meetingTypeCombo.evaluate((el: HTMLElement) => {
+        el.scrollIntoView();
+        el.click();
+      });
+      await this.page.waitForTimeout(500);
+
+      const listbox = this.page.locator('ul[role="listbox"], [role="listbox"]').last();
+      await expect(listbox).toBeVisible({ timeout: 5000 });
+
+      const options = listbox.locator('[role="option"], li');
+      const count = await options.count();
+      expect(count).toBeGreaterThan(1);
+
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(300);
+      await this.page.keyboard.press('Escape');
+    });
+  }
+
+  /**
+   * Verifies alert icon is hidden for appointments in Canceled status (OVAC-4937).
+   */
+  async verifyAlertIconHiddenForCanceledAppointments() {
+    await test.step('Verify alert icon is hidden for appointments in Canceled status', async () => {
+      await this.dismissToastOrModal();
+      await this.filterByStatus('Canceled');
+      await this.page.waitForTimeout(1000);
+
+      const row = this.tableRows.first();
+      await row.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Verify alert icon is hidden / not displayed in canceled rows
+      const alertIcon = row.locator('.ri-alert-line, .ri-error-warning-line, svg[data-testid*="Warning"], .cbx-table-alert');
+      const count = await alertIcon.count();
+      expect(count).toBe(0);
+    });
+  }
+
+  /**
+   * Verifies "Send notification" option is present in actions menu in Confirmed status (OVAC-4928).
+   */
+  async verifySendNotificationOptionInActionsMenu(identifier?: string | number) {
+    await test.step('Verify "Send notification" option is present in actions menu in Confirmed status', async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const sendNotifOption = this.page.getByText(/^Send notification$|^Enviar notificación$/i).or(
+        this.page.locator('li, [role="menuitem"], button').filter({ hasText: /Send notification|Enviar notificación/i })
+      ).first();
+      await expect(sendNotifOption).toBeVisible({ timeout: 5000 });
+
+      await this.page.keyboard.press('Escape');
+    });
+  }
+
+  /**
+   * Verifies Record number field is displayed in Details section for appointments (OVAC-5104).
+   */
+  async verifyRecordNumberInAppointmentDetails(identifier?: string | number) {
+    await test.step('Verify Record number field is displayed in Details section for appointments', async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Verify Record column header or cell in table
+      const recordHeader = this.appointmentsTable.locator('th').filter({ hasText: /Record|Expediente|Nº expediente/i }).first();
+      const recordCell = targetRow.locator('td').filter({ hasText: /\d+/ }).first();
+      if (await recordHeader.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await expect(recordHeader).toBeVisible();
+        await expect(recordCell).toBeVisible();
+      } else {
+        await recordCell.click();
+        await this.page.waitForTimeout(1000);
+        const recordNumberField = this.page.locator('text=/Record number|Número de expediente|Expediente|Record|Nº de expediente/i').first();
+        await expect(recordNumberField).toBeVisible({ timeout: 10000 });
+        await this.page.keyboard.press('Escape');
+      }
+    });
+  }
+
+  /**
+   * Verifies Record number is displayed in the appointment preview (OVAC-5116).
+   */
+  async verifyRecordNumberInAppointmentPreview(identifier?: string | number) {
+    await test.step('Verify Record number is displayed in the appointment preview', async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Record number / Expediente is displayed on row and in preview
+      const recordField = targetRow.locator('td').filter({ hasText: /\d+/ }).first().or(
+        this.page.locator('text=/Expediente|Record number|Número de expediente/i')
+      ).first();
+      await expect(recordField).toBeVisible({ timeout: 10000 });
+    });
+  }
 }

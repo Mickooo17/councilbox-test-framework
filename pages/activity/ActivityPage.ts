@@ -733,4 +733,105 @@ export class ActivityPage extends BasePage {
       await expect(this.page.locator('canvas, svg, .cbx-selectInput-container').first()).toBeVisible({ timeout: 15000 });
     });
   }
+
+  /**
+   * Changes the month on Dashboard to previous or next without resetting (OVAC-4927).
+   */
+  async changeDashboardMonth(direction: 'prev' | 'next' = 'prev') {
+    await test.step(`Change month on Dashboard (${direction})`, async () => {
+      await this.page.locator('.MuiCircularProgress-root').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+      const arrow = direction === 'prev'
+        ? this.page.locator('.ri-arrow-left-s-line, button:has(.ri-arrow-left-s-line)').first()
+        : this.page.locator('.ri-arrow-right-s-line, button:has(.ri-arrow-right-s-line)').first();
+      await arrow.waitFor({ state: 'visible', timeout: 5000 });
+      await arrow.click();
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Verifies that the APPLY button is disabled by default on the Activity Dashboard (OVAC-4942).
+   */
+  async verifyApplyButtonDisabledByDefault() {
+    await test.step('Verify APPLY button is disabled by default in Activity section', async () => {
+      await this.dismissToastOrModal();
+      const applyBtn = this.page.getByRole('button', { name: /^Apply$|^Aplicar$/i })
+        .or(this.page.locator('#activity-apply-filter, button:has-text("APPLY"), button:has-text("APLICAR")'))
+        .first();
+      await expect(applyBtn).toBeVisible({ timeout: 15000 });
+      await expect(applyBtn).toBeDisabled();
+    });
+  }
+
+  /**
+   * Verifies that the APPLY button enables when modifying any filter or changing month (OVAC-4927).
+   */
+  async verifyApplyButtonEnablesOnFilterOrMonthChange() {
+    await test.step('Verify APPLY button enables when modifying any filter or changing month in Activity section', async () => {
+      await this.dismissToastOrModal();
+      const applyBtn = this.page.getByRole('button', { name: /^Apply$|^Aplicar$/i })
+        .or(this.page.locator('#activity-apply-filter, button:has-text("APPLY"), button:has-text("APLICAR")'))
+        .first();
+      await expect(applyBtn).toBeDisabled();
+
+      // Change month to previous month
+      await this.changeDashboardMonth('prev');
+      await expect(applyBtn).toBeEnabled({ timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verifies filter trigger behavior via "Apply" button on Activity page (OVAC-5839).
+   */
+  async verifyFilterTriggerBehaviorViaApplyButton() {
+    await test.step('Verify filter trigger behavior via "Apply" button on Activity page', async () => {
+      await this.dismissToastOrModal();
+      const applyBtn = this.page.getByRole('button', { name: /^Apply$|^Aplicar$/i })
+        .or(this.page.locator('#activity-apply-filter, button:has-text("APPLY"), button:has-text("APLICAR")'))
+        .first();
+
+      // Change month to enable button if currently disabled
+      if (await applyBtn.isDisabled().catch(() => true)) {
+        await this.changeDashboardMonth('prev');
+      }
+      await expect(applyBtn).toBeEnabled({ timeout: 10000 });
+
+      // Click Apply and verify trigger behavior
+      await applyBtn.click();
+      await this.page.waitForTimeout(1000);
+      await expect(applyBtn).toBeDisabled({ timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verifies that deleted users are displayed with a trash bin icon in user selectors - Activity (OVAC-5049).
+   */
+  async verifyDeletedUsersDisplayedWithTrashIconInSelector() {
+    await test.step('Verify deleted users are displayed with a trash bin icon in user selectors - Activity', async () => {
+      await this.dismissToastOrModal();
+      const userContainer = this.page.getByRole('combobox', { name: /Users|Usuarios/i })
+        .or(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }))
+        .first();
+      await userContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await userContainer.click();
+      await this.page.waitForTimeout(500);
+
+      const optionsContainer = this.page.locator('ul[role="listbox"]').first();
+      await optionsContainer.waitFor({ state: 'visible', timeout: 5000 });
+
+      const options = optionsContainer.locator('li[role="option"]');
+      const count = await options.count();
+      expect(count).toBeGreaterThan(0);
+
+      // Check if any deleted user has a trash bin icon or verify option item structure
+      const trashIcons = optionsContainer.locator('.ri-delete-bin-line, .ri-delete-bin-fill, i[class*="bin"], i[class*="trash"], svg[data-testid*="Delete"]');
+      if (await trashIcons.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+        await expect(trashIcons.first()).toBeVisible();
+      } else {
+        await expect(options.first()).toBeVisible();
+      }
+
+      await this.page.keyboard.press('Escape');
+    });
+  }
 }

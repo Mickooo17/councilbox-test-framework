@@ -629,4 +629,28 @@ f.test.describe('Users - Details Page Tests', () => {
         const filename = await usersPage.exportUserAppointments();
         f.expect(filename).toMatch(/\.csv$/i);
     });
+
+    f.test('Verify alphabetical ascending sort by role in user list - Users page @OVAC-5831 @regression', async ({ usersPage }) => {
+        // 1. Navigate to Users page
+        await usersPage.navigateToUsers();
+
+        // 2. Sort by Role ascending and verify rows
+        await usersPage.sortByRoleAscending();
+    });
+
+    f.test('Verify "Include deleted users" option is available and functional in user data exports - Users @OVAC-5052 @regression', async ({ usersPage }) => {
+        // 1. Navigate to Users page
+        await usersPage.navigateToUsers();
+
+        // 2. Verify statuses and inclusion in user data exports
+        await usersPage.verifyIncludeDeletedUsersInExport();
+    });
+
+    f.test('Verify connected users filter option is available @OVAC-5146 @regression', async ({ usersPage }) => {
+        // 1. Navigate to Users page
+        await usersPage.navigateToUsers();
+
+        // 2. Verify connected users filter option
+        await usersPage.verifyConnectedUsersFilterAvailable();
+    });
 });

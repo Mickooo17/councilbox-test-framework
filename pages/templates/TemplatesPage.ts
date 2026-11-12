@@ -52,6 +52,7 @@ export class TemplatesPage extends BasePage {
 
     async openCreateTemplateForm() {
         await test.step('Open create template form', async () => {
+            await this.dismissToastOrModal();
             const fabButton = this.page.locator('#add-procedure-button, .MuiFab-root, button:has(.ri-add-line)').first();
             await fabButton.waitFor({ state: 'visible', timeout: 10000 });
             await fabButton.click();
@@ -60,6 +61,7 @@ export class TemplatesPage extends BasePage {
 
     async fillTemplateDetails(data: TemplateData) {
         await test.step(`Fill template details: ${data.name}`, async () => {
+            await this.dismissToastOrModal();
             await this.templateNameInput.waitFor({ state: 'visible', timeout: 10000 });
             await this.templateNameInput.fill(data.name);
 
@@ -71,7 +73,7 @@ export class TemplatesPage extends BasePage {
             // Select template category/type
             const typeOption = this.page.locator('button, [role="button"]').filter({ hasText: new RegExp(data.type, 'i') }).first();
             if (await typeOption.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await typeOption.click();
+                await typeOption.click({ force: true });
             }
         });
     }
@@ -211,6 +213,46 @@ export class TemplatesPage extends BasePage {
                 await this.page.keyboard.press('Escape');
             }
             await this.page.waitForTimeout(500);
+        });
+    }
+
+    /**
+     * Opens edit drawer for an existing template and updates its name (OVAC-4871).
+     */
+    async editTemplate(oldName: string, newName: string) {
+        await test.step(`Edit template "${oldName}" to "${newName}"`, async () => {
+            await this.searchTemplate(oldName);
+            await this.page.waitForTimeout(1000);
+            const row = this.tableBody.locator('tr', { hasText: oldName }).first();
+            await row.waitFor({ state: 'visible', timeout: 5000 });
+
+            // Click 3-dots actions menu
+            const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), td:last-child button').first();
+            await menuBtn.click();
+            await this.page.waitForTimeout(500);
+
+            // Click Edit menu item
+            const editBtn = this.page.getByRole('menuitem', { name: /Edit|Editar/i })
+                .or(this.page.getByRole('button', { name: /Edit|Editar/i }))
+                .or(this.page.locator('.cbx-menuItem:has-text("Edit"), .cbx-menuItem:has-text("Editar")'))
+                .first();
+            await editBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await editBtn.click();
+            await this.page.waitForTimeout(1000);
+
+            // Update template name
+            await this.templateNameInput.waitFor({ state: 'visible', timeout: 10000 });
+            await this.templateNameInput.fill(newName);
+            await this.page.waitForTimeout(500);
+
+            // Click Save / Update / Create button
+            const saveBtn = this.page.getByRole('button', { name: /Save|Guardar|Update|Actualizar|Create|Crear/i })
+                .or(this.page.locator('#panel-confirm-button-accept, #modal-button-accept, button:has-text("SAVE"), button:has-text("GUARDAR")'))
+                .first();
+            await saveBtn.click();
+            await this.page.waitForTimeout(2000);
+            await this.dismissToastOrModal();
+            await this.navigateToTemplates();
         });
     }
 }

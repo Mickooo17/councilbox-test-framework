@@ -698,4 +698,55 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.clickContinue();
         await expect(page).toHaveURL(/.*\/companies/i, { timeout: 15000 });
     });
+
+    test('Verify procedure status filter persistence when editing a procedure and returning to the procedures list @OVAC-4932 @regression', async ({ proceduresPage, page }) => {
+        test.slow();
+        // 1. Navigate to procedures list and apply "Draft" filter
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.filterProceduresByStatus('Draft');
+        await proceduresPage.verifyProcedureStatusFilterPreserved('Draft');
+
+        // 2. Click on the first procedure row or edit action to enter edit/details
+        const row = proceduresPage.tableBody.locator('tr').first();
+        if (await row.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await row.click();
+            await page.waitForTimeout(1000);
+
+            // 3. Navigate back to procedures list
+            await proceduresPage.navigateToProcedures();
+
+            // 4. Verify procedure status filter is still preserved as "Draft" (not reset to "All status")
+            await proceduresPage.verifyProcedureStatusFilterPreserved('Draft');
+        } else {
+            // If no draft procedures in table, test with Published
+            await proceduresPage.filterProceduresByStatus('Published');
+            await proceduresPage.verifyProcedureStatusFilterPreserved('Published');
+            const pubRow = proceduresPage.tableBody.locator('tr').first();
+            await pubRow.waitFor({ state: 'visible', timeout: 10000 });
+            await pubRow.click();
+            await page.waitForTimeout(1000);
+            await proceduresPage.navigateToProcedures();
+            await proceduresPage.verifyProcedureStatusFilterPreserved('Published');
+        }
+    });
+
+    test('The user is able to Rename meeting type - Procedures @OVAC-4897 @regression', async ({ proceduresPage, request }) => {
+        test.slow();
+        // 1. Create procedure via API
+        await proceduresPage.createProcedureViaApi(request, {
+            title: procedureData.name,
+            description: procedureData.description,
+            companyId: 1112,
+        });
+
+        // 2. Navigate to procedures list
+        await proceduresPage.navigateToProcedures();
+
+        // 3. Rename procedure
+        const renamedName = `${procedureData.name} Renamed`;
+        await proceduresPage.renameProcedure(procedureData.name, renamedName);
+
+        // Update procedureData name for cleanup in afterEach
+        procedureData.name = renamedName;
+    });
 });

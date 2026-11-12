@@ -573,4 +573,54 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await expect(typeHeader).toBeVisible({ timeout: 5000 });
   });
 
+  test('Verify "Type of meetings" filter contains all available appointment types in the appointment list @OVAC-5142 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Verify Meeting Types filter in filter drawer
+    await appointmentsPage.verifyMeetingTypesFilterContainsTypes();
+  });
+
+  test('Verify alert icon is hidden for appointments in Canceled status @OVAC-4937 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Verify no alert icon in canceled status appointments
+    await appointmentsPage.verifyAlertIconHiddenForCanceledAppointments();
+  });
+
+  test('Verify "Send notification" option is present in actions menu for Appointment Agent role in Confirmed and In Progress statuses @OVAC-4928 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Verify "Send notification" option in 3-dots actions menu
+    await appointmentsPage.verifySendNotificationOptionInActionsMenu();
+  });
+
+  test('Verify Record number field is displayed in Details section for appointments @OVAC-5104 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Verify Record number field in Details section
+    await appointmentsPage.verifyRecordNumberInAppointmentDetails();
+  });
+
+  test('Verify Record number is displayed in the appointment preview @OVAC-5116 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 4. Verify Record number in appointment preview
+    await appointmentsPage.verifyRecordNumberInAppointmentPreview();
+  });
+
 });
