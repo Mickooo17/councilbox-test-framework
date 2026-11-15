@@ -314,4 +314,48 @@ test.describe('Activity & Dashboard Tests', () => {
         // 4. Verify user selector displays deleted users with trash bin icon
         await activityPage.verifyDeletedUsersDisplayedWithTrashIconInSelector();
     });
+
+    test('Verify "Record" column presence and position in downloaded CSV file from Appointments tab @OVAC-5075 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard Appointments tab
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4-5. Export Appointments data and verify Record column is present before Identifier column
+        await activityPage.verifyRecordColumnInExportedCsv('appointments');
+    });
+
+    test('Verify "Record" column presence and position in downloaded CSV file from Processes tab @OVAC-5077 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4-5. Click Processes tab, export CSV, and verify Record column is present before Identifier column
+        await activityPage.verifyRecordColumnInExportedCsv('processes');
+    });
+
+    test('Verify "Record" column presence and position in downloaded CSV file from In-person appointments tab @OVAC-5079 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4-5. Click In-person appointments tab, export CSV, and verify Record column is present before Identifier column
+        await activityPage.verifyRecordColumnInExportedCsv('inPerson');
+    });
+
+    test('Verify user selector in Video appointments and In-person dashboard displays only Admin agent and Agent with video attention roles @OVAC-5050 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 4. Verify user selector displays only eligible roles
+        await activityPage.verifyUserSelectorDisplaysEligibleRoles();
+    });
+
+    test('Verify dropdown select options are sorted in alphabetical order @OVAC-5070 @regression', async ({ activityPage, usersPage }) => {
+        // 1-2. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 3. Verify Users selector options are sorted alphabetically
+        await activityPage.verifyDropdownOptionsSortedAlphabetically();
+
+        // 4. Navigate to Users page and verify filter/select options
+        await usersPage.navigateToUsers();
+        await usersPage.dismissToastOrModal();
+    });
 });

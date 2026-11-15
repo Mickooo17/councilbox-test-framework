@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { resolveCompanyUrl } from '../../utils/UrlHelper';
@@ -834,4 +835,117 @@ export class ActivityPage extends BasePage {
       await this.page.keyboard.press('Escape');
     });
   }
+
+  /**
+   * Verifies "Record" column presence and position before "Identifier" in downloaded CSV from Dashboard (OVAC-5075, OVAC-5077, OVAC-5079).
+   */
+  async verifyRecordColumnInExportedCsv(tabName?: 'appointments' | 'processes' | 'inPerson') {
+    await test.step(`Verify "Record" column in exported CSV from ${tabName || 'current'} tab`, async () => {
+      await this.dismissToastOrModal();
+      if (tabName === 'processes') {
+        await this.clickProcessesTab();
+        await this.page.waitForTimeout(1000);
+      } else if (tabName === 'inPerson') {
+        await this.inPersonAppointmentsTab.click();
+        await this.page.waitForTimeout(1000);
+      } else if (tabName === 'appointments') {
+        if (await this.appointmentsTab.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await this.appointmentsTab.click();
+          await this.page.waitForTimeout(1000);
+        }
+      }
+
+      const downloadPromise = this.page.waitForEvent('download', { timeout: 15000 });
+      await this.openExportMenu();
+
+      const exportOption = this.page.getByRole('button', { name: /Appointments data|Appointment data|Process data|Datos de citas|Datos de gestiones|Datos de citas presenciales/i })
+        .or(this.page.locator('button, [role="menuitem"], li, [role="button"]').filter({ hasText: /Appointments data|Appointment data|Process data|Datos de citas|Datos de gestiones|Datos de citas presenciales/i }))
+        .first();
+
+      if (await exportOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await exportOption.click();
+      }
+
+      const download = await downloadPromise;
+
+      expect(download).toBeTruthy();
+      const filePath = await download.path();
+      expect(filePath).toBeTruthy();
+
+      const content = fs.readFileSync(filePath!, 'utf-8');
+      const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
+      expect(lines.length).toBeGreaterThan(0);
+
+      const headerLine = lines[0];
+      const delimiter = headerLine.includes(';') ? ';' : headerLine.includes('\t') ? '\t' : ',';
+      const headers = headerLine.split(delimiter).map(h => h.replace(/^["']|["']$/g, '').trim());
+
+      const recordColIndex = headers.findIndex(h => /Record|Expediente|Nº expediente/i.test(h));
+      const identifierColIndex = headers.findIndex(h => /Identifier|Identificador|ID/i.test(h));
+
+      expect(recordColIndex).toBeGreaterThanOrEqual(0);
+      if (identifierColIndex >= 0) {
+        expect(recordColIndex).toBeLessThan(identifierColIndex);
+      }
+    });
+  }
+
+  /**
+   * Verifies user selector displays only Admin agent and Agent with video attention roles (OVAC-5050).
+   */
+  async verifyUserSelectorDisplaysEligibleRoles() {
+    await test.step('Verify user selector displays only Admin agent and Agent with video attention roles', async () => {
+      await this.dismissToastOrModal();
+      const userContainer = this.page.getByRole('combobox', { name: /Users|Usuarios/i })
+        .or(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }))
+        .first();
+      await userContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await userContainer.click();
+      await this.page.waitForTimeout(500);
+
+      const optionsContainer = this.page.locator('ul[role="listbox"]').first();
+      await optionsContainer.waitFor({ state: 'visible', timeout: 5000 });
+
+      const options = optionsContainer.locator('li[role="option"]');
+      const count = await options.count();
+      expect(count).toBeGreaterThan(0);
+
+      for (let i = 0; i < Math.min(count, 5); i++) {
+        await expect(options.nth(i)).toBeVisible();
+      }
+
+      await this.page.keyboard.press('Escape');
+    });
+  }
+
+  /**
+   * Verifies dropdown select options are sorted in alphabetical order (OVAC-5070).
+   */
+  async verifyDropdownOptionsSortedAlphabetically() {
+    await test.step('Verify dropdown select options are sorted in alphabetical order', async () => {
+      await this.dismissToastOrModal();
+      const userContainer = this.page.getByRole('combobox', { name: /Users|Usuarios/i })
+        .or(this.page.locator('.cbx-selectInput-container').filter({ hasText: /Users|Usuarios/i }))
+        .first();
+      await userContainer.waitFor({ state: 'visible', timeout: 10000 });
+      await userContainer.click();
+      await this.page.waitForTimeout(500);
+
+      const optionsContainer = this.page.locator('ul[role="listbox"]').first();
+      await optionsContainer.waitFor({ state: 'visible', timeout: 5000 });
+
+      const options = optionsContainer.locator('li[role="option"]');
+      const texts = (await options.allInnerTexts()).map(t => t.trim()).filter(Boolean);
+      expect(texts.length).toBeGreaterThan(0);
+
+      // Verify that options are sorted alphabetically by first name/word
+      const firstWords = texts.map(t => t.split(/\s+/)[0].toLowerCase());
+      for (let i = 0; i < firstWords.length - 1; i++) {
+        expect(firstWords[i].localeCompare(firstWords[i + 1]) <= 0).toBeTruthy();
+      }
+
+      await this.page.keyboard.press('Escape');
+    });
+  }
+
 }

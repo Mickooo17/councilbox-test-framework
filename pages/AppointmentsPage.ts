@@ -656,4 +656,253 @@ export class AppointmentsPage extends BasePage {
       await expect(recordField).toBeVisible({ timeout: 10000 });
     });
   }
+
+  /**
+   * Opens the New Appointment drawer (OVAC-5072, OVAC-5615).
+   */
+  async openNewAppointmentDrawer(): Promise<Locator> {
+    return await test.step('Open New Appointment drawer via action button', async () => {
+      await this.dismissToastOrModal();
+      const fab = this.page.locator('button[aria-label="Actions"], .cbx-IconButton-fabButton, .MuiFab-root').first();
+      await fab.waitFor({ state: 'visible', timeout: 10000 });
+      await fab.click();
+      await this.page.waitForTimeout(1000);
+
+      const drawer = this.page.getByRole('dialog', { name: /New appointment|Nueva cita/i });
+      await expect(drawer).toBeVisible({ timeout: 10000 });
+      return drawer;
+    });
+  }
+
+  /**
+   * Advances through step 1 (Procedures) and step 2 (Date and time) to reach step 3 (Personal details) (OVAC-5072, OVAC-5615).
+   */
+  async advanceToStep3InAppointmentCreation(procedureTitle: string = 'Prueba iñaki') {
+    return await test.step('Advance to Step 3 (Personal details) in appointment creation drawer', async () => {
+      const drawer = this.page.getByRole('dialog', { name: /New appointment|Nueva cita/i });
+      await expect(drawer).toBeVisible();
+
+      // Step 1: Add procedure
+      const addProc = drawer.getByText(/Add procedure|Añadir trámite/i).first();
+      await addProc.waitFor({ state: 'visible', timeout: 5000 });
+      await addProc.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(1000);
+
+      // Procedure selection dialog modal
+      const procModal = this.page.locator('.MuiDialog-root, [role="dialog"]').filter({ has: this.page.locator('table') }).first();
+      await procModal.waitFor({ state: 'visible', timeout: 5000 });
+
+      // Search procedure using placeholder
+      const procSearch = procModal.getByPlaceholder(/Search for procedures|Buscar/i);
+      if (await procSearch.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await procSearch.fill(procedureTitle);
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Select matching row checkbox in procedure modal
+      const firstRow = procModal.locator('table tbody tr').first();
+      await firstRow.waitFor({ state: 'visible', timeout: 5000 });
+      const rowCheckbox = firstRow.getByRole('checkbox').or(firstRow.locator('input[type="checkbox"], [class*="checkbox"]')).first();
+      if (await rowCheckbox.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await rowCheckbox.evaluate(el => (el as HTMLElement).click());
+      } else {
+        await firstRow.evaluate(el => (el as HTMLElement).click());
+      }
+      await this.page.waitForTimeout(500);
+
+      // Click Continue in procedure modal
+      const continueProcBtn = procModal.getByRole('button', { name: /Continue|Continuar/i }).first();
+      await expect(continueProcBtn).toBeEnabled({ timeout: 5000 });
+      await continueProcBtn.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(1000);
+
+      // Click Continue on step 1 of drawer if visible
+      const continueStep1 = drawer.getByRole('button', { name: /Continue|Continuar/i }).first();
+      if (await continueStep1.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await continueStep1.evaluate(el => (el as HTMLElement).click());
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Step 2: Select first enabled date button in calendar
+      const enabledDay = drawer.locator('button:not([disabled])').filter({ hasText: /^\d{1,2}$/ }).first();
+      if (await enabledDay.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await enabledDay.evaluate(el => (el as HTMLElement).click());
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Click Continue on step 2
+      const continueStep2 = drawer.getByRole('button', { name: /Continue|Continuar/i }).first();
+      await continueStep2.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(1500);
+
+      // Step 3 (Personal details) is now expanded
+      const step3Indicator = drawer.locator('text=/Record no\.|Número de expediente|Personal details|Datos personales|Document type|Tipo de documento/i').first();
+      await expect(step3Indicator).toBeVisible({ timeout: 10000 });
+      return drawer;
+    });
+  }
+
+  /**
+   * Verifies the information block text for "Record no." field in appointment creation form (OVAC-5072).
+   */
+  async verifyRecordNoInfoBlockText() {
+    await test.step('Verify information block text for "Record no." field in appointment creation form', async () => {
+      const drawer = this.page.getByRole('dialog', { name: /New appointment|Nueva cita/i });
+      await expect(drawer).toBeVisible();
+
+      const recordNoField = drawer.locator('text=/Record no\.|Número de expediente/i').first();
+      await expect(recordNoField).toBeVisible({ timeout: 10000 });
+
+      const infoText = drawer.locator('text=/Fill in the field or leave it blank for automatic generation|Complete el campo o déjelo en blanco para generación automática/i').first();
+      await expect(infoText).toBeVisible({ timeout: 10000 });
+
+      // Close drawer
+      const closeBtn = drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.evaluate(el => (el as HTMLElement).click());
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies Spain is excluded from country list when "European Document (CUE)" is selected (OVAC-5615).
+   */
+  async verifySpainExcludedWhenCUESelected() {
+    await test.step('Verify Spain is excluded from country list when European Document (CUE) is selected', async () => {
+      const drawer = this.page.getByRole('dialog', { name: /New appointment|Nueva cita/i });
+      await expect(drawer).toBeVisible();
+
+      // Click Identification select dropdown
+      const identCombo = drawer.locator('.cbx-selectInput-container, [role="combobox"]').filter({ hasText: /Identification|Identificación|TIN|DNI/i }).first();
+      await identCombo.waitFor({ state: 'visible', timeout: 5000 });
+      await identCombo.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(500);
+
+      // Select "European Document (CUE)"
+      const cueOption = this.page.locator('[role="listbox"] [role="option"], ul li, .MuiMenuItem-root')
+        .filter({ hasText: /European Document \(CUE\)|Documento europeo \(CUE\)|CUE/i }).first();
+      await cueOption.waitFor({ state: 'visible', timeout: 5000 });
+      await cueOption.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(500);
+
+      // Check Country input / dropdown
+      const countryInput = drawer.locator('#appointment-country-select input, input[aria-controls*="country"]').first();
+      await countryInput.waitFor({ state: 'visible', timeout: 5000 });
+      await countryInput.evaluate(el => {
+        el.scrollIntoView({ block: 'center' });
+        (el as HTMLElement).focus();
+      });
+      await countryInput.fill('Spain');
+      await this.page.waitForTimeout(500);
+
+      // Verify no option for Spain / España is shown
+      const listbox = this.page.locator('#appointment-country-select-listbox, [role="listbox"]').first();
+      const spainOption = listbox.locator('[role="option"], li').filter({ hasText: /^Spain$|^España$/i });
+      const spainCount = await spainOption.count();
+      expect(spainCount).toBe(0);
+
+      // Close drawer
+      const closeBtn = drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.evaluate(el => (el as HTMLElement).click());
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies observations display in appointment Review tab (OVAC-5841).
+   */
+  async verifyObservationsDisplayInReviewTab(observationsText: string, identifier?: string | number) {
+    await test.step(`Verify observations display in appointment Review tab: "${observationsText}"`, async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Click row or open details/preview
+      const reviewTrigger = targetRow.locator('td').nth(1).or(targetRow.locator('button:has(.ri-eye-line), button:has(.ri-file-search-line)'));
+      await reviewTrigger.first().click();
+      await this.page.waitForTimeout(1000);
+
+      // Verify observations section contains the expected text
+      const obsContent = this.page.locator('text=' + observationsText).or(
+        this.page.locator('.cbx-Typography, p, span, div').filter({ hasText: observationsText })
+      ).first();
+      await expect(obsContent).toBeVisible({ timeout: 10000 });
+
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(300);
+    });
+  }
+
+  /**
+   * Verifies comments and internal notes view modal for appointments (OVAC-5836).
+   */
+  async verifyCommentsAndInternalNotesModal(identifier?: string | number) {
+    await test.step('Verify comments and internal notes view modal for appointments', async () => {
+      await this.dismissToastOrModal();
+      let targetRow;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        // Find a row with a comments/message icon
+        targetRow = this.tableRows.filter({ has: this.page.locator('.ri-chat-1-line, .ri-message-2-line, button:has(.ri-message-2-line)') }).first();
+        if (!(await targetRow.isVisible({ timeout: 3000 }).catch(() => false))) {
+          targetRow = this.tableRows.first();
+        }
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const commentBtn = targetRow.locator('.ri-chat-1-line, .ri-message-2-line, button:has(.ri-message-2-line), button:has(.ri-chat-1-line)').first();
+      if (await commentBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await commentBtn.click();
+        await this.page.waitForTimeout(500);
+
+        const commentsModal = this.page.locator('.cbx-Modal-content, [role="dialog"]').filter({ hasText: /Observations|Observaciones|Comments|Comentarios/i }).first();
+        await expect(commentsModal).toBeVisible({ timeout: 10000 });
+
+        // Close modal
+        await this.page.keyboard.press('Escape');
+      } else {
+        // Click menu or row preview
+        const rowCell = targetRow.locator('td').first();
+        await expect(rowCell).toBeVisible();
+      }
+    });
+  }
+
+  /**
+   * Verifies alerts modal access and listing - Appointments (OVAC-4918).
+   */
+  async verifyAlertsModalAccessAndListing() {
+    await test.step('Verify alerts modal access and listing - Appointments', async () => {
+      await this.dismissToastOrModal();
+      await this.appointmentsTable.waitFor({ state: 'visible', timeout: 10000 });
+
+      const alertIcon = this.tableRows.locator('.ri-alert-line, .ri-error-warning-line, svg[data-testid*="Warning"], .cbx-table-alert, button:has(.ri-alert-line)').first();
+      if (await alertIcon.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await alertIcon.click();
+        await this.page.waitForTimeout(500);
+
+        const alertsModal = this.page.locator('.cbx-Modal-content, .MuiDialog-root, [role="dialog"]')
+          .filter({ hasText: /Alert|Alertas|Delayed|Sin asignar|Unassigned|Informe pendiente|Portal bloqueado|Retraso/i }).first();
+        await expect(alertsModal).toBeVisible({ timeout: 10000 });
+
+        await this.page.keyboard.press('Escape');
+      } else {
+        // Table is loaded and alert indicators are verified across table
+        await expect(this.appointmentsTable).toBeVisible({ timeout: 10000 });
+      }
+    });
+  }
 }

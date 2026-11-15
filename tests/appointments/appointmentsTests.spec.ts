@@ -623,4 +623,114 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyRecordNumberInAppointmentPreview();
   });
 
+  test('Verify information block text for "Record no." field in appointment creation form @OVAC-5072 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Open New appointment drawer
+    await appointmentsPage.openNewAppointmentDrawer();
+
+    // 4. Advance to 3rd step (Personal details)
+    await appointmentsPage.advanceToStep3InAppointmentCreation('Prueba iñaki');
+
+    // 5. Verify information block text for Record no. field
+    await appointmentsPage.verifyRecordNoInfoBlockText();
+  });
+
+  test('Verify Spain is excluded from the country list when "European Document (CUE)" is selected during public appointment booking - Back office @OVAC-5615 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Open New appointment drawer
+    await appointmentsPage.openNewAppointmentDrawer();
+
+    // 4. Advance to 3rd step (Personal details)
+    await appointmentsPage.advanceToStep3InAppointmentCreation('Prueba iñaki');
+
+    // 5. Select European Document (CUE) and verify Spain is excluded from country list
+    await appointmentsPage.verifySpainExcludedWhenCUESelected();
+  });
+
+  test('Verify observations display in appointment Review tab @OVAC-5841 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    const obsText = 'Automation observation ' + Date.now();
+
+    // 1. Create appointment with observations via API
+    let appointmentId: number | undefined;
+    await test.step('Create appointment with observations via API', async () => {
+      const created = await AppointmentApiHelper.createAppointment(request, {
+        companyId: 1112,
+        procedureId: 3955,
+        procedureTitle: 'Prueba iñaki',
+        participant: {
+          dni: 'ammarpass',
+          idCardType: 'passport',
+          name: 'Ammar',
+          surname: 'Micijevic',
+          email: 'ammar.micijevic@councilbox.com',
+        },
+        observations: obsText,
+      });
+      appointmentId = created.id;
+      expect(appointmentId).toBeDefined();
+    });
+
+    // 2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Search and verify observations in review/preview
+    await appointmentsPage.searchAppointment(appointmentId!);
+    await appointmentsPage.verifyObservationsDisplayInReviewTab(obsText, appointmentId);
+  });
+
+  test('Verify comments and internal notes view modal for appointments @OVAC-5836 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    const obsText = 'Comments modal test ' + Date.now();
+
+    // 1. Create appointment with observations via API to ensure comment icon presence
+    let appointmentId: number | undefined;
+    await test.step('Create appointment with observations via API', async () => {
+      const created = await AppointmentApiHelper.createAppointment(request, {
+        companyId: 1112,
+        procedureId: 3955,
+        procedureTitle: 'Prueba iñaki',
+        participant: {
+          dni: 'ammarpass',
+          idCardType: 'passport',
+          name: 'Ammar',
+          surname: 'Micijevic',
+          email: 'ammar.micijevic@councilbox.com',
+        },
+        observations: obsText,
+      });
+      appointmentId = created.id;
+      expect(appointmentId).toBeDefined();
+    });
+
+    // 2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Search for appointment and verify comments/observations modal
+    await appointmentsPage.searchAppointment(appointmentId!);
+    await appointmentsPage.verifyCommentsAndInternalNotesModal(appointmentId);
+  });
+
+  test('Verify alerts modal access and listing - Appointments @OVAC-4918 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify alerts modal access and listing
+    await appointmentsPage.verifyAlertsModalAccessAndListing();
+  });
+
 });
