@@ -653,4 +653,12 @@ f.test.describe('Users - Details Page Tests', () => {
         // 2. Verify connected users filter option
         await usersPage.verifyConnectedUsersFilterAvailable();
     });
+
+    f.test('Verify read-only display of user creation date, activation date, and last login details on the User details page @OVAC-5482 @regression', async ({ usersPage }) => {
+        // 1. Navigate to user details
+        await usersPage.clickFirstUserRow();
+
+        // 2. Verify creation date, activation date, and last connection read-only details
+        await usersPage.verifyUserDetailsInformativeFields();
+    });
 });

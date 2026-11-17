@@ -749,4 +749,21 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // Update procedureData name for cleanup in afterEach
         procedureData.name = renamedName;
     });
+
+    test('Verify "Required to complete the appointment" checkbox display in procedure settings @OVAC-4961 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        // 1. Open create procedure drawer and select Video appointment
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 2. Fill procedure details and continue
+        await proceduresPage.fillProcedureDetails(procedureData);
+        await proceduresPage.clickContinue();
+
+        // 3. Navigate to Configuration tab
+        await proceduresPage.navigateToConfigurationTab();
+
+        // 4. Verify "Required to complete the appointment" checkbox is displayed in Appointments section
+        await expect(proceduresPage.internalNotesRequiredCheckbox).toBeVisible({ timeout: 10000 });
+    });
 });

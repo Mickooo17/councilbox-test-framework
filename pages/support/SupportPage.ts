@@ -252,4 +252,34 @@ export class SupportPage extends BasePage {
             await expect(this.validationError).toBeVisible({ timeout: 5000 });
         });
     }
+
+    /**
+     * Verifies that invalid file extensions are not accepted in Support modal upload (OVAC-5181).
+     */
+    async verifyInvalidFileExtensionsExcludedFromSupportUpload() {
+        await test.step('Verify invalid file extensions cannot be selected for upload in Support modal', async () => {
+            const fileInput = this.page.locator('input#raised-button-file-upload-button-support-modal, input[type="file"]').first();
+            await expect(fileInput).toBeAttached({ timeout: 10000 });
+
+            // Verify accept attribute exists and contains allowed extensions
+            const acceptAttr = await fileInput.getAttribute('accept');
+            expect(acceptAttr).toBeTruthy();
+
+            // Verify valid extensions are included
+            expect(acceptAttr).toContain('.pdf');
+            expect(acceptAttr).toContain('.png');
+            expect(acceptAttr).toContain('.jpg');
+
+            // Verify invalid / executable extensions are NOT accepted
+            const acceptedExts = acceptAttr!.split(',').map(ext => ext.trim().toLowerCase());
+            const invalidExtensions = ['.exe', '.bat', '.cmd', '.sh', '.bin', '.msi', '.vbs', '.js', '.py'];
+            for (const ext of invalidExtensions) {
+                expect(acceptedExts).not.toContain(ext);
+            }
+
+            // Verify allowed formats informational text is present
+            const admittedFormatsText = this.page.locator('text=/Admitted formats|Formatos admitidos/i').first();
+            await expect(admittedFormatsText).toBeVisible({ timeout: 5000 });
+        });
+    }
 }

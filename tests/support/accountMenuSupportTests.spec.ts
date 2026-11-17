@@ -36,4 +36,15 @@ f.test.describe('Account Menu - Support Modal Tests', () => {
         // 5. Close modal
         await supportPage.closeSupportModal();
     });
+
+    f.test('Verify files with invalid extensions cannot be selected for upload in the Support modal @OVAC-5181 @regression', async ({ supportPage }) => {
+        // 1. Open Support modal from user menu
+        await supportPage.openSupportModalFromUserMenu();
+
+        // 2. Verify invalid file extensions cannot be selected for upload
+        await supportPage.verifyInvalidFileExtensionsExcludedFromSupportUpload();
+
+        // 3. Close modal
+        await supportPage.closeSupportModal();
+    });
 });

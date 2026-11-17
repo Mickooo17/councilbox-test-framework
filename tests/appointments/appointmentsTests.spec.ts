@@ -733,4 +733,44 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyAlertsModalAccessAndListing();
   });
 
+  test('Verify replacement of "Professional" string with "Agent assigned" across all appointment and process screens @OVAC-4970 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify "Assigned agent" string replaces "Professional" in column customization
+    await appointmentsPage.verifyAgentAssignedStringInTableAndColumns();
+  });
+
+  test('Verify appointment creation without email - Admin side @OVAC-5828 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify appointment creation without email
+    await appointmentsPage.verifyAppointmentCreationWithoutEmail('Prueba iñaki');
+  });
+
+  test('Sort the appointments by date, reference, procedure, entity, type, and status @OVAC-4948 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify column sorting functionality
+    await appointmentsPage.verifyAppointmentsColumnSorting();
+  });
+
+  test('Verify user can change meeting organization on Appointments/Process page @OVAC-4964 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify Change meeting organization modal
+    await appointmentsPage.verifyChangeMeetingOrganizationModal();
+  });
+
 });

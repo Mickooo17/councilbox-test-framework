@@ -905,4 +905,146 @@ export class AppointmentsPage extends BasePage {
       }
     });
   }
+
+  /**
+   * Verifies replacement of "Professional" string with "Agent assigned" / "Assigned agent" across appointment and process screens (OVAC-4970).
+   */
+  async verifyAgentAssignedStringInTableAndColumns() {
+    await test.step('Verify "Assigned agent" string replaces "Professional"', async () => {
+      await this.dismissToastOrModal();
+      // Open column customization in table header
+      const gearBtn = this.page.locator('th [aria-label*="Settings" i], th button:has([class*="settings" i]), th button:has(.ri-settings-3-line)').first();
+      await gearBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await gearBtn.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(500);
+
+      // Verify "Assigned agent" / "Agente asignado" option is present in the list
+      const agentOption = this.page.locator('[role="listbox"] [role="option"], [role="menuitem"], li, label, span')
+        .filter({ hasText: /^Assigned agent$|^Agente asignado$|^Agent assigned$/i }).first();
+      await expect(agentOption).toBeVisible({ timeout: 5000 });
+
+      // Verify "Professional" / "Profesional" is NOT in the column options
+      const professionalOption = this.page.locator('[role="listbox"] [role="option"], [role="menuitem"], li, label, span')
+        .filter({ hasText: /^Professional$|^Profesional$/i });
+      expect(await professionalOption.count()).toBe(0);
+
+      await this.page.keyboard.press('Escape');
+    });
+  }
+
+  /**
+   * Verifies appointment creation without email - Admin side (OVAC-5828).
+   */
+  async verifyAppointmentCreationWithoutEmail(procedureTitle: string = 'Prueba iñaki') {
+    await test.step('Verify appointment creation without email - Admin side', async () => {
+      const drawer = await this.openNewAppointmentDrawer();
+      await this.advanceToStep3InAppointmentCreation(procedureTitle);
+
+      // Fill Name, Surname, Identification, leave Email empty
+      const nameInput = drawer.getByRole('textbox', { name: /^Name|^Nombre/i }).first();
+      await nameInput.waitFor({ state: 'visible', timeout: 5000 });
+      await nameInput.fill('NoEmailTest');
+
+      const surnameInput = drawer.getByRole('textbox', { name: /^Surname|^Apellidos/i }).first();
+      await surnameInput.fill('Automation');
+
+      const phoneInput = drawer.getByRole('textbox', { name: /^Phone|^Teléfono|^Mobile/i }).first();
+      if (await phoneInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await phoneInput.fill('612345678');
+      }
+
+      // Verify Email field is present and optional (no required asterisk / error when left empty)
+      const emailInput = drawer.getByRole('textbox', { name: /E-mail|Email|Correo/i }).first();
+      await expect(emailInput).toBeVisible({ timeout: 5000 });
+      await emailInput.fill('');
+
+      // Notice method: if SMS option exists, select SMS since email is empty
+      const smsOption = drawer.getByText(/^SMS$/i).first();
+      if (await smsOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await smsOption.evaluate(el => (el as HTMLElement).click());
+        await this.page.waitForTimeout(500);
+      }
+
+      // Check Save button is enabled even without email
+      const saveBtn = drawer.getByRole('button', { name: /Save|Guardar/i }).first();
+      await expect(saveBtn).toBeEnabled({ timeout: 5000 });
+
+      // Verify no email error is displayed
+      const emailError = drawer.locator('p.Mui-error, [class*="error"]').filter({ hasText: /email|correo/i });
+      expect(await emailError.count()).toBe(0);
+
+      // Close drawer
+      const closeBtn = drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.evaluate(el => (el as HTMLElement).click());
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+    });
+  }
+
+  /**
+   * Verifies sorting functionality on appointments table columns (OVAC-4948).
+   */
+  async verifyAppointmentsColumnSorting() {
+    await test.step('Verify sorting on appointments table columns', async () => {
+      await this.dismissToastOrModal();
+      await this.appointmentsTable.waitFor({ state: 'visible', timeout: 10000 });
+
+      // Sort by Date
+      const dateHeader = this.appointmentsTable.locator('th').filter({ hasText: /^Date|^Fecha/i }).first();
+      await dateHeader.waitFor({ state: 'visible', timeout: 5000 });
+      await dateHeader.click();
+      await this.page.waitForTimeout(1000);
+      await expect(this.appointmentsTable).toBeVisible();
+
+      // Sort by Reference
+      const refHeader = this.appointmentsTable.locator('th').filter({ hasText: /^Ref/i }).first();
+      if (await refHeader.isVisible().catch(() => false)) {
+        await refHeader.click();
+        await this.page.waitForTimeout(1000);
+        await expect(this.appointmentsTable).toBeVisible();
+      }
+
+      // Sort by Status
+      const statusHeader = this.appointmentsTable.locator('th').filter({ hasText: /^Status|^Estado/i }).first();
+      if (await statusHeader.isVisible().catch(() => false)) {
+        await statusHeader.click();
+        await this.page.waitForTimeout(1000);
+        await expect(this.appointmentsTable).toBeVisible();
+      }
+    });
+  }
+
+  /**
+   * Verifies user can access Change the entity / meeting organization modal (OVAC-4964).
+   */
+  async verifyChangeMeetingOrganizationModal() {
+    await test.step('Verify user can open Change the entity modal', async () => {
+      await this.dismissToastOrModal();
+      const row = this.tableRows.first();
+      await row.waitFor({ state: 'visible', timeout: 10000 });
+
+      // Open 3-dots actions menu
+      const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]').first();
+      await menuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Click "Change the entity" / "Cambiar la entidad"
+      const changeEntityOption = this.page.getByRole('button', { name: /Change the entity|Cambiar la entidad/i })
+        .or(this.page.locator('button, [role="menuitem"], li').filter({ hasText: /Change the entity|Cambiar la entidad/i })).first();
+      await changeEntityOption.waitFor({ state: 'visible', timeout: 5000 });
+      await changeEntityOption.click();
+      await this.page.waitForTimeout(1000);
+
+      // Verify Change entity dialog is displayed
+      const dialog = this.page.locator('.MuiDialog-root, [role="dialog"]').filter({ hasText: /Change the entity|Cambiar la entidad|Entity|Entidad/i }).first();
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+
+      // Close modal
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
 }

@@ -67,4 +67,36 @@ f.test.describe.serial('Documentation - Upload and Download Document Tests', () 
         // Verify search result contains target item
         await documentationPage.verifyDocumentInTable(targetItem);
     });
+
+    f.test('User is able to delete existing folder - Documentation @OVAC-5384 @regression', async ({ documentationPage }) => {
+        const uniqueId = new Date().getTime();
+        const folderName = `FolderDel_${uniqueId}`;
+
+        // 1. Create a folder to delete
+        await documentationPage.createFolder(folderName);
+        await documentationPage.verifyFolderInContainer(folderName);
+
+        // 2. Delete the folder
+        await documentationPage.deleteFolder(folderName);
+
+        // 3. Verify folder is removed from container
+        await f.expect(documentationPage.page.locator('#CardsContainerBody').getByText(folderName)).toHaveCount(0, { timeout: 10000 });
+    });
+
+    f.test('Verify Documentation page upload functionality using the "Upload" button @OVAC-5114 @regression', async ({ documentationPage }) => {
+        const uniqueId = new Date().getTime();
+        const fileName = `upload_btn_${uniqueId}.txt`;
+        const content = `Testing documentation upload button at ${uniqueId}`;
+
+        // 1. Upload document via upload button / fab menu
+        await documentationPage.uploadDocument(fileName, content);
+        await documentationPage.verifyUploadSuccessAlert();
+
+        // 2. Search and verify document is displayed in documentation container
+        await documentationPage.searchDocument(fileName);
+        await documentationPage.verifyDocumentInTable(fileName);
+
+        // 3. Cleanup: delete uploaded document
+        await documentationPage.deleteDocument(fileName);
+    });
 });

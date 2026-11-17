@@ -277,8 +277,11 @@ export class DocumentationPage extends BasePage {
             await deleteOption.click();
 
             const dialog = this.page.getByRole('dialog').first();
-            await dialog.getByRole('button', { name: /Accept|Aceptar/i }).click();
-            await dialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+            await dialog.waitFor({ state: 'visible', timeout: 5000 });
+            const acceptBtn = dialog.getByRole('button', { name: /Accept|Aceptar/i });
+            await acceptBtn.click();
+            await expect(dialog).toBeHidden({ timeout: 15000 });
+            await this.page.waitForTimeout(1000);
         });
     }
 }

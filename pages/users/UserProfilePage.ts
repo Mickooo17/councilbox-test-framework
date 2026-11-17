@@ -206,6 +206,7 @@ export class UserProfilePage extends BasePage {
             if (/spanish|espanol|español/i.test(language)) pattern = 'Español|Espanol|Spanish|Spagnolo|Gaztelania';
             if (/english|ingles|inglés/i.test(language)) pattern = 'English|Inglés|Ingles|Anglès|Angles|Inglese|Ingelesa';
             if (/catala|català|catalan/i.test(language)) pattern = 'Català|Catala|Catalan|Catalano';
+            if (/galego|galician|gallego/i.test(language)) pattern = 'Galego|Galician|Gallego';
             if (/euskera|basque/i.test(language)) pattern = 'Euskera|Basque|Basc|Basco';
             if (/italiano|italian/i.test(language)) pattern = 'Italiano|Italian|Italià';
 
@@ -239,7 +240,7 @@ export class UserProfilePage extends BasePage {
      */
     async saveProfile() {
         await test.step('Click Save button on user profile form', async () => {
-            const saveBtn = this.page.getByRole('button', { name: /^Save$|^Guardar$|^Desa$|^Gorde$|^Salva$/i }).first();
+            const saveBtn = this.page.getByRole('button', { name: /^Save$|^Guardar$|^Gardar$|^Desa$|^Gorde$|^Salva$/i }).first();
             await saveBtn.waitFor({ state: 'visible', timeout: 10000 });
             await saveBtn.click();
         });

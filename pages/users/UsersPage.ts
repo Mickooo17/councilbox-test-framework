@@ -898,4 +898,24 @@ export class UsersPage extends BasePage {
             await this.page.keyboard.press('Escape');
         });
     }
+
+    /**
+     * Verifies read-only display of user creation date, activation date, and last login details on User details page (OVAC-5482).
+     */
+    async verifyUserDetailsInformativeFields() {
+        await test.step('Verify user creation date, activation date, and last connection informative fields', async () => {
+            await this.dismissModal();
+            // Verify Creation date field
+            const creationDateLabel = this.page.locator('text=/Creation date|Fecha de creación/i').first();
+            await expect(creationDateLabel).toBeVisible({ timeout: 10000 });
+
+            // Verify Activation date field
+            const activationDateLabel = this.page.locator('text=/Activation date|Fecha de activación/i').first();
+            await expect(activationDateLabel).toBeVisible({ timeout: 10000 });
+
+            // Verify Last connection / login field
+            const lastConnectionLabel = this.page.locator('text=/Last connection|Última conexión|Último acceso|Last login/i').first();
+            await expect(lastConnectionLabel).toBeVisible({ timeout: 10000 });
+        });
+    }
 }

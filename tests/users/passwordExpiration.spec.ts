@@ -134,6 +134,19 @@ f.test.describe('User Profile & Password Expiration Settings', () => {
         await userProfilePage.verifyProfileSavedAlert();
     });
 
+    f.test('The user is able to change the Language to Galego- Users settings section @OVAC-5385 @regression', async ({ userProfilePage }) => {
+        await userProfilePage.navigateToUserSettings();
+        await userProfilePage.selectLanguage('Galego');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+        expect(await userProfilePage.getLanguage()).toMatch(/Galego|Galician/i);
+
+        // Restore back to English
+        await userProfilePage.selectLanguage('English');
+        await userProfilePage.saveProfile();
+        await userProfilePage.verifyProfileSavedAlert();
+    });
+
     f.test('Verify user is able to deactivate password expiration @XR-3054 @smoke @regression', async ({ userProfilePage }) => {
         await userProfilePage.navigateToProfileOptions();
 
