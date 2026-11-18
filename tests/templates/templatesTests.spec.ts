@@ -256,4 +256,32 @@ f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () =
         // 7. Cleanup
         await templatesPage.deleteTemplate(updatedName);
     });
+
+    f.test('The user is able to delete already existing template - Templates @OVAC-4870 @regression', async ({ templatesPage }) => {
+        // 1-3. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4. Create a template to delete
+        const templateData = DataGenerator.randomTemplateData();
+        await templatesPage.createTemplate(templateData);
+        await templatesPage.verifySuccessAlert();
+
+        // 5. Delete the template
+        await templatesPage.deleteTemplate(templateData.name);
+        await templatesPage.verifyDeleteSuccessAlert();
+
+        // 6. Verify template is no longer in table
+        await templatesPage.searchTemplate(templateData.name);
+        await templatesPage.verifyTemplateNotInTable(templateData.name);
+    });
+
+    f.test('Verify new design for Templates heading informations @OVAC-5179 @regression', async ({ templatesPage }) => {
+        // 1-3. Navigate to Templates
+        await templatesPage.navigateToTemplates();
+        await templatesPage.dismissModal();
+
+        // 4-5. Edit any template and validate Icon, Template name, Status, Actions menu
+        await templatesPage.verifyTemplateHeadingInformation();
+    });
 });

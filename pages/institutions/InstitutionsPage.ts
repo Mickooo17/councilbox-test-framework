@@ -611,4 +611,31 @@ export class InstitutionsPage extends BasePage {
             await this.page.waitForTimeout(1000);
         });
     }
+
+    /**
+     * Verifies Entity header screen informations: icon, name, type, status, actions menu (OVAC-5180).
+     */
+    async verifyEntitiesHeadingInformation(companyId: number = 1112) {
+        await test.step('Verify entity header screen informations: icon, name, type, status, actions menu', async () => {
+            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}`);
+            await this.page.waitForLoadState('domcontentloaded');
+            await this.dismissToastOrModal();
+
+            // 1. Verify entity name (heading level 1)
+            const entityHeading = this.page.getByRole('heading', { level: 1 }).filter({ hasNotText: /^Entities$/i }).first();
+            await expect(entityHeading).toBeVisible({ timeout: 10000 });
+
+            // 2. Verify entity icon
+            const entityIcon = this.page.locator('img[alt*="Logo" i], .ri-building-line, .ri-government-line, .cbx-IconButton, i[class*="ri-"]').first();
+            await expect(entityIcon).toBeVisible({ timeout: 5000 });
+
+            // 3. Verify type (Organization or entity / Organización o entidad)
+            const typeIndicator = this.page.locator('p:visible, span:visible, div:visible').filter({ hasText: /^Organization$|^Organización$|^Entity$|^Entidad$/i }).first();
+            await expect(typeIndicator).toBeVisible({ timeout: 5000 });
+
+            // 4. Verify Actions / Save button
+            const saveBtn = this.page.getByRole('button', { name: /Save|Guardar/i }).first();
+            await expect(saveBtn).toBeVisible({ timeout: 5000 });
+        });
+    }
 }

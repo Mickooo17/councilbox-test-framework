@@ -263,4 +263,9 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         await institutionsPage.saveCompanySettings();
         await institutionsPage.verifyCompanySettingsSavedAlert();
     });
+
+    f.test('Verify Entity header screen informations @OVAC-5180 @regression', async ({ institutionsPage }) => {
+        // 1-3. Navigate to Entities / Company edit and verify header screen information (icon, name, type, status, actions)
+        await institutionsPage.verifyEntitiesHeadingInformation(1112);
+    });
 });

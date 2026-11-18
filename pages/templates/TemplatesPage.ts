@@ -255,4 +255,48 @@ export class TemplatesPage extends BasePage {
             await this.navigateToTemplates();
         });
     }
+
+    /**
+     * Verifies new design for Templates heading informations: icon, template name, status, actions menu (OVAC-5179).
+     */
+    async verifyTemplateHeadingInformation() {
+        await test.step('Verify Templates heading informations: icon, template name, status, and actions menu', async () => {
+            await this.dismissToastOrModal();
+            const row = this.tableBody.locator('tr').first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+
+            // Open 3-dots actions menu and click Edit
+            const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), td:last-child button').first();
+            await menuBtn.click();
+            await this.page.waitForTimeout(500);
+
+            const editBtn = this.page.getByRole('menuitem', { name: /Edit|Editar/i })
+                .or(this.page.getByRole('button', { name: /Edit|Editar/i }))
+                .or(this.page.locator('.cbx-menuItem:has-text("Edit"), .cbx-menuItem:has-text("Editar")'))
+                .first();
+            await editBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await editBtn.click();
+            await this.page.waitForTimeout(1000);
+
+            // 1. Validate Template name (heading level 1)
+            const templateTitle = this.page.getByRole('heading', { level: 1 }).first();
+            await expect(templateTitle).toBeVisible({ timeout: 10000 });
+
+            // 2. Validate Icon in header
+            const headerIcon = this.page.locator('.ri-government-line, .ri-draft-line, .cbx-IconButton, i[class*="ri-"]').first();
+            await expect(headerIcon).toBeVisible({ timeout: 5000 });
+
+            // 3. Validate Status
+            const statusIndicator = this.page.getByText(/Activated|Activado|Draft|Borrador|Published|Publicado/i).first();
+            await expect(statusIndicator).toBeVisible({ timeout: 5000 });
+
+            // 4. Validate Actions menu / Save button
+            const actionsElement = this.page.locator('button:has-text("Save"), button:has-text("Guardar"), button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has-text("Actions")').first();
+            await expect(actionsElement).toBeVisible({ timeout: 5000 });
+
+            // Close edit drawer/modal
+            await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(500);
+        });
+    }
 }

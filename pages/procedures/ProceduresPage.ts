@@ -906,4 +906,40 @@ export class ProceduresPage extends BasePage {
             await this.verifyProcedureInTable(newName);
         });
     }
+
+    /**
+     * Verifies procedure header screen information: icon, name, type, status, actions menu (OVAC-5184).
+     */
+    async verifyProceduresHeadingInformation() {
+        await test.step('Verify procedure header screen information: icon, name, type, status, actions menu', async () => {
+            await this.dismissToastOrModal();
+            const row = this.tableBody.locator('tr').first();
+            await row.waitFor({ state: 'visible', timeout: 15000 });
+
+            // Click first procedure row to enter procedure details/edit screen
+            await row.click();
+            await this.page.waitForTimeout(1500);
+
+            // 1. Verify procedure name (heading level 1 or title input)
+            const procTitle = this.page.getByRole('heading', { level: 1 }).first()
+                .or(this.procedureNameInput).first();
+            await expect(procTitle).toBeVisible({ timeout: 10000 });
+
+            // 2. Verify icon
+            const procIcon = this.page.locator('.ri-government-line, .ri-video-chat-line, .ri-article-line, .cbx-IconButton, i[class*="ri-"]').first();
+            await expect(procIcon).toBeVisible({ timeout: 5000 });
+
+            // 3. Verify type (Video-appointment / Management / Face-to-face / Videocita / Gestión / Presencial)
+            const typeIndicator = this.page.getByText(/Video[- ]appointment|Management|Face[- ]to[- ]face|Videocita|Gestión|Presencial/i).first();
+            await expect(typeIndicator).toBeVisible({ timeout: 5000 });
+
+            // 4. Verify status (Published / Draft / Publicado / Borrador)
+            const statusIndicator = this.page.getByText(/Published|Publicado|Draft|Borrador/i).first();
+            await expect(statusIndicator).toBeVisible({ timeout: 5000 });
+
+            // 5. Verify Actions menu or action buttons (Save, Back, 3-dots, etc.)
+            const actionsMenu = this.page.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has-text("Save"), button:has-text("Guardar"), button:has-text("Actions"), #procedure-editor-next, button:has(.ri-arrow-left-line)').first();
+            await expect(actionsMenu).toBeVisible({ timeout: 5000 });
+        });
+    }
 }

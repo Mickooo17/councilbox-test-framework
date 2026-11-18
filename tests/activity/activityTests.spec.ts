@@ -358,4 +358,23 @@ test.describe('Activity & Dashboard Tests', () => {
         await usersPage.navigateToUsers();
         await usersPage.dismissToastOrModal();
     });
+
+    test('Verify "APPLY" button behavior and filter execution in Activity section for Supervisor role @OVAC-5089 @regression', async ({ activityPage }) => {
+        // 1-2. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 3. Verify APPLY button is initially disabled
+        await activityPage.verifyApplyButtonDisabledByDefault();
+
+        // 4. Change month and verify APPLY button enables
+        await activityPage.changeDashboardMonth('prev');
+        const applyBtn = activityPage.page.getByRole('button', { name: /^Apply$|^Aplicar$/i })
+            .or(activityPage.page.locator('#activity-apply-filter, button:has-text("APPLY"), button:has-text("APLICAR")'))
+            .first();
+        await expect(applyBtn).toBeEnabled({ timeout: 10000 });
+
+        // 5. Click APPLY and verify filter execution
+        await activityPage.applyDashboardFilters();
+        await expect(applyBtn).toBeDisabled({ timeout: 10000 });
+    });
 });

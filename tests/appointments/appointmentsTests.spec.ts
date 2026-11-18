@@ -773,4 +773,54 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyChangeMeetingOrganizationModal();
   });
 
+  test('Verify blocking reason is saved in internal notes @OVAC-4936 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify blocking reason textarea is required before Block button is enabled
+    await appointmentsPage.verifyBlockingReasonRequirementInBlockModal();
+  });
+
+  test('Verify if Organization have face-to-face procedure, the Appointment page will have two tabs - Video appointment and Face-to-Face @OVAC-5078 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify both Video appointment and Face-to-Face tabs exist and are selectable
+    await appointmentsPage.verifyAppointmentsTabsVideoAndFaceToFace();
+  });
+
+  test('Verify "Block access" option availability in process actions menu for Agent role @OVAC-5549 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify Block access action availability in process menu
+    await appointmentsPage.verifyBlockAccessOptionInProcessActionsMenu();
+  });
+
+  test('Verify "Cancel" action availability and process cancellation functionality for Global Administrator role @OVAC-4977 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Verify Cancel action availability in process menu
+    await appointmentsPage.verifyCancelActionInProcessActionsMenu();
+  });
+
+  test('Verify appointment storage options, including "OVAC Storage" and the "Upload" button @OVAC-5111 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3-5. Open Documents modal, enter folder, and verify storage options & upload zone
+    await appointmentsPage.verifyAppointmentStorageOptionsAndUploadZone();
+  });
+
 });

@@ -766,4 +766,16 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 4. Verify "Required to complete the appointment" checkbox is displayed in Appointments section
         await expect(proceduresPage.internalNotesRequiredCheckbox).toBeVisible({ timeout: 10000 });
     });
+
+    test('Verify header of the procedure screen information @OVAC-5184 @regression', async ({ proceduresPage }) => {
+        // Prevent afterEach from attempting to delete nonexistent procedure
+        procedureData.name = '';
+
+        // 1-3. Navigate to Procedures page
+        await proceduresPage.navigateToProcedures();
+        await proceduresPage.dismissToastOrModal();
+
+        // 4-5. Open first procedure and verify header screen information (icon, name, type, status, actions)
+        await proceduresPage.verifyProceduresHeadingInformation();
+    });
 });

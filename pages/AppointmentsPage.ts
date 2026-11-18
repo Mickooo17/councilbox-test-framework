@@ -1047,4 +1047,203 @@ export class AppointmentsPage extends BasePage {
       await this.page.waitForTimeout(500);
     });
   }
+
+  /**
+   * Verifies blocking reason textarea is required before BLOCK button is enabled in Block access modal (OVAC-4936).
+   */
+  async verifyBlockingReasonRequirementInBlockModal() {
+    await test.step('Verify blocking reason textarea is required to enable Block button', async () => {
+      await this.dismissToastOrModal();
+      const row = this.tableRows.first();
+      await row.waitFor({ state: 'visible', timeout: 10000 });
+
+      // Open 3-dots actions menu
+      const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]').first();
+      await menuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Click "Block access" / "Bloquear acceso"
+      const blockItem = this.page.getByRole('button', { name: /Block access|Bloquear acceso/i })
+        .or(this.page.locator('button, [role="menuitem"], li').filter({ hasText: /Block access|Bloquear acceso/i })).first();
+      await blockItem.waitFor({ state: 'visible', timeout: 5000 });
+      await blockItem.click();
+      await this.page.waitForTimeout(1000);
+
+      // Verify Block access dialog is displayed
+      const dialog = this.page.locator('.MuiDialog-root, [role="dialog"]').filter({ hasText: /Block access|Bloquear acceso|Block|Bloquear/i }).first();
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+
+      // Verify textarea for reason is visible
+      const textarea = dialog.locator('textarea').first();
+      await expect(textarea).toBeVisible({ timeout: 5000 });
+
+      // Verify Block button is initially disabled
+      const blockConfirmBtn = dialog.getByRole('button', { name: /^Block$|^Bloquear$/i }).first();
+      await expect(blockConfirmBtn).toBeDisabled({ timeout: 5000 });
+
+      // Fill reason text
+      await textarea.fill('Automated test blocking reason verification');
+      await this.page.waitForTimeout(500);
+
+      // Verify Block button is now enabled
+      await expect(blockConfirmBtn).toBeEnabled({ timeout: 5000 });
+
+      // Close modal without blocking
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies that Appointment page displays both Video appointment and Face-to-Face tabs (OVAC-5078).
+   */
+  async verifyAppointmentsTabsVideoAndFaceToFace() {
+    await test.step('Verify Appointment page has Video appointment and Face-to-Face tabs', async () => {
+      await this.dismissToastOrModal();
+      const tablist = this.page.locator('[role="tablist"]').first();
+      await tablist.waitFor({ state: 'visible', timeout: 10000 });
+
+      const videoTab = tablist.locator('[role="tab"]').filter({ hasText: /Video-appointments|Videocitas/i }).first();
+      const faceTab = tablist.locator('[role="tab"]').filter({ hasText: /In-person appointments|Citas presenciales/i }).first();
+
+      await expect(videoTab).toBeVisible({ timeout: 10000 });
+      await expect(faceTab).toBeVisible({ timeout: 10000 });
+
+      // Switch to In-person appointments tab
+      await faceTab.click();
+      await this.page.waitForTimeout(1000);
+      expect(await faceTab.getAttribute('aria-selected')).toBe('true');
+
+      // Verify table or empty state in In-person tab
+      const content = this.appointmentsTable.or(this.page.getByText(/No appointments available|No hay citas disponibles|No results|No hay resultados/i)).first();
+      await expect(content).toBeVisible({ timeout: 10000 });
+
+      // Switch back to Video-appointments tab
+      await videoTab.click();
+      await this.page.waitForTimeout(1000);
+      expect(await videoTab.getAttribute('aria-selected')).toBe('true');
+      await expect(this.appointmentsTable).toBeVisible({ timeout: 10000 });
+    });
+  }
+
+  /**
+   * Navigates to the Processes / Managements page.
+   */
+  async navigateToProcessesPage(companyId: number = 1112) {
+    await test.step(`Navigate to Processes page for company #${companyId}`, async () => {
+      await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/managements`, { waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('load');
+      await this.dismissToastOrModal();
+      await this.page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+    });
+  }
+
+  /**
+   * Verifies "Block access" option availability in process actions menu (OVAC-5549).
+   */
+  async verifyBlockAccessOptionInProcessActionsMenu() {
+    await test.step('Verify "Block access" option availability in process actions menu', async () => {
+      await this.dismissToastOrModal();
+      const row = this.tableRows.first();
+      await row.waitFor({ state: 'visible', timeout: 10000 });
+
+      // Open 3-dots actions menu
+      const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="process-menu"], [id^="appointment-menu"]').first();
+      await menuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Verify "Block access" / "Bloquear acceso" option is available
+      const blockItem = this.page.getByRole('button', { name: /Block access|Bloquear acceso/i }).first();
+      await expect(blockItem).toBeVisible({ timeout: 10000 });
+
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies "Cancel" action availability in process actions menu (OVAC-4977).
+   */
+  async verifyCancelActionInProcessActionsMenu() {
+    await test.step('Verify "Cancel" action availability in process actions menu', async () => {
+      await this.dismissToastOrModal();
+      const row = this.tableRows.first();
+      await row.waitFor({ state: 'visible', timeout: 10000 });
+
+      // Open 3-dots actions menu
+      const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="process-menu"], [id^="appointment-menu"]').first();
+      await menuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Verify "Cancel the appointment" option is available in the menu
+      const cancelItem = this.page.getByRole('button', { name: /Cancel the appointment|Cancelar cita|Cancel/i }).first();
+      await expect(cancelItem).toBeVisible({ timeout: 10000 });
+
+      // Click to verify Cancel appointment modal opens
+      await cancelItem.click();
+      await this.page.waitForTimeout(500);
+
+      const cancelDialog = this.page.locator('.MuiDialog-root, [role="dialog"]').filter({ hasText: /Cancel|Cancelar/i }).first();
+      await expect(cancelDialog).toBeVisible({ timeout: 10000 });
+
+      // Close modal
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies appointment storage options, including "OVAC Storage" and the "Upload" button (OVAC-5111).
+   */
+  async verifyAppointmentStorageOptionsAndUploadZone() {
+    await test.step('Verify appointment storage options: OVAC Storage, Upload button, and drag-and-drop zone', async () => {
+      await this.dismissToastOrModal();
+      const row = this.tableRows.first();
+      await row.waitFor({ state: 'visible', timeout: 10000 });
+
+      // Open 3-dots actions menu
+      const menuBtn = row.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="process-menu"], [id^="appointment-menu"]').first();
+      await menuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Click "Documents" / "Documentos"
+      const docsOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Documents$|^Documentos$/i).first();
+      await docsOption.waitFor({ state: 'visible', timeout: 5000 });
+      await docsOption.click();
+      await this.page.waitForTimeout(1500);
+
+      // Verify Documents modal is displayed
+      const modal = this.page.locator('.MuiDialog-root, [role="dialog"]').first();
+      await expect(modal).toBeVisible({ timeout: 10000 });
+
+      // Click on the first folder inside the modal
+      const folder = modal.getByText(/Documentación del participante|Interna/i).first();
+      await folder.waitFor({ state: 'visible', timeout: 10000 });
+      await folder.click();
+      await this.page.waitForTimeout(1500);
+
+      // Step 5: Verify "Available documents" section
+      const availableDocs = modal.getByText(/Available documents|Documentos disponibles/i).first();
+      await expect(availableDocs).toBeVisible({ timeout: 10000 });
+
+      // Verify "Drag your files here or click" drop zone
+      const dropZone = modal.getByText(/Drag your files here or click|Arrastra tus archivos aquí|Drag your files here/i).first();
+      await expect(dropZone).toBeVisible({ timeout: 10000 });
+
+      // Verify "OVAC STORAGE" button/option
+      const storageOption = modal.getByText(/OVAC STORAGE/i)
+        .or(modal.locator('button, [role="button"], span').filter({ hasText: /OVAC STORAGE/i }))
+        .first();
+      await expect(storageOption).toBeVisible({ timeout: 10000 });
+
+      // Close modal
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
 }
