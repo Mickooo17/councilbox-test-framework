@@ -661,4 +661,66 @@ f.test.describe('Users - Details Page Tests', () => {
         // 2. Verify creation date, activation date, and last connection read-only details
         await usersPage.verifyUserDetailsInformativeFields();
     });
+
+    f.test('Users with the "Supervisor" role can be created by the super administrator and the administrator @OVAC-5800 @regression', async ({ usersPage }) => {
+        // 1-3. Navigate to Users page
+        await usersPage.navigateToUsers();
+
+        // 4. Click Add user button
+        await usersPage.clickAddUser();
+
+        // 5-9. Fill details
+        const supervisorUser = DataGenerator.randomUserData();
+        await usersPage.fillUserForm(supervisorUser);
+        await usersPage.selectLanguage('Español');
+
+        // 10. Select "Supervisor" from Role drop-down menu
+        await usersPage.selectRoleInAddUser('Supervisor');
+
+        // 11. Click Continue to open Entities / Institutions tab
+        await usersPage.clickContinue();
+
+        // 12. Assign institution by clicking the toggle switch
+        await usersPage.assignInstitutionInStep2();
+
+        // 13. Click ADD button
+        await usersPage.submitAddUserStep2();
+        await usersPage.verifyUserCreatedAlert();
+
+        // Cleanup: delete the created supervisor user
+        await usersPage.deleteUser();
+        await usersPage.verifyUserDeletedAlert();
+    });
+
+    f.test('The file with appointments for a specific user can be exported by the superadministrator or administrator @OVAC-5798 @regression', async ({ usersPage, page }) => {
+        // 1-3. Navigate to Users page
+        await usersPage.navigateToUsers();
+
+        // 4. Click on desired user
+        await usersPage.clickUserRow('Ammar Professional');
+
+        // 5. Click Appointments tab
+        const appTab = page.locator('[role="tab"], .MuiTab-root, button').filter({ hasText: /^APPOINTMENTS$|^CITAS$/i }).first();
+        await appTab.waitFor({ state: 'visible', timeout: 10000 });
+        await appTab.click();
+        await page.waitForTimeout(1000);
+
+        // 6. Choose desired filter for appointments
+        const periodCombo = page.getByRole('combobox', { name: /Period|Periodo/i }).or(
+            page.locator('.MuiFormControl-root').filter({ hasText: /Period|Periodo/i }).locator('[role="combobox"], [role="button"]')
+        ).first();
+        if (await periodCombo.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await periodCombo.click({ force: true });
+            await page.waitForTimeout(500);
+            const periodOption = page.locator('[role="option"], li').filter({ hasText: /This month|Este mes|All|Todos/i }).first();
+            if (await periodOption.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await periodOption.click();
+                await page.waitForTimeout(500);
+            }
+        }
+
+        // 7. Click EXPORT button and verify file download
+        const filename = await usersPage.exportUserAppointments();
+        f.expect(filename).toMatch(/\.(csv|xlsx|xls)$/i);
+    });
 });

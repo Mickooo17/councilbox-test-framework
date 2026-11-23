@@ -1,6 +1,7 @@
 import * as f from '../fixtures';
 import { DataGenerator } from '../../utils/DataGenerator';
 import { TemplateData } from '../../pages/templates/TemplatesPage';
+import { AppointmentApiHelper } from '../../utils/appointments/AppointmentApiHelper';
 
 f.test.describe('Templates - Create Template Tests', () => {
     let templateData: TemplateData;
@@ -283,5 +284,96 @@ f.test.describe('Templates - Drafts & Search Tests (Xray Execution 77514)', () =
 
         // 4-5. Edit any template and validate Icon, Template name, Status, Actions menu
         await templatesPage.verifyTemplateHeadingInformation();
+    });
+});
+
+f.test.describe('Templates - Text Area Upload Template Tests', () => {
+    f.test('Verify new UI for adding templates in any text area @OVAC-5794 @regression', async ({
+        appointmentsPage,
+        request,
+        page,
+    }) => {
+        // 1-3. Start creating / compose notification with text area on appointment
+        const created = await AppointmentApiHelper.createAppointment(request, {
+            companyId: 1112,
+            procedureId: 3955,
+            procedureTitle: 'Prueba iñaki',
+        });
+        await appointmentsPage.navigateToAppointmentsPage(1112);
+        await appointmentsPage.searchAppointment(created.id);
+
+        // 4. In notification text area, click Upload template button
+        await appointmentsPage.openUploadTemplateUIFromNotification(created.id);
+
+        // Verify the new UI is displayed with all fields
+        const templateModal = page.locator('.MuiDialog-root:visible, .MuiDrawer-root:visible, [role="dialog"]:visible').last();
+        await f.expect(templateModal).toBeVisible({ timeout: 10000 });
+        await f.expect(templateModal.getByText(/Upload template|Subir plantilla|Plantillas/i).first()).toBeVisible({ timeout: 5000 });
+        await f.expect(templateModal.getByText(/Categories|Categorías/i).first()).toBeVisible({ timeout: 5000 });
+    });
+
+    f.test('Verify Category drop-down is displayed and contains all categories @OVAC-5792 @regression', async ({
+        appointmentsPage,
+        request,
+        page,
+    }) => {
+        // 1-3. Create appointment and navigate
+        const created = await AppointmentApiHelper.createAppointment(request, {
+            companyId: 1112,
+            procedureId: 3955,
+            procedureTitle: 'Prueba iñaki',
+        });
+        await appointmentsPage.navigateToAppointmentsPage(1112);
+        await appointmentsPage.searchAppointment(created.id);
+
+        // 4. Open upload template UI from text area
+        await appointmentsPage.openUploadTemplateUIFromNotification(created.id);
+
+        // Validate Category drop-down is displayed
+        const templateModal = page.locator('.MuiDialog-root:visible, .MuiDrawer-root:visible, [role="dialog"]:visible').last();
+        const catDropdown = templateModal.getByRole('combobox', { name: /Category|Categoría|Categorías|Categories/i })
+            .or(templateModal.locator('.cbx-selectInput-container, [role="combobox"]').filter({ hasText: /Category|Categoría|Categories/i }))
+            .or(templateModal.locator('[role="combobox"]'))
+            .first();
+        await f.expect(catDropdown).toBeVisible({ timeout: 10000 });
+
+        // 5. Click on Category drop-down button and validate options are visible
+        await catDropdown.click();
+        await page.waitForTimeout(500);
+
+        const options = page.locator('.MuiPopover-root:visible [role="option"], .MuiMenu-root:visible li, [role="listbox"]:visible [role="option"]');
+        await f.expect(options.first()).toBeVisible({ timeout: 5000 });
+        const optionCount = await options.count();
+        f.expect(optionCount).toBeGreaterThan(0);
+    });
+
+    f.test('Verify templates can be searched by using search engine - Text area add template @OVAC-5799 @regression', async ({
+        appointmentsPage,
+        request,
+        page,
+    }) => {
+        // 1-3. Create appointment and navigate
+        const created = await AppointmentApiHelper.createAppointment(request, {
+            companyId: 1112,
+            procedureId: 3955,
+            procedureTitle: 'Prueba iñaki',
+        });
+        await appointmentsPage.navigateToAppointmentsPage(1112);
+        await appointmentsPage.searchAppointment(created.id);
+
+        // 4. Open upload template UI from text area
+        await appointmentsPage.openUploadTemplateUIFromNotification(created.id);
+
+        // 5. Verify search engine input is displayed in template modal
+        const templateModal = page.locator('.MuiDialog-root:visible, .MuiDrawer-root:visible, [role="dialog"]:visible').last();
+        const searchInput = templateModal.getByRole('textbox', { name: /Search|Buscar/i })
+            .or(templateModal.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i], input[type="text"]'))
+            .first();
+        await f.expect(searchInput).toBeVisible({ timeout: 10000 });
+
+        // 6. Enter a query in search engine
+        await searchInput.fill('Template');
+        await page.waitForTimeout(500);
+        await f.expect(searchInput).toHaveValue('Template');
     });
 });

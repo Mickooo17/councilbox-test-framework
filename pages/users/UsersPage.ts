@@ -144,6 +144,55 @@ export class UsersPage extends BasePage {
         });
     }
 
+    async selectRoleInAddUser(role: string = 'Supervisor') {
+        await test.step(`Select role in Add User form: ${role}`, async () => {
+            const drawer = this.page.locator('.cbx-drawerPanel-container');
+            const roleCombo = drawer.locator('.cbx-inputText-renderValue-container, .cbx-selectInput-container, [role="combobox"]')
+                .filter({ hasText: /Role|Rol|Administrator|Entity administrator|Administrador/i })
+                .or(drawer.getByRole('combobox', { name: /Role|Rol/i }))
+                .or(drawer.locator('.cbx-inputText-container').filter({ hasText: /Role|Rol/i }).locator('input, [role="combobox"]'))
+                .first();
+            await roleCombo.waitFor({ state: 'visible', timeout: 10000 });
+            await roleCombo.click();
+            await this.page.waitForTimeout(500);
+
+            const roleOption = this.page.locator('.MuiPopover-root:visible [role="option"], .MuiMenu-root:visible li, [role="listbox"]:visible [role="option"]')
+                .filter({ hasText: new RegExp(`^${role}$`, 'i') }).first();
+            await roleOption.waitFor({ state: 'visible', timeout: 5000 });
+            await roleOption.click();
+            await this.page.waitForTimeout(500);
+        });
+    }
+
+    async assignInstitutionInStep2(institutionName?: string) {
+        await test.step(`Assign institution in step 2: ${institutionName || 'first available'}`, async () => {
+            await this.addButton.waitFor({ state: 'visible', timeout: 10000 });
+            const entitiesTable = this.page.locator('table').filter({ hasText: /Assignment|Asignación/i })
+                .or(this.page.locator('.cbx-drawerPanel-container table'))
+                .first();
+            await entitiesTable.waitFor({ state: 'visible', timeout: 10000 });
+
+            let row = entitiesTable.locator('tbody tr').first();
+            if (institutionName) {
+                const searchInput = this.page.locator('input[placeholder*="Search entity" i], input[placeholder*="Buscar" i]').first();
+                if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await searchInput.fill(institutionName);
+                    await this.page.waitForTimeout(500);
+                }
+                const matchedRow = entitiesTable.locator('tbody tr').filter({ hasText: new RegExp(institutionName, 'i') }).first();
+                if (await matchedRow.isVisible({ timeout: 3000 }).catch(() => false)) {
+                    row = matchedRow;
+                }
+            }
+
+            const toggle = row.locator('input[type="checkbox"], input[role="switch"], .cbx-switch').first();
+            if (await toggle.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await toggle.click({ force: true });
+                await this.page.waitForTimeout(1000);
+            }
+        });
+    }
+
     async submitUserForm() {
         await test.step('Submit user form (Continue → Add)', async () => {
             const popover = this.page.locator('.MuiPopover-root, .MuiMenu-root');

@@ -778,4 +778,70 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 4-5. Open first procedure and verify header screen information (icon, name, type, status, actions)
         await proceduresPage.verifyProceduresHeadingInformation();
     });
+
+    test('A procedure with "Biometric identification" consent can be created by the user [Automatic biometric identification] @OVAC-5812 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        // 4. Click on + button
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 5. Fill Details tab and continue
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+
+        // 6. Entities tab -> continue to Consents tab
+        await proceduresPage.clickContinue();
+
+        // 7. Add "Biometric identification" consent
+        await proceduresPage.addBiometricIdentificationConsent();
+
+        // 8. Documentation tab
+        await proceduresPage.clickContinue();
+
+        // 9. Configuration tab
+        await proceduresPage.clickContinue();
+
+        // 10. Select Automatic biometric identification option
+        await proceduresPage.selectBiometricIdentificationOption('auto');
+
+        // 11. Review tab
+        await proceduresPage.clickContinue();
+
+        // 12. Publish procedure
+        await proceduresPage.publishProcedure();
+    });
+
+    test('A procedure with "Biometric identification" consent can be created by the user [Automatic biometric identification with manual validation] @OVAC-5813 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        // 4. Click on + button
+        await proceduresPage.openCreateProcedureDrawer();
+        await proceduresPage.selectVideoAppointmentProcedure();
+
+        // 5. Fill Details tab and continue
+        await proceduresPage.procedureNameInput.fill(procedureData.name);
+        await proceduresPage.procedureDescriptionEditor.fill(procedureData.description);
+        await proceduresPage.clickContinue();
+
+        // 6. Entities tab -> continue to Consents tab
+        await proceduresPage.clickContinue();
+
+        // 7. Add "Biometric identification" consent
+        await proceduresPage.addBiometricIdentificationConsent();
+
+        // 8. Documentation tab
+        await proceduresPage.clickContinue();
+
+        // 9. Configuration tab
+        await proceduresPage.clickContinue();
+
+        // 10. Select Automatic biometric identification with manual validation option
+        await proceduresPage.selectBiometricIdentificationOption('manualValidation');
+
+        // 11. Review tab
+        await proceduresPage.clickContinue();
+
+        // 12. Publish procedure
+        await proceduresPage.publishProcedure();
+    });
 });

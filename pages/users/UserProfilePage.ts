@@ -178,6 +178,32 @@ export class UserProfilePage extends BasePage {
     }
 
     /**
+     * Reads current email in user profile (OVAC-5766).
+     */
+    async getEmail(): Promise<string> {
+        return await test.step('Get user profile Email', async () => {
+            const emailInput = this.page.getByRole('textbox', { name: /^E-mail$|^Email$|^Correo electrónico$/i })
+                .or(this.page.locator('input[type="email"], #user-email, input[name*="email" i]'))
+                .first();
+            await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+            return await emailInput.inputValue();
+        });
+    }
+
+    /**
+     * Edits email in user profile (OVAC-5766).
+     */
+    async editEmail(email: string) {
+        await test.step(`Edit user profile Email to: ${email}`, async () => {
+            const emailInput = this.page.getByRole('textbox', { name: /^E-mail$|^Email$|^Correo electrónico$/i })
+                .or(this.page.locator('input[type="email"], #user-email, input[name*="email" i]'))
+                .first();
+            await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+            await emailInput.fill(email);
+        });
+    }
+
+    /**
      * Reads current language in user profile (OVAC-5787, OVAC-5645, etc.).
      */
     async getLanguage(): Promise<string> {

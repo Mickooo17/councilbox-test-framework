@@ -250,6 +250,55 @@ export class ProceduresPage extends BasePage {
         });
     }
 
+    async addBiometricIdentificationConsent(title: string = 'Biometric identification') {
+        await test.step(`Add "Biometric identification" consent step: "${title}"`, async () => {
+            await this.dismissToastOrModal();
+            await this.page.waitForTimeout(500);
+
+            // Click ADD button on Consents tab
+            const addBtn = this.page.getByRole('button', { name: /^Add$|^Añadir$/i })
+                .or(this.page.locator('.MuiFab-root, button.MuiFab-primary'))
+                .first();
+            await addBtn.waitFor({ state: 'visible', timeout: 15000 });
+            await addBtn.click({ force: true });
+            await this.page.waitForTimeout(1000);
+
+            // Click on "Biometric identification" card in drawer
+            const bioCard = this.page.locator('.MuiCard-root, [class*="card"]')
+                .filter({ hasText: /Biometric identification|Identificación biométrica/i }).first();
+            await bioCard.waitFor({ state: 'visible', timeout: 15000 });
+            await bioCard.click({ force: true });
+            await this.page.waitForTimeout(1000);
+
+            // Fill Title field (required)
+            const titleInput = this.page.locator('#agenda-editor-title-input').or(this.page.getByRole('textbox', { name: /Title/i })).or(this.page.locator('input[name*="title" i], input[placeholder*="title" i]')).first();
+            await titleInput.waitFor({ state: 'visible', timeout: 10000 });
+            await titleInput.fill(title);
+            await this.page.waitForTimeout(500);
+
+            // Click SAVE button in consent drawer
+            const saveBtn = this.page.locator('button').filter({ hasText: /^SAVE$|^GUARDAR$/i }).first();
+            await saveBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await saveBtn.click({ force: true });
+            await titleInput.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+            await this.page.waitForTimeout(1500);
+        });
+    }
+
+    async selectBiometricIdentificationOption(mode: 'auto' | 'manualValidation') {
+        await test.step(`Select biometric identification option: ${mode}`, async () => {
+            await expect(this.biometricHeading).toBeVisible({ timeout: 10000 });
+            if (mode === 'auto') {
+                await this.biometricAutoRadio.waitFor({ state: 'visible', timeout: 10000 });
+                await this.biometricAutoRadio.click();
+            } else {
+                await this.biometricManualValidationRadio.waitFor({ state: 'visible', timeout: 10000 });
+                await this.biometricManualValidationRadio.click();
+            }
+            await this.page.waitForTimeout(500);
+        });
+    }
+
     async toggleConsentRequiredOnCard(title: string, targetRequired?: boolean) {
         await test.step(`Toggle Required switch for consent: "${title}"`, async () => {
             const card = this.page.locator('.MuiAccordion-root').filter({ hasText: title }).first();

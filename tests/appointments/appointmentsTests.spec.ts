@@ -823,4 +823,42 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyAppointmentStorageOptionsAndUploadZone();
   });
 
+  test('The super administrator, administrator, or professional can send an appointment reminder @OVAC-5774 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create a confirmed appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search for created appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-6. Open 3-dots, select Send notification, compose title and message, click Send
+    await appointmentsPage.sendAppointmentNotification(created.id, 'Appointment Reminder', 'This is an automated reminder for your appointment.');
+  });
+
+  test('The admin can view notifications that are delivered to participants @OVAC-5770 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-8. Open 3-dots -> Participants -> Participant 3-dots -> Message -> View notifications
+    await appointmentsPage.viewParticipantNotifications(created.id);
+  });
+
 });

@@ -606,6 +606,141 @@ export class AppointmentsPage extends BasePage {
   }
 
   /**
+   * Sends an appointment reminder / notification to participant (OVAC-5774).
+   */
+  async sendAppointmentNotification(identifier: string | number, title: string, message: string) {
+    await test.step(`Send appointment notification: "${title}"`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const sendNotifOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Send notification$|^Enviar notificación$/i).first();
+      await sendNotifOption.waitFor({ state: 'visible', timeout: 5000 });
+      await sendNotifOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const modal = this.page.locator('.MuiDialog-root:visible, [role="dialog"]:visible').first();
+      await expect(modal).toBeVisible({ timeout: 10000 });
+
+      // Fill Title
+      const titleInput = modal.locator('input[type="text"]').or(modal.getByRole('textbox', { name: /Title|Título/i })).first();
+      if (await titleInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await titleInput.fill(title);
+      }
+
+      // Fill Message
+      const messageInput = modal.locator('textarea, [contenteditable="true"]').or(modal.getByRole('textbox', { name: /Message|Mensaje/i })).first();
+      await messageInput.waitFor({ state: 'visible', timeout: 5000 });
+      await messageInput.fill(message);
+
+      // Click SEND button
+      const sendBtn = modal.getByRole('button', { name: /^SEND$|^ENVIAR$/i }).first();
+      await sendBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await sendBtn.click();
+      await this.page.waitForTimeout(1000);
+
+      await modal.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+    });
+  }
+
+  /**
+   * Views notifications delivered to participants from appointment 3-dots menu (OVAC-5770).
+   */
+  async viewParticipantNotifications(identifier: string | number) {
+    await test.step('View notifications delivered to participant', async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Click 3-dots actions menu
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Select Participants option
+      const partOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Participants$|^Participantes$/i).first();
+      await partOption.waitFor({ state: 'visible', timeout: 5000 });
+      await partOption.click();
+      await this.page.waitForTimeout(1500);
+
+      // Verify attendees drawer is open
+      const partDrawer = this.page.locator('.MuiDrawer-root:visible, [role="dialog"]:visible')
+        .filter({ hasText: /List of attendees|Participantes|Attendees/i }).first();
+      await expect(partDrawer).toBeVisible({ timeout: 15000 });
+
+      // Click 3-dots on participant
+      const partMenuBtn = partDrawer.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id*="menu"]').first();
+      await partMenuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await partMenuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      // Select Message option
+      const msgOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/Message|Mensaje|Notificaciones|Notifications/i).first();
+      await msgOption.waitFor({ state: 'visible', timeout: 5000 });
+      await msgOption.click();
+      await this.page.waitForTimeout(1500);
+
+      // Verify notifications drawer
+      const notifDrawer = this.page.locator('.MuiDrawer-root:visible, [role="dialog"]:visible').last();
+      await expect(notifDrawer).toBeVisible({ timeout: 10000 });
+
+      // Click notification item if available
+      const notifItem = notifDrawer.locator('.MuiListItem-root, .MuiCard-root, [class*="notification"], tr, div[role="button"]').first();
+      if (await notifItem.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await notifItem.click();
+        await this.page.waitForTimeout(500);
+      }
+    });
+  }
+
+  /**
+   * Opens Upload Template UI from text area in notification modal (OVAC-5794, OVAC-5792).
+   */
+  async openUploadTemplateUIFromNotification(identifier: string | number) {
+    await test.step('Open Upload Template UI from text area in notification modal', async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const sendNotifOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Send notification$|^Enviar notificación$/i).first();
+      await sendNotifOption.waitFor({ state: 'visible', timeout: 5000 });
+      await sendNotifOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const modal = this.page.locator('.MuiDialog-root:visible, [role="dialog"]:visible').first();
+      await expect(modal).toBeVisible({ timeout: 10000 });
+
+      // Click "UPLOAD TEMPLATE" button
+      const uploadTemplateBtn = modal.getByRole('button', { name: /Upload template|Subir plantilla|Cargar plantilla/i }).first();
+      await uploadTemplateBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await uploadTemplateBtn.click();
+      await this.page.waitForTimeout(1000);
+
+      // Verify template dialog is presented
+      const templateModal = this.page.locator('.MuiDialog-root:visible, .MuiDrawer-root:visible, [role="dialog"]:visible').last();
+      await expect(templateModal).toBeVisible({ timeout: 10000 });
+    });
+  }
+
+  /**
    * Verifies Record number field is displayed in Details section for appointments (OVAC-5104).
    */
   async verifyRecordNumberInAppointmentDetails(identifier?: string | number) {

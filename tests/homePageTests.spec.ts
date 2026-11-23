@@ -103,5 +103,16 @@ f.test.describe('HomePage - User Profile Tests', () => {
     // 4. Click on the "Sign off" button and verify redirect to login page
     await homePage.clickSignOff();
   });
+
+  f.test('The user is able to log out from the page - Account section @OVAC-5783 @regression', async ({ homePage }) => {
+    // 1-4. Validate user is logged in on home page
+    await homePage.validateHomePageIsOpened();
+
+    // 5. Click on the Account icon to display drop-menu
+    await homePage.openAccountMenu();
+
+    // 6. Click on the Log out button and verify redirect to login page
+    await homePage.clickSignOff();
+  });
 });
 
