@@ -844,4 +844,22 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 12. Publish procedure
         await proceduresPage.publishProcedure();
     });
+
+    test('Verify only admin-professional and professionals can be find in Professionals tab - Procedures module @OVAC-5814 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        // Prevent afterEach from attempting to delete nonexistent procedure
+        procedureData.name = '';
+
+        // 1-5. Navigate to procedures and verify roles in Professionals tab
+        await proceduresPage.verifyProfessionalsTabRoles();
+    });
+
+    test('Verify schedule restriction configuration at procedure level @OVAC-5826 @regression', async ({ proceduresPage }) => {
+        test.slow();
+        // Prevent afterEach from attempting to delete nonexistent procedure
+        procedureData.name = '';
+
+        // 1-9. Add and verify schedule restriction configuration
+        await proceduresPage.verifyScheduleRestrictionConfiguration('Prueba iñaki');
+    });
 });

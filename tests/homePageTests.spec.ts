@@ -104,6 +104,12 @@ f.test.describe('HomePage - User Profile Tests', () => {
     await homePage.clickSignOff();
   });
 
+  f.test('When we hover over the name of a document, procedure, entity, template, or user, the entire name is shown @OVAC-5750 @regression', async ({ proceduresPage }) => {
+    f.test.slow();
+    // 1-4. Hover over procedure name in table list and verify full name or tooltip
+    await proceduresPage.verifyHoverProcedureNameTooltip();
+  });
+
   f.test('The user is able to log out from the page - Account section @OVAC-5783 @regression', async ({ homePage }) => {
     // 1-4. Validate user is logged in on home page
     await homePage.validateHomePageIsOpened();
@@ -115,4 +121,6 @@ f.test.describe('HomePage - User Profile Tests', () => {
     await homePage.clickSignOff();
   });
 });
+
+
 

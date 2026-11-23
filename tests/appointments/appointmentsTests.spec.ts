@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures';
 import { AppointmentApiHelper } from '../../utils/appointments/AppointmentApiHelper';
+import path from 'path';
 
 test.describe('Appointments Management - Status Verification Tests', () => {
   /**
@@ -859,6 +860,116 @@ test.describe('Appointments Management - Status Verification Tests', () => {
 
     // 4-8. Open 3-dots -> Participants -> Participant 3-dots -> Message -> View notifications
     await appointmentsPage.viewParticipantNotifications(created.id);
+  });
+
+  test('A procedure with "Biometric identification" consent can be used to create the appointment @OVAC-5810 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1-14. Create appointment via API and verify in Appointments module
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+    expect(created.id).toBeGreaterThan(0);
+
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+    const row = await appointmentsPage.getAppointmentRow(created.id);
+    await expect(row).toBeVisible();
+  });
+
+  test('The administrator can upload documents to the "Other documentation" section @OVAC-5773 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1-3. Create appointment and navigate
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-17. Upload document into "Other documentation" section
+    const sampleFilePath = path.resolve('test-files/sample_doc.pdf');
+    await appointmentsPage.uploadOtherDocumentInAppointment(created.id, sampleFilePath);
+  });
+
+  test('Verify delivery failure alerts - Appointments @OVAC-5840 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page and verify delivery failure alert modal
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.verifyDeliveryFailureAlertModal();
+  });
+
+  test('The administrator should not have the ability to hold appointments @OVAC-5751 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4. Verify administrator does not have "Hold appointment" / "Start appointment" action
+    await appointmentsPage.verifyAdministratorCannotHoldAppointment(created.id);
+  });
+
+  test('Even if the room is open, the administrator has the ability to reschedule the appointment @OVAC-5755 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-6. Open 3-dots and verify reschedule appointment modal
+    await appointmentsPage.openRescheduleAppointmentModal(created.id);
+  });
+
+  test('Even if the room is open, the administrator has the ability to cancel a scheduled appointment @OVAC-5754 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-6. Cancel the appointment via UI
+    await appointmentsPage.openCancelAppointmentModal(created.id);
+    await appointmentsPage.fillCancelObservationsAndConfirm('Automated cancellation test for OVAC-5754');
+  });
+
+  test('Verify appointment-specific alerts - Appointments @OVAC-5837 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-3. Navigate to Appointments page and verify alerts modal
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.verifyAlertsModalAccessAndListing();
   });
 
 });

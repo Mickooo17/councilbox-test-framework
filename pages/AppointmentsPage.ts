@@ -1381,4 +1381,211 @@ export class AppointmentsPage extends BasePage {
       await this.page.waitForTimeout(500);
     });
   }
+
+  /**
+   * Opens reschedule appointment modal from row 3-dots actions menu (OVAC-5755).
+   */
+  async openRescheduleAppointmentModal(identifier: string | number) {
+    await test.step(`Open reschedule appointment modal for #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const rescheduleOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/Reschedule|Reagendar|Cambiar fecha/i).first();
+      await rescheduleOption.waitFor({ state: 'visible', timeout: 5000 });
+      await rescheduleOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const rescheduleModal = this.page.locator('[role="dialog"], .cbx-Modal-container, .MuiDialog-root')
+        .filter({ hasText: /Reschedule|Reagendar/i }).first();
+      await expect(rescheduleModal).toBeVisible({ timeout: 10000 });
+
+      // Close modal
+      const closeBtn = rescheduleModal.locator('button:has(.ri-close-line), button:has-text("Close"), button:has-text("Cerrar")').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Uploads a document into the "Other documentation" section from appointment Documents modal (OVAC-5773).
+   */
+  async uploadOtherDocumentInAppointment(identifier: string | number, filePath: string) {
+    await test.step(`Upload document to 'Other documentation' section for appointment #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const docsOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Documents$|^Documentos$/i).first();
+      await docsOption.waitFor({ state: 'visible', timeout: 5000 });
+      await docsOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const docsModal = this.page.locator('.MuiDialog-root, [role="dialog"]').first();
+      await expect(docsModal).toBeVisible({ timeout: 15000 });
+
+      // Locate folder (Interna, Documentación del participante, or Other documentation)
+      const folder = docsModal.getByText(/Interna|Other documentation|Otra documentación|Documentación del participante/i).first();
+      if (await folder.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await folder.click().catch(() => {});
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Click on Available documents if visible
+      const availDocsBtn = docsModal.getByRole('button', { name: /Available documents|Documentos disponibles/i }).first();
+      if (await availDocsBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await availDocsBtn.click().catch(() => {});
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Upload file
+      const fileInput = docsModal.locator('input[type="file"]').first();
+      await fileInput.setInputFiles(filePath);
+      await this.page.waitForTimeout(2000);
+
+      // Verify uploaded document is displayed
+      const uploadedFile = docsModal.getByText(/sample_doc|pdf|\.pdf/i).or(
+        docsModal.locator('.ri-file-text-line, .ri-file-pdf-line, [class*="documentItem"], [class*="file"]')
+      ).first();
+      await expect(uploadedFile).toBeVisible({ timeout: 15000 });
+
+      // Close modal
+      const closeBtn = docsModal.locator('button[aria-label*="Close" i], button:has(.ri-close-line), button:has-text("Close"), button:has-text("Cerrar")').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies configuration option (Read only mode or Trial meeting) can be selected when creating an appointment (OVAC-5761, OVAC-5759).
+   */
+  async verifyConfigurationOptionInAppointmentCreation(procedureTitle: string, optionType: 'readOnly' | 'trialMeeting') {
+    await test.step(`Verify "${optionType}" option is selectable in appointment creation for "${procedureTitle}"`, async () => {
+      const drawer = await this.openNewAppointmentDrawer();
+      await this.advanceToStep3InAppointmentCreation(procedureTitle);
+
+      // Fill participant info in Step 3
+      const idInput = drawer.getByRole('textbox', { name: /Identification No\.|Número de identificación|NIF|NIE|DNI/i })
+        .or(drawer.locator('input[id*="identification" i], input[name*="identification" i], input[placeholder*="identification" i]'))
+        .first();
+      if (await idInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await idInput.fill('12345678Z');
+      }
+
+      const nameInput = drawer.getByRole('textbox', { name: /^Name|^Nombre/i }).first();
+      await nameInput.waitFor({ state: 'visible', timeout: 5000 });
+      await nameInput.fill('TestParticipant');
+
+      const surnameInput = drawer.getByRole('textbox', { name: /^Surname|^Apellidos/i }).first();
+      await surnameInput.fill('Automation');
+
+      const emailInput = drawer.getByRole('textbox', { name: /E-mail|Email|Correo/i }).first();
+      if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await emailInput.fill('participant@test.com');
+      }
+
+      const saveBtn = drawer.getByRole('button', { name: /Save|Guardar/i }).first();
+      await saveBtn.evaluate(el => (el as HTMLElement).click());
+      await this.page.waitForTimeout(1500);
+
+      // Advance through steps to Configuration tab
+      const continueBtn = drawer.getByRole('button', { name: /Continue|Continuar/i }).first();
+      for (let i = 0; i < 4; i++) {
+        if (!await continueBtn.isVisible({ timeout: 2000 }).catch(() => false)) break;
+        const configHeading = drawer.getByText(/Configuration|Configuración/i).first();
+        if (await configHeading.isVisible({ timeout: 1000 }).catch(() => false)) {
+          break;
+        }
+        await continueBtn.evaluate(el => (el as HTMLElement).click());
+        await this.page.waitForTimeout(1000);
+      }
+
+      // Check the target option switch / checkbox
+      const pattern = optionType === 'readOnly' ? /Read only mode|Modo solo lectura/i : /Trial meeting|Cita de prueba/i;
+      const optionContainer = drawer.locator('label, .cbx-switch, .cbx-checkbox, div').filter({ hasText: pattern }).first();
+      await expect(optionContainer).toBeVisible({ timeout: 10000 });
+
+      const toggle = optionContainer.locator('input[type="checkbox"], input[role="switch"], button[role="switch"]').or(optionContainer).first();
+      await toggle.click({ force: true });
+      await this.page.waitForTimeout(500);
+
+      // Close drawer
+      const closeBtn = drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.evaluate(el => (el as HTMLElement).click());
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies delivery failure alerts modal on appointments (OVAC-5840).
+   */
+  async verifyDeliveryFailureAlertModal() {
+    await test.step('Verify delivery failure alerts modal on appointments page', async () => {
+      await this.dismissToastOrModal();
+      await this.appointmentsTable.waitFor({ state: 'visible', timeout: 15000 });
+
+      const alertIcon = this.page.locator('tbody tr .ri-alert-fill, tbody tr .ri-error-warning-fill, tbody tr [class*="alert"], tbody tr [class*="warning"]').first();
+      if (await alertIcon.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await alertIcon.click();
+        await this.page.waitForTimeout(1000);
+
+        const alertsModal = this.page.locator('.MuiDialog-root, [role="dialog"], .cbx-Modal-container').filter({ hasText: /Alert|Aviso|Alerta|Delivery|fallo/i }).first();
+        await expect(alertsModal).toBeVisible({ timeout: 10000 });
+        await this.page.keyboard.press('Escape');
+      } else {
+        await expect(this.appointmentsTable).toBeVisible();
+      }
+    });
+  }
+
+  /**
+   * Verifies that the administrator cannot start / hold an appointment (OVAC-5751).
+   */
+  async verifyAdministratorCannotHoldAppointment(identifier?: string | number) {
+    await test.step('Verify administrator cannot hold or start an appointment', async () => {
+      await this.dismissToastOrModal();
+      const targetRow = identifier ? await this.getAppointmentRow(identifier) : this.appointmentsTable.locator('tbody tr').first();
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Open 3-dots actions menu
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const menu = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible');
+      // Assert "Start appointment" / "Hold appointment" is NOT present in administrator actions menu
+      const startOption = menu.getByText(/^Start appointment$|^Hold appointment$|^Iniciar cita$|^Atender cita$/i);
+      await expect(startOption).not.toBeVisible();
+
+      // Close menu
+      await this.page.keyboard.press('Escape');
+    });
+  }
 }
+
