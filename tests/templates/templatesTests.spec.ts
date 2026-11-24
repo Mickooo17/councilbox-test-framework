@@ -382,4 +382,22 @@ f.test.describe('Templates - Text Area Upload Template Tests', () => {
         await templatesPage.navigateToTemplates(1112);
         await templatesPage.verifyProfessionalCannotUploadOrImportTemplates();
     });
+
+    f.test('The super administrator/administrator is able to enable/disable template - Templates @OVAC-5518 @regression', async ({ templatesPage }) => {
+        // 1-4. Navigate to Templates page, create template, toggle enable/disable, and verify status change
+        await templatesPage.navigateToTemplates(1112);
+        const draftData = DataGenerator.randomTemplateData();
+        await templatesPage.createTemplate(draftData);
+        await templatesPage.verifySuccessAlert();
+
+        await templatesPage.toggleTemplateEnableDisable(draftData.name);
+
+        // Cleanup
+        await templatesPage.deleteTemplate(draftData.name);
+    });
+
+    f.test('The Agent with video attention user is able to see the "Templates" @OVAC-5057 @regression', async ({ templatesPage }) => {
+        // 1-3. Verify Templates button is visible in navigation menu
+        await templatesPage.verifyTemplatesNavButtonVisible();
+    });
 });

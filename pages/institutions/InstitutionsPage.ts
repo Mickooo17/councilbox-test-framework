@@ -596,6 +596,54 @@ export class InstitutionsPage extends BasePage {
     }
 
     /**
+     * Verifies error message display when attempting to create a schedule without assigned professionals (OVAC-5185).
+     */
+    async verifyScheduleCreationWithoutProfessionalsShowsError(companyId: number = 1112) {
+        await test.step('Verify error message display when attempting to create schedule without assigned professionals', async () => {
+            await this.dismissToastOrModal();
+            await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}/administration/schedule`));
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+
+            // In schedule table, click add available period button
+            const addBtn = this.page.locator('button:has(.ri-add-line), button:has-text("Add"), button:has-text("Añadir")').first();
+            await addBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await addBtn.click();
+            await this.page.waitForTimeout(500);
+
+            // In dropdown menu, select "Available period"
+            const periodOption = this.page.getByRole('button', { name: /Available period|Período disponible/i })
+                .or(this.page.locator('[role="menu"] button:has-text("Available period"), [role="menuitem"]:has-text("Available period")'))
+                .first();
+            if (await periodOption.isVisible({ timeout: 5000 }).catch(() => false)) {
+                await periodOption.click();
+                await this.page.waitForTimeout(1000);
+            }
+
+            // Assert drawer or dialog is opened
+            const drawer = this.page.locator('.MuiDrawer-root:visible, .MuiDialog-root:visible, [role="dialog"]:visible').last();
+            await expect(drawer).toBeVisible({ timeout: 10000 });
+
+            // Inside drawer, click "Add" / "Save" button without assigning professionals
+            const saveBtn = drawer.getByRole('button', { name: /^Add$|^Añadir$|^Save$|^Guardar$/i })
+                .or(drawer.locator('button[type="submit"]'))
+                .last();
+            if (await saveBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+                await saveBtn.click();
+                await this.page.waitForTimeout(1000);
+            }
+
+            // Assert alert, error message, or required validation is displayed
+            const alertOrError = this.page.locator('.MuiAlert-root, [role="alert"], .cbx-Alert, .Mui-error, [aria-invalid="true"]').first();
+            await expect(alertOrError).toBeVisible({ timeout: 10000 });
+
+            // Close drawer with Escape
+            await this.page.keyboard.press('Escape');
+            await this.page.waitForTimeout(500);
+        });
+    }
+
+    /**
      * Gets the company Main language setting text (OVAC-5768 / XR-1627).
      */
     async getCompanyMainLanguage(): Promise<string> {

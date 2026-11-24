@@ -377,4 +377,12 @@ test.describe('Activity & Dashboard Tests', () => {
         await activityPage.applyDashboardFilters();
         await expect(applyBtn).toBeDisabled({ timeout: 10000 });
     });
+
+    test('Verify "APPLY" button behavior and filter execution in Activity section for Agent with video attention role @OVAC-5085 @regression', async ({ activityPage }) => {
+        // 1-2. Navigate to Activity / Dashboard
+        await activityPage.navigateToDashboardCouncils();
+
+        // 3-5. Verify APPLY button disabled by default, enables on filter/month change, and executes filter
+        await activityPage.verifyApplyButtonBehaviorForAgentRole();
+    });
 });

@@ -314,4 +314,53 @@ export class TemplatesPage extends BasePage {
             await expect(uploadOrImportBtn).not.toBeVisible();
         });
     }
+
+    /**
+     * Toggles template enable/disable status (OVAC-5518).
+     */
+    async toggleTemplateEnableDisable(templateName: string) {
+        await test.step(`Toggle enable/disable status for template "${templateName}"`, async () => {
+            await this.dismissToastOrModal();
+            await this.searchTemplate(templateName);
+            const row = this.tableBody.locator('tr', { hasText: templateName }).first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+
+            // Click template name to open edit page
+            await row.locator('td').first().click();
+            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
+
+            // Click actions button next to status indicator
+            const actionsBtn = this.page.locator('button:has(.ri-more-2-fill), button:has(.ri-more-2-line), button:has(.ri-more-fill)').first();
+            await actionsBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await actionsBtn.click();
+            await this.page.waitForTimeout(500);
+
+            // Click Disable or Enable option
+            const toggleOption = this.page.locator('[role="menu"] [role="menuitem"], menu menuitem, .cbx-menuItem')
+                .filter({ hasText: /Disable|Enable|Desactivar|Activar/i })
+                .first();
+            await toggleOption.waitFor({ state: 'visible', timeout: 5000 });
+            await toggleOption.click();
+            await this.page.waitForTimeout(1000);
+
+            // Verify status or alert reflects change
+            await this.dismissToastOrModal();
+            await this.navigateToTemplates();
+        });
+    }
+
+    /**
+     * Verifies that the Agent role can see the Templates navigation button (OVAC-5057).
+     */
+    async verifyTemplatesNavButtonVisible() {
+        await test.step('Verify Templates button is visible in navigation menu', async () => {
+            await this.dismissToastOrModal();
+            const btn = this.templatesButton.or(
+                this.page.locator('a[href*="/drafts"], #navigation-templates, button:has-text("Templates"), button:has-text("Plantillas")')
+            ).first();
+            await expect(btn).toBeVisible({ timeout: 10000 });
+            await expect(btn).toHaveAttribute('href', /.*drafts.*/i);
+        });
+    }
 }

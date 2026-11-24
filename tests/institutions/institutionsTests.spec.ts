@@ -298,4 +298,9 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         await institutionsPage.navigateToCustomizationNotifications(1112);
         await institutionsPage.verifyNotificationDefaultTemplateText('Meeting rescheduled|Reunión reprogramada|Cita reagendada', ['{{', 'name']);
     });
+
+    f.test('Verify error message display when attempting to create a schedule without assigned professionals during entity creation @OVAC-5185 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Administration -> Schedule and verify available period validation
+        await institutionsPage.verifyScheduleCreationWithoutProfessionalsShowsError(1112);
+    });
 });

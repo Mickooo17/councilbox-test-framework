@@ -805,6 +805,17 @@ export class ActivityPage extends BasePage {
   }
 
   /**
+   * Verifies APPLY button behavior and filter execution in Activity section for Agent role (OVAC-5085).
+   */
+  async verifyApplyButtonBehaviorForAgentRole() {
+    await test.step('Verify APPLY button behavior and filter execution in Activity section for Agent role', async () => {
+      await this.dismissToastOrModal();
+      await this.verifyApplyButtonDisabledByDefault();
+      await this.verifyFilterTriggerBehaviorViaApplyButton();
+    });
+  }
+
+  /**
    * Verifies that deleted users are displayed with a trash bin icon in user selectors - Activity (OVAC-5049).
    */
   async verifyDeletedUsersDisplayedWithTrashIconInSelector() {

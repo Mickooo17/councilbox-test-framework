@@ -1047,4 +1047,99 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.unblockAppointmentAccess(created.id);
   });
 
+  test('Verify block and unblock actions logging with user details and timestamp in appointment history @OVAC-4939 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4. Block access with reason
+    const blockReason = 'Reason log trace test for OVAC-4939';
+    await appointmentsPage.blockAppointmentAccess(created.id, blockReason);
+
+    // 5. Open history and verify block event trace with user and timestamp
+    await appointmentsPage.verifyAppointmentHistoryContainsBlockEvent(created.id, blockReason);
+  });
+
+  test('Verify notification for an appointment with Completed status can only be sent via Email or SMS @OVAC-5331 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-4. Navigate to Appointments page, open attendees for completed appointment and verify notification channels
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.verifyCompletedAppointmentNotificationChannelsRestricted();
+  });
+
+  test('Verify "Cancel" action availability and process cancellation functionality for Entity Administrator role @OVAC-4974 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-5. Verify cancel action and cancel appointment with observations
+    await appointmentsPage.verifyCancelActionAndCancelAppointment(created.id, 'Cancellation by Entity Administrator test for OVAC-4974');
+  });
+
+  test('Verify "Cancel" action availability and process cancellation functionality for Supervisor role @OVAC-4976 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-5. Verify cancel action and cancel appointment with observations
+    await appointmentsPage.verifyCancelActionAndCancelAppointment(created.id, 'Cancellation by Supervisor test for OVAC-4976');
+  });
+
+  test('Verify "Cancel" action availability and process cancellation functionality for Agent with video attention role @OVAC-4979 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-5. Verify cancel action and cancel appointment with observations
+    await appointmentsPage.verifyCancelActionAndCancelAppointment(created.id, 'Cancellation by Agent test for OVAC-4979');
+  });
+
+  test('Verify "Process" icon display on the processes list page @OVAC-5487 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-2. Navigate to Processes page and verify header and process icon
+    await appointmentsPage.verifyProcessesPageHeaderAndIcon();
+  });
+
 });

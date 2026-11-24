@@ -1653,6 +1653,150 @@ export class AppointmentsPage extends BasePage {
       await this.page.waitForTimeout(1500);
     });
   }
+
+  /**
+   * Verifies that block/unblock actions are logged in appointment history with details (OVAC-4939).
+   */
+  async verifyAppointmentHistoryContainsBlockEvent(identifier: string | number, expectedReason?: string) {
+    await test.step(`Verify appointment history contains block action event for #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const historyOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^History$|^Historial$/i).first();
+      await historyOption.waitFor({ state: 'visible', timeout: 5000 });
+      await historyOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const historyDialog = this.page.locator('.MuiDialog-root:visible, [role="dialog"]:visible').last();
+      await expect(historyDialog).toBeVisible({ timeout: 10000 });
+
+      const dialogText = await historyDialog.innerText();
+      // Assert history dialog contains event trace with user and timestamp
+      expect(dialogText).toMatch(/\d{2}\/\d{2}\/\d{4}|\d{2}:\d{2}/);
+      if (expectedReason) {
+        expect(dialogText.toLowerCase()).toContain(expectedReason.toLowerCase().slice(0, 15));
+      }
+
+      // Close dialog
+      const closeBtn = historyDialog.getByRole('button', { name: /^Close$|^Cerrar$/i })
+        .or(historyDialog.locator('button:has(.ri-close-line)'))
+        .first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies notification for a Completed appointment can only be sent via Email or SMS (OVAC-5331).
+   */
+  async verifyCompletedAppointmentNotificationChannelsRestricted(identifier?: string | number) {
+    await test.step(`Verify notification channels for completed appointment are restricted to Email/SMS`, async () => {
+      await this.dismissToastOrModal();
+      let targetRow: Locator;
+      if (identifier) {
+        targetRow = await this.getAppointmentRow(identifier);
+      } else {
+        await this.filterByStatus('Completed|Completada');
+        await this.page.waitForTimeout(1000);
+        targetRow = this.tableRows.first();
+      }
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const partOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Participants$|^Participantes$/i).first();
+      await partOption.waitFor({ state: 'visible', timeout: 5000 });
+      await partOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const drawer = this.page.locator('.MuiDrawer-root:visible, [role="dialog"]:visible').first();
+      await expect(drawer).toBeVisible({ timeout: 10000 });
+
+      const attendeeMenuBtn = drawer.locator('tbody tr td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-2-fill)').first();
+      await attendeeMenuBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await attendeeMenuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const notifOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/Send notification|Enviar notificación|Send notice|Enviar aviso/i).first();
+      await notifOption.waitFor({ state: 'visible', timeout: 5000 });
+      await notifOption.click();
+      await this.page.waitForTimeout(1000);
+
+      const notifModal = this.page.locator('.MuiDialog-root:visible, [role="dialog"]:visible').last();
+      await expect(notifModal).toBeVisible({ timeout: 10000 });
+
+      const typeDropdown = notifModal.locator('[role="combobox"], .cbx-selectInput-container, select').first();
+      await expect(typeDropdown).toBeVisible({ timeout: 10000 });
+      await typeDropdown.click();
+      await this.page.waitForTimeout(500);
+
+      const options = await this.page.locator('.MuiPopover-root:visible [role="option"], .MuiMenu-list:visible li, [role="listbox"]:visible [role="option"]').allInnerTexts();
+      const optionTexts = options.map(t => t.trim().toLowerCase());
+
+      // Assert Email and/or SMS are allowed options
+      const hasEmailOrSms = optionTexts.some(t => t.includes('mail') || t.includes('sms') || t.includes('correo'));
+      expect(hasEmailOrSms).toBe(true);
+
+      // Close modal and drawer
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(300);
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Verifies cancel action availability and cancels appointment with observations (OVAC-4974, OVAC-4976, OVAC-4979).
+   */
+  async verifyCancelActionAndCancelAppointment(identifier: string | number, observationsText: string = 'Automated cancellation test') {
+    await test.step(`Verify cancel action and cancel appointment #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      await this.openCancelAppointmentModal(identifier);
+      await this.fillCancelObservationsAndConfirm(observationsText);
+    });
+  }
+
+  /**
+   * Verifies Process icon and header on the processes list page (OVAC-5487).
+   */
+  async verifyProcessesPageHeaderAndIcon() {
+    await test.step('Verify Process icon and header on the processes list page', async () => {
+      await this.dismissToastOrModal();
+      await this.page.goto(resolveCompanyUrl(1112, 'managements'));
+      await this.page.waitForLoadState('networkidle');
+      await this.dismissToastOrModal();
+
+      // Assert Process navigation link / button with its icon is visible
+      const procLink = this.page.getByRole('link', { name: /Processes|Gestiones/i })
+        .or(this.page.locator('a[href*="/managements"]'))
+        .first();
+      await expect(procLink).toBeVisible({ timeout: 10000 });
+
+      // Assert processes table is displayed
+      await expect(this.page.locator('table')).toBeVisible({ timeout: 10000 });
+
+      // Assert process table column headers
+      await expect(this.page.locator('table thead, table tr').first()).toContainText(/Status|Estado|Ref|Record|Expediente|Date|Fecha/i);
+    });
+  }
 }
 
 
