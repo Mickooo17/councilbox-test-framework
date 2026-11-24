@@ -2,6 +2,7 @@ import * as path from 'path';
 import { Page, Locator, expect, test } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { MESSAGES } from '../../utils/Constants';
+import { resolveCompanyUrl } from '../../utils/UrlHelper';
 
 export interface InstitutionData {
     name: string;
@@ -547,9 +548,50 @@ export class InstitutionsPage extends BasePage {
      */
     async navigateToCustomizationNotifications(companyId: number = 1112) {
         await test.step(`Navigate to Customization -> Notifications for company #${companyId}`, async () => {
-            await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}/personalization/notifications`);
+            await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}/personalization/notifications`));
             await this.page.waitForLoadState('networkidle');
             await this.dismissToastOrModal();
+        });
+    }
+
+    /**
+     * Verifies default notification template text for a given notification type (OVAC-5714, OVAC-5726, OVAC-5678, OVAC-5674, OVAC-5672).
+     */
+    async verifyNotificationDefaultTemplateText(notificationName: RegExp | string, expectedKeywords: (RegExp | string)[]) {
+        await test.step(`Verify default template text for notification: ${notificationName}`, async () => {
+            await this.navigateToCustomizationNotifications(1112);
+
+            const pattern = typeof notificationName === 'string' ? new RegExp(notificationName, 'i') : notificationName;
+            const notifRow = this.page.locator('tr, li, [role="row"]').filter({ hasText: pattern }).first();
+            await notifRow.waitFor({ state: 'visible', timeout: 15000 });
+
+            // Click the title cell link to open the notification edit page
+            const titleLink = notifRow.locator('td').first().locator('div').filter({ hasText: pattern }).first();
+            await titleLink.waitFor({ state: 'visible', timeout: 10000 });
+            await titleLink.click();
+            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
+
+            // Assert editor loaded with non-empty subject/header and matches expected template tokens
+            const headerInput = this.page.locator('.cbx-inputText-container input, input.cbx-inputText-input, input[id*="cbx-inputText"]').first();
+            await expect(headerInput).toBeVisible({ timeout: 10000 });
+            const headerVal = await headerInput.inputValue();
+            expect(headerVal.length).toBeGreaterThan(0);
+
+            // Check body / editor content (.ql-editor or contenteditable)
+            const bodyContent = this.page.locator('.ql-editor, [contenteditable="true"]').first();
+            await expect(bodyContent).toBeVisible({ timeout: 10000 });
+            const bodyText = await bodyContent.innerText();
+            expect(bodyText.length).toBeGreaterThan(0);
+
+            const combined = `${headerVal} ${bodyText}`;
+            for (const kw of expectedKeywords) {
+                if (typeof kw === 'string') {
+                    expect(combined).toContain(kw);
+                } else {
+                    expect(combined).toMatch(kw);
+                }
+            }
         });
     }
 

@@ -376,4 +376,10 @@ f.test.describe('Templates - Text Area Upload Template Tests', () => {
         await page.waitForTimeout(500);
         await f.expect(searchInput).toHaveValue('Template');
     });
+
+    f.test('The professional role cannot import or upload templates - Templates @OVAC-5703 @regression', async ({ templatesPage }) => {
+        // 1-3. Navigate to Templates page and verify Professional cannot upload or import templates
+        await templatesPage.navigateToTemplates(1112);
+        await templatesPage.verifyProfessionalCannotUploadOrImportTemplates();
+    });
 });

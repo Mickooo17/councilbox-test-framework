@@ -268,4 +268,34 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         // 1-3. Navigate to Entities / Company edit and verify header screen information (icon, name, type, status, actions)
         await institutionsPage.verifyEntitiesHeadingInformation(1112);
     });
+
+    f.test('The fields for the "Message" email notification should have default texts if the notification is not modified @OVAC-5714 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Customization -> Notifications and open Message notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Message|Mensaje', ['{{', 'name']);
+    });
+
+    f.test('The fields for the "Process created" email notification should have default texts if the notification is not modified @OVAC-5726 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Customization -> Notifications and open Process created notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Process created|Proceso creado', ['{{', 'councilId']);
+    });
+
+    f.test('The fields for the "Documents added" email notification should have default texts if the notification is not modified @OVAC-5678 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Customization -> Notifications and open Documents added notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Documents added|Documentos añadidos', ['{{', 'councilId']);
+    });
+
+    f.test('The fields for the "Meeting canceled" email notification should have default texts if the notification is not modified @OVAC-5674 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Customization -> Notifications and open Meeting canceled notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Meeting canceled|Reunión cancelada|Cita cancelada', ['{{', 'name']);
+    });
+
+    f.test('The fields for the "Meeting rescheduled" email notification should have default texts if the notification is not modified @OVAC-5672 @regression', async ({ institutionsPage }) => {
+        // 1-4. Navigate to Customization -> Notifications and open Meeting rescheduled notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Meeting rescheduled|Reunión reprogramada|Cita reagendada', ['{{', 'name']);
+    });
 });

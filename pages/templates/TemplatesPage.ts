@@ -299,4 +299,19 @@ export class TemplatesPage extends BasePage {
             await this.page.waitForTimeout(500);
         });
     }
+
+    /**
+     * Verifies that the professional role cannot import or upload templates (OVAC-5703).
+     */
+    async verifyProfessionalCannotUploadOrImportTemplates() {
+        await test.step('Verify professional role cannot upload or import templates', async () => {
+            await this.dismissToastOrModal();
+            await this.navigateToTemplates();
+
+            // Verify Create / Import / Upload buttons are NOT visible for Professional
+            await expect(this.createButton).not.toBeVisible();
+            const uploadOrImportBtn = this.page.getByRole('button', { name: /Upload|Import|Subir|Importar/i });
+            await expect(uploadOrImportBtn).not.toBeVisible();
+        });
+    }
 }

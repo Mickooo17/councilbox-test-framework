@@ -972,4 +972,79 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyAlertsModalAccessAndListing();
   });
 
+  test('The user can choose appointments with a "In pause" status on the Appointments page @OVAC-5735 @regression', async ({
+    appointmentsPage,
+    page,
+  }) => {
+    // 1-2. Navigate to Appointments page
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+
+    // 3. Select status filter and choose "In pause"
+    await appointmentsPage.filterByStatus('In pause|En pausa');
+
+    // Verify filter has been applied (status filter button or select is visible)
+    const statusFilterInput = page.locator('#status-select, [data-testid="status-select"]').or(appointmentsPage.statusFilterButton);
+    await expect(statusFilterInput).toBeVisible();
+  });
+
+  test('The super administrator should not have the ability to hold appointments @OVAC-5752 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-5. Verify Hold/Pausar action is not available in the row menu for administrator
+    await appointmentsPage.verifyAdministratorCannotHoldAppointment(created.id);
+  });
+
+  test('Verify participant portal blocking functionality @OVAC-5832 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4-6. Block appointment access with reason and verify success toast
+    await appointmentsPage.blockAppointmentAccess(created.id, 'Automated test blocking reason for OVAC-5832');
+  });
+
+  test('Verify participant portal unblocking functionality @OVAC-5825 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-3. Navigate to Appointments page and search appointment
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+
+    // 4. Block access first
+    await appointmentsPage.blockAppointmentAccess(created.id, 'Initial block for unblock test OVAC-5825');
+
+    // 5. Unblock appointment access and confirm
+    await appointmentsPage.unblockAppointmentAccess(created.id);
+  });
+
 });

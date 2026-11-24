@@ -1587,5 +1587,72 @@ export class AppointmentsPage extends BasePage {
       await this.page.keyboard.press('Escape');
     });
   }
+
+  /**
+   * Blocks access to an appointment with a given reason (OVAC-5832).
+   */
+  async blockAppointmentAccess(identifier: string | number, reason: string = 'Security block verification') {
+    await test.step(`Block access for appointment #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const blockOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Block access$|^Bloquear acceso$/i).first();
+      await blockOption.waitFor({ state: 'visible', timeout: 5000 });
+      await blockOption.click();
+      await this.page.waitForTimeout(500);
+
+      const dialog = this.page.locator('.MuiDialog-root, [role="dialog"]').first();
+      await expect(dialog).toBeVisible({ timeout: 5000 });
+
+      const textarea = dialog.locator('textarea').first();
+      await textarea.fill(reason);
+
+      const blockBtn = dialog.getByRole('button', { name: /^Block$|^Bloquear$/i }).first();
+      await expect(blockBtn).toBeEnabled({ timeout: 5000 });
+      await blockBtn.click();
+      await this.page.waitForTimeout(1500);
+    });
+  }
+
+  /**
+   * Unblocks access to an appointment (OVAC-5825).
+   */
+  async unblockAppointmentAccess(identifier: string | number) {
+    await test.step(`Unblock access for appointment #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      const menuBtn = targetRow.locator('#appointment-menu').or(
+        targetRow.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), [id^="appointment-menu"]')
+      ).first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const unlockOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByText(/^Unlock access$|^Desbloquear acceso$/i).first();
+      await unlockOption.waitFor({ state: 'visible', timeout: 5000 });
+      await unlockOption.click();
+      await this.page.waitForTimeout(500);
+
+      const dialog = this.page.locator('.MuiDialog-root, [role="dialog"]').first();
+      if (await dialog.isVisible({ timeout: 3000 }).catch(() => false)) {
+        const confirmBtn = dialog.getByRole('button', { name: /^Unlock$|^Desbloquear$|^Accept$|^Aceptar$/i }).first();
+        if (await confirmBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await confirmBtn.click();
+        }
+      }
+      await this.page.waitForTimeout(1500);
+    });
+  }
 }
+
 
