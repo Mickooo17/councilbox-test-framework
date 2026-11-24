@@ -967,4 +967,30 @@ export class UsersPage extends BasePage {
             await expect(lastConnectionLabel).toBeVisible({ timeout: 10000 });
         });
     }
+
+    /**
+     * Opens the Satisfaction window from Activity tab and verifies its content (OVAC-5006).
+     */
+    async verifySatisfactionWindowFromActivityTab() {
+        await test.step('Open Satisfaction window from Activity tab and verify display', async () => {
+            const satisfactionTrigger = this.page.getByText(/High satisfaction|Average satisfaction|Low satisfaction|Satisfaction|Satisfacción/i).first();
+            await satisfactionTrigger.waitFor({ state: 'visible', timeout: 15000 });
+            await satisfactionTrigger.click();
+            await this.page.waitForTimeout(1000);
+
+            const satisfactionModal = this.page.locator('[role="dialog"], .cbx-Modal-content, .MuiDialog-root, .MuiDrawer-root:visible')
+                .filter({ hasText: /Satisfaction|Satisfacción|Questions|Preguntas|Average|Media|Score|Puntuación|No content|No results|Rating|Valoración/i })
+                .first();
+            await expect(satisfactionModal).toBeVisible({ timeout: 10000 });
+
+            const closeBtn = satisfactionModal.getByRole('button', { name: /Close|Cerrar|Accept|Aceptar/i })
+                .or(satisfactionModal.locator('button:has(.ri-close-line), #modal-button-cancel'))
+                .first();
+            if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await closeBtn.click();
+            } else {
+                await this.page.keyboard.press('Escape');
+            }
+        });
+    }
 }

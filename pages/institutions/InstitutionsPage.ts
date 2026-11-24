@@ -728,4 +728,61 @@ export class InstitutionsPage extends BasePage {
             await expect(saveBtn).toBeVisible({ timeout: 5000 });
         });
     }
+
+    /**
+     * Navigates to company settings and verifies the Consumptions section contains Roles and External Services/Storage data (OVAC-5377).
+     */
+    async verifyConsumptionsSectionRefined(companyId: number = 1112) {
+        await test.step(`Verify Consumptions section on company #${companyId} settings`, async () => {
+            await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}`));
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+
+            const consumptionsHeading = this.page.getByRole('heading', { name: /^Consumptions$|^Consumos$/i }).first();
+            await expect(consumptionsHeading).toBeVisible({ timeout: 15000 });
+
+            // External Services metrics section (SMS, Uanataca, Autofirma, Biometry)
+            await expect(this.page.getByText(/^SMS$/i).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.page.getByText(/Uanataca/i).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.page.getByText(/Autofirma/i).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.page.getByText(/Biometry|Biometría/i).first()).toBeVisible({ timeout: 10000 });
+
+            // Roles consumption section (Admin agent, Global administrator, Kiosk)
+            await expect(this.page.getByText(/^Roles$/i).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.page.getByText(/Admin agent|Agente administrador/i).first()).toBeVisible({ timeout: 10000 });
+
+            // Date filter selector in Consumptions
+            const dateCombo = this.page.getByRole('combobox', { name: /^Date$|^Fecha$/i }).first();
+            await expect(dateCombo).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    /**
+     * Edits an existing entity via the Entities list Edit action and verifies persistence (OVAC-5298).
+     */
+    async editInstitutionAndVerify(currentName: string, updatedName: string) {
+        await test.step(`Edit entity "${currentName}" to "${updatedName}"`, async () => {
+            await this.searchInstitution(currentName);
+            const row = this.page.locator('table tbody tr').filter({ hasText: currentName }).first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+
+            const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill)').first();
+            await actionBtn.click();
+
+            const editOption = this.page.getByRole('button', { name: /Edit|Editar/i })
+                .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+                .first();
+            await editOption.waitFor({ state: 'visible', timeout: 5000 });
+            await editOption.click();
+            await this.page.waitForURL(/\/companies\/edit\/\d+/i, { timeout: 15000 });
+            await this.dismissToastOrModal();
+
+            await this.updateCompanyName(updatedName);
+            await this.saveCompanySettings();
+            await this.verifyCompanySettingsSavedAlert();
+
+            await this.searchInstitution(updatedName);
+            await this.verifyInstitutionInTable(updatedName);
+        });
+    }
 }

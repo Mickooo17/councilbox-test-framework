@@ -385,4 +385,10 @@ test.describe('Activity & Dashboard Tests', () => {
         // 3-5. Verify APPLY button disabled by default, enables on filter/month change, and executes filter
         await activityPage.verifyApplyButtonBehaviorForAgentRole();
     });
+
+    test('The "In-person Appointments" tab is displayed on the Activity page and contains accurate data @OVAC-5553 @regression', async ({ activityPage }) => {
+        // 1-3. Navigate to Activity / Dashboard and verify In-person Appointments tab data sections
+        await activityPage.navigateToDashboardCouncils();
+        await activityPage.verifyInPersonAppointmentsTabData();
+    });
 });

@@ -1142,4 +1142,29 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyProcessesPageHeaderAndIcon();
   });
 
+  test('Verify new appointment header screen informations @OVAC-5190 @regression', async ({
+    appointmentsPage,
+    request,
+  }) => {
+    // 1. Create confirmed appointment via API
+    const created = await AppointmentApiHelper.createAppointment(request, {
+      companyId: 1112,
+      procedureId: 3955,
+      procedureTitle: 'Prueba iñaki',
+    });
+
+    // 2-5. Open appointment Review/Edit screen and validate header icon, name, type, status, and actions menu
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.searchAppointment(created.id);
+    await appointmentsPage.verifyAppointmentHeaderScreenInformation(created.id);
+  });
+
+  test('Filter Appointments by Status, Period, Professional, Procedure, Institutions, Type of meeting (all options) @OVAC-4944 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-4. Navigate to Appointments and verify Status, Period, Users, Procedures, Entities, and Type of meeting filters
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.verifyAllAppointmentFiltersAvailable();
+  });
+
 });

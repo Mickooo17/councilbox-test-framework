@@ -284,4 +284,41 @@ export class DocumentationPage extends BasePage {
             await this.page.waitForTimeout(1000);
         });
     }
+
+    /**
+     * Edits an existing folder's name via its 3-dots Edit option and verifies the rename (OVAC-5117).
+     */
+    async editFolderName(oldName: string, newName: string) {
+        await test.step(`Edit folder "${oldName}" to "${newName}"`, async () => {
+            await this.dismissToastOrModal();
+            const card = this.page.locator('#CardsContainerBody')
+                .locator('div')
+                .filter({ hasText: oldName });
+            const actionMenu = card.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button').last();
+            await actionMenu.waitFor({ state: 'visible', timeout: 10000 });
+            await actionMenu.click();
+
+            const editOption = this.page.getByRole('menuitem', { name: /Rename|Renombrar|^Edit$|^Editar$/i })
+                .or(this.page.locator('[role="menuitem"]').filter({ hasText: /Rename|Renombrar|Edit|Editar/i }))
+                .first();
+            await editOption.waitFor({ state: 'visible', timeout: 5000 });
+            await editOption.click({ force: true });
+
+            const dialog = this.page.getByRole('dialog').or(this.page.locator('.MuiDialog-paper')).first();
+            await dialog.waitFor({ state: 'visible', timeout: 5000 });
+
+            const nameInput = dialog.locator('input').first();
+            await nameInput.waitFor({ state: 'visible', timeout: 5000 });
+            await nameInput.clear();
+            await nameInput.fill(newName);
+
+            const okBtn = dialog.getByRole('button', { name: /^OK$|^Accept$|^Aceptar$|^Save$|^Guardar$/i }).first();
+            await okBtn.click();
+            await expect(dialog).toBeHidden({ timeout: 10000 });
+            await this.page.waitForTimeout(1000);
+
+            await expect(this.page.locator('#CardsContainerBody').getByText(newName).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.page.locator('#CardsContainerBody').getByText(oldName)).toHaveCount(0, { timeout: 10000 });
+        });
+    }
 }

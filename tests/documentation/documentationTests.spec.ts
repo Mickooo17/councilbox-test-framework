@@ -100,3 +100,32 @@ f.test.describe.serial('Documentation - Upload and Download Document Tests', () 
         await documentationPage.deleteDocument(fileName);
     });
 });
+
+f.test.describe('Documentation - Folder Management Tests', () => {
+    f.test.beforeEach(async ({ homePage, documentationPage }) => {
+        await homePage.validateHomePageIsOpened();
+        await documentationPage.dismissModal();
+        await documentationPage.selectQADevCompany();
+        await documentationPage.page.waitForLoadState('networkidle');
+        await documentationPage.navigateToDocumentation();
+    });
+
+    f.test('The user is able to edit a folder name by clicking on the Edit option - Documentation @OVAC-5117 @regression', async ({ documentationPage }) => {
+        const uniqueId = Date.now();
+        const originalName = `FolderEdit_${uniqueId}`;
+        const updatedName = `FolderRenamed_${uniqueId}`;
+
+        // 1. Create folder
+        await documentationPage.createFolder(originalName);
+        await documentationPage.verifyFolderInContainer(originalName);
+
+        try {
+            // 2-6. Click 3-dots -> Edit -> update title -> OK and verify rename
+            await documentationPage.editFolderName(originalName, updatedName);
+        } finally {
+            // Cleanup: delete whichever folder name exists
+            const renamedVisible = await documentationPage.page.locator('#CardsContainerBody').getByText(updatedName).isVisible().catch(() => false);
+            await documentationPage.deleteFolder(renamedVisible ? updatedName : originalName).catch(() => {});
+        }
+    });
+});

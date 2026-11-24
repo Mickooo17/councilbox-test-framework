@@ -959,4 +959,24 @@ export class ActivityPage extends BasePage {
     });
   }
 
+  /**
+   * Verifies "In-person appointments" tab is displayed on Activity page and loads metrics & filters (OVAC-5553).
+   */
+  async verifyInPersonAppointmentsTabData() {
+    await test.step('Click In-person appointments tab on Activity page and verify data sections load', async () => {
+      await this.dismissToastOrModal();
+      const tab = this.page.getByRole('tab', { name: /In-person appointments|Citas presenciales/i })
+        .or(this.inPersonAppointmentsTab)
+        .first();
+      await tab.waitFor({ state: 'visible', timeout: 10000 });
+      await tab.click();
+      await this.page.waitForTimeout(1000);
+
+      // Verify In-person appointments tab is active and metric cards/filters render
+      await expect(this.page.getByText(/Total appointments|Total de citas/i).first()).toBeVisible({ timeout: 10000 });
+      await expect(this.page.getByText(/Statuses|Estados/i).first()).toBeVisible({ timeout: 10000 });
+      await expect(this.page.getByText(/Occupation|Ocupación/i).first()).toBeVisible({ timeout: 10000 });
+      await expect(this.page.getByRole('button', { name: /^Export$|^Exportar$/i }).first()).toBeVisible({ timeout: 10000 });
+    });
+  }
 }

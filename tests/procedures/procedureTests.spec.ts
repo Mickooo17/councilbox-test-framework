@@ -862,4 +862,12 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         // 1-9. Add and verify schedule restriction configuration
         await proceduresPage.verifyScheduleRestrictionConfiguration('Prueba iñaki');
     });
+
+    test('For the procedure type "Process," the "Configuration" tab should include a language menu and a checkbox labeled "It allows to request process" @OVAC-5038 @regression', async ({ proceduresPage }) => {
+        // Prevent afterEach from attempting to delete nonexistent procedure
+        procedureData.name = '';
+
+        // 1-5. Filter Procedures by Process, open Configuration tab, and verify Language menu & "It allows to request process" checkbox
+        await proceduresPage.verifyProcessConfigurationLanguageAndRequestCheckbox();
+    });
 });

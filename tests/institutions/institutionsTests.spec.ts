@@ -303,4 +303,40 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
         // 1-4. Navigate to Administration -> Schedule and verify available period validation
         await institutionsPage.verifyScheduleCreationWithoutProfessionalsShowsError(1112);
     });
+
+    f.test('The fields for the "Documents rejected" email notification should have default texts if the notification is not modified @OVAC-5679 @regression', async ({ institutionsPage }) => {
+        // 1-6. Navigate to Customization -> Notifications and open Document/Documents rejected notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Documents? rejected|Documentos rechazados', ['{{', 'councilId', 'message']);
+    });
+
+    f.test('The fields for the "Meeting created" email notification should have default texts if the notification is not modified @OVAC-5671 @regression', async ({ institutionsPage }) => {
+        // 1-6. Navigate to Customization -> Notifications and open Meeting created notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Meeting created|Reunión creada|Cita creada', ['{{', 'dateTime', 'councilId']);
+    });
+
+    f.test('Verify Consumptions tab is refined and contains Role, Storage and External Services sections @OVAC-5377 @regression', async ({ institutionsPage }) => {
+        // 1-3. Open Organization settings and verify Consumptions section cards, Roles & Date filter
+        await institutionsPage.verifyConsumptionsSectionRefined(1112);
+    });
+
+    f.test('The user is able to Edit Entity - Entities section @OVAC-5298 @regression', async ({ institutionsPage }) => {
+        // 1. Create a fresh entity to avoid mutating shared entities
+        const instData = DataGenerator.randomInstitutionData();
+        const updatedName = `${instData.name} Edited`;
+        await institutionsPage.navigateToInstitutions();
+        await institutionsPage.createInstitution(instData);
+        await institutionsPage.verifySuccessAlert();
+
+        try {
+            // 2-5. Edit the created entity, save, and verify updated name in table
+            await institutionsPage.editInstitutionAndVerify(instData.name, updatedName);
+        } finally {
+            // Cleanup: delete whichever name exists
+            await institutionsPage.deleteInstitution(updatedName).catch(async () => {
+                await institutionsPage.deleteInstitution(instData.name).catch(() => {});
+            });
+        }
+    });
 });

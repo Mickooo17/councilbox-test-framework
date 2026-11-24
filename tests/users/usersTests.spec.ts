@@ -723,4 +723,17 @@ f.test.describe('Users - Details Page Tests', () => {
         const filename = await usersPage.exportUserAppointments();
         f.expect(filename).toMatch(/\.(csv|xlsx|xls)$/i);
     });
+
+    f.test('From the "Activity" tab, the user can access the satisfaction window @OVAC-5006 @regression', async ({ usersPage }) => {
+        // 1-4. Navigate to Users and click on user profile
+        await usersPage.navigateToUsers();
+        await usersPage.clickUserRow('Ammar Professional');
+
+        // 5. Click on Activity tab
+        await usersPage.verifyActivityTabDisplayed();
+        await usersPage.clickActivityTabOnUserDetails();
+
+        // 6. Click Satisfaction section and verify Satisfaction window opens
+        await usersPage.verifySatisfactionWindowFromActivityTab();
+    });
 });

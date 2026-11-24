@@ -1105,4 +1105,50 @@ export class ProceduresPage extends BasePage {
             }
         });
     }
+
+    /**
+     * Filters procedures by "Process" type, opens a Process procedure's Configuration tab,
+     * and verifies General section has language menu and "It allows to request process" checkbox (OVAC-5038).
+     */
+    async verifyProcessConfigurationLanguageAndRequestCheckbox() {
+        await test.step('Filter by Process type and verify Configuration tab Language menu & request process checkbox', async () => {
+            await this.dismissToastOrModal();
+            await this.navigateToProcedures();
+
+            // Open Types dropdown filter
+            const typeFilter = this.page.getByRole('combobox', { name: /^Types$|^Type$|^Tipos$|^Tipo$/i })
+                .or(this.page.locator('.cbx-selectInput-container, [role="combobox"]').filter({ hasText: /All types|Todos los tipos|Types|Tipos/i }))
+                .first();
+            await typeFilter.waitFor({ state: 'visible', timeout: 10000 });
+            await typeFilter.click();
+            await this.page.waitForTimeout(400);
+
+            const processOption = this.page.locator('[role="option"], li.MuiMenuItem-root, [role="menuitem"]')
+                .filter({ hasText: /^Process$|^Proceso$|^Management$|^Gestión$/i })
+                .first();
+            await processOption.waitFor({ state: 'visible', timeout: 5000 });
+            await processOption.click();
+            await this.page.waitForTimeout(1000);
+
+            // Open first matching Process procedure row
+            const firstRow = this.tableBody.locator('tr').first();
+            await firstRow.waitFor({ state: 'visible', timeout: 15000 });
+            await firstRow.click();
+            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(1000);
+
+            // Navigate to Configuration tab
+            await this.clickConfigurationTabInWizardOrEdit();
+            await expect(this.generalHeading).toBeVisible({ timeout: 10000 });
+
+            // Verify Language menu / selector in General section
+            await expect(this.languagesHeading).toBeVisible({ timeout: 10000 });
+
+            // Verify checkbox/toggle "It allows to request process" (or "Allows to request process")
+            const requestProcessControl = this.page.locator('label, span, div, p')
+                .filter({ hasText: /allows?\s+to\s+request\s+(a\s+)?process|permite\s+solicitar\s+(un\s+)?(proceso|gestión)|it\s+allows\s+to\s+request\s+process/i })
+                .first();
+            await expect(requestProcessControl).toBeVisible({ timeout: 10000 });
+        });
+    }
 }

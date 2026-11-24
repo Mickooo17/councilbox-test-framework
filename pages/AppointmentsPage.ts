@@ -1797,6 +1797,103 @@ export class AppointmentsPage extends BasePage {
       await expect(this.page.locator('table thead, table tr').first()).toContainText(/Status|Estado|Ref|Record|Expediente|Date|Fecha/i);
     });
   }
+
+  /**
+   * Opens appointment Review/Edit screen and verifies header screen information: icon, name, type, status, actions menu (OVAC-5190).
+   */
+  async verifyAppointmentHeaderScreenInformation(identifier: string | number) {
+    await test.step(`Verify appointment header screen information for #${identifier}`, async () => {
+      await this.dismissToastOrModal();
+      const targetRow = await this.getAppointmentRow(identifier);
+      await targetRow.waitFor({ state: 'visible', timeout: 15000 });
+
+      // Click Review option in 3-dots menu to open appointment screen
+      const menuBtn = targetRow.locator('#appointment-menu, button:has(.ri-more-2-line), button:has(.ri-more-2-fill)').first();
+      await menuBtn.click();
+      await this.page.waitForTimeout(400);
+
+      const reviewOption = this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible')
+        .getByRole('button', { name: /^Review$|^Revisar$|^Edit$|^Editar$/i })
+        .or(this.page.locator('.MuiPopover-root:visible, [role="menu"]:visible').getByText(/^Review$|^Revisar$|^Edit$|^Editar$/i))
+        .first();
+      await reviewOption.waitFor({ state: 'visible', timeout: 5000 });
+      await reviewOption.click();
+      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForTimeout(1000);
+
+      // Verify header elements in opened appointment screen
+      const headerIcon = this.page.locator('i[class*="ri-"], .cbx-IconButton, svg').first();
+      await expect(headerIcon).toBeVisible({ timeout: 10000 });
+
+      const titleHeading = this.page.getByRole('heading', { level: 1 })
+        .filter({ hasNotText: /^Entities$/i })
+        .first();
+      await expect(titleHeading).toBeVisible({ timeout: 10000 });
+      expect((await titleHeading.innerText()).trim().length).toBeGreaterThan(0);
+
+      const typeLabel = this.page.getByText(/Video[- ]appointment|Videocita|In[- ]person appointment|Cita presencial/i).first();
+      await expect(typeLabel).toBeVisible({ timeout: 10000 });
+
+      const statusLabel = this.page.getByText(/Confirmed|Confirmada|Canceled|Cancelled|Cancelada|Completed|Finalizada|Pending|Pendiente/i).first();
+      await expect(statusLabel).toBeVisible({ timeout: 10000 });
+
+      const actionsControl = this.page.locator('button:has(.ri-more-2-line), button:has(.ri-more-2-fill), button:has(.ri-more-fill), button[name*="actions" i], button:has-text("button"), button:has-text("Actions")').first();
+      await expect(actionsControl).toBeVisible({ timeout: 10000 });
+    });
+  }
+
+  /**
+   * Verifies & exercises all Appointment filters: Status, Period, Users (Professional), Procedures, Entities, Type of meeting (OVAC-4944).
+   */
+  async verifyAllAppointmentFiltersAvailable() {
+    await test.step('Verify Status, Period, Users, Procedures, Entities, and Type of meeting filters work', async () => {
+      await this.dismissToastOrModal();
+
+      // 1. Main bar filters: Status and Period
+      await expect(this.statusFilterButton).toBeVisible({ timeout: 10000 });
+      await expect(this.periodFilterButton).toBeVisible({ timeout: 10000 });
+      await this.filterByPeriod('This month');
+      await expect(this.appointmentsTable).toBeVisible({ timeout: 10000 });
+
+      // 2. Open Equalizer Filter Drawer and verify Users, Procedures, Entities, Type of meeting
+      const eqBtn = this.page.locator('button:has(.ri-equalizer-line)').first();
+      await eqBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await eqBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const filterDialog = this.page.getByRole('dialog').filter({ hasText: /Filters|Filtros/i }).first();
+      await expect(filterDialog).toBeVisible({ timeout: 10000 });
+
+      const usersCombo = filterDialog.getByRole('combobox', { name: /Users|Usuarios/i }).first();
+      const procCombo = filterDialog.getByRole('combobox', { name: /procedures|trámites/i }).first();
+      const entitiesCombo = filterDialog.getByRole('combobox', { name: /Entities|Entidades/i }).first();
+      const typeCombo = filterDialog.getByRole('combobox', { name: /Type of meeting|Tipo de cita/i }).first();
+
+      await expect(usersCombo).toBeVisible();
+      await expect(procCombo).toBeVisible();
+      await expect(entitiesCombo).toBeVisible();
+      await expect(typeCombo).toBeVisible();
+
+      // Exercise Type of meeting filter inside drawer and apply
+      await typeCombo.evaluate((el: HTMLElement) => el.click());
+      await this.page.waitForTimeout(400);
+      const listbox = this.page.locator('ul[role="listbox"], [role="listbox"]').last();
+      await expect(listbox).toBeVisible({ timeout: 5000 });
+      const firstTypeOption = listbox.locator('[role="option"], li').first();
+      await firstTypeOption.click();
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(300);
+
+      const applyBtn = filterDialog.getByRole('button', { name: /^Apply$|^Aplicar$|^Save$|^Guardar$/i }).first();
+      if (await applyBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await applyBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(1000);
+      await expect(this.appointmentsTable).toBeVisible({ timeout: 10000 });
+    });
+  }
 }
 
 
