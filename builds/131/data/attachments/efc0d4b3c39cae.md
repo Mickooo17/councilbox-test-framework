@@ -1,0 +1,293 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/procedures/procedureTests.spec.ts >> Procedures - Configuration & Documentation Tab Tests >> The user can duplicate the procedure type "Process" @XR-2472 @OVAC-5796 @regression
+- Location: tests/procedures/procedureTests.spec.ts:386:9
+
+# Error details
+
+```
+TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+Call log:
+  - waiting for getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first() to be visible
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - button "" [ref=e5] [cursor=pointer]
+    - generic [ref=e10]:
+      - link [ref=e12] [cursor=pointer]:
+        - /url: /company/1112/activity/dashboardCouncils
+        - button " Activity" [ref=e13]:
+          - generic [ref=e14]: 
+          - generic [ref=e16]: Activity
+      - link [ref=e18] [cursor=pointer]:
+        - /url: /company/1112
+        - button " Appointments" [ref=e19]:
+          - generic [ref=e20]: 
+          - generic [ref=e22]: Appointments
+      - link [ref=e24] [cursor=pointer]:
+        - /url: /company/1112/managements
+        - button " Processes" [ref=e25]:
+          - generic [ref=e26]: 
+          - generic [ref=e28]: Processes
+      - link [ref=e30] [cursor=pointer]:
+        - /url: /company/1112/procedures
+        - button " Procedures" [active] [ref=e31]:
+          - generic [ref=e32]: 
+          - generic [ref=e34]: Procedures
+      - link [ref=e36] [cursor=pointer]:
+        - /url: /company/1112/drafts
+        - button " Templates" [ref=e37]:
+          - generic [ref=e38]: 
+          - generic [ref=e40]: Templates
+      - link [ref=e42] [cursor=pointer]:
+        - /url: /company/1112/documentation
+        - button " Documents" [ref=e43]:
+          - generic [ref=e44]: 
+          - generic [ref=e46]: Documents
+      - link [ref=e48] [cursor=pointer]:
+        - /url: /company/1112/entities
+        - button " Entities" [ref=e49]:
+          - generic [ref=e50]: 
+          - generic [ref=e52]: Entities
+      - link [ref=e54] [cursor=pointer]:
+        - /url: /company/1112/users
+        - button " Users" [ref=e55]:
+          - generic [ref=e56]: 
+          - generic [ref=e58]: Users
+    - generic [ref=e60]:
+      - img "CBX white Logo" [ref=e61]
+      - generic [ref=e62]: © 2026 v8.8.0
+  - generic [ref=e64]:
+    - banner [ref=e65]:
+      - button [ref=e67] [cursor=pointer]:
+        - img "Logo Grupo Castelar Servicios Legales y Financieros S.A" [ref=e68]
+      - generic [ref=e69]: Grupo Castelar Servicios Legales y Financieros S.A
+      - generic [ref=e75]:
+        - button [ref=e78] [cursor=pointer]:
+          - button "Notifications" [ref=e79]:
+            - generic [ref=e80]: 
+        - button [ref=e82] [cursor=pointer]:
+          - button "Button user" [ref=e84]:
+            - generic [ref=e87]:
+              - img "Logo Virtual Citizen Service Office" [ref=e89]
+              - generic [ref=e90]: 
+    - progressbar [ref=e94]
+```
+
+# Test source
+
+```ts
+  650 |                 .or(this.page.locator('#council-editor-publish, button:has-text("PUBLISH"), button:has-text("PUBLICAR")'))
+  651 |                 .first();
+  652 |             await publishBtn.waitFor({ state: 'visible', timeout: 10000 });
+  653 |             await publishBtn.click({ force: true });
+  654 |             await this.page.waitForTimeout(1000);
+  655 | 
+  656 |             // Confirm publish in modal dialog
+  657 |             const dialog = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').first();
+  658 |             const acceptBtn = dialog.getByRole('button', { name: /Publish|Publicar|Accept|Aceptar/i })
+  659 |                 .or(this.page.locator('#modal-button-accept, #modal button.cbx-primary, #alert-confirm button'))
+  660 |                 .first();
+  661 |             if (await acceptBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+  662 |                 await acceptBtn.click({ force: true });
+  663 |             }
+  664 | 
+  665 |             await this.page.waitForLoadState('domcontentloaded');
+  666 |             await this.page.waitForTimeout(2000);
+  667 |         });
+  668 |     }
+  669 | 
+  670 |     async verifyNoConsentsAssociatedMessage() {
+  671 |         await test.step('Verify message indicating no consents are associated with procedure', async () => {
+  672 |             const emptyMessage = this.page.getByText(/The procedure does not require any associated consent|El procedimiento no requiere ningún consentimiento asociado/i).first();
+  673 |             await expect(emptyMessage).toBeVisible({ timeout: 10000 });
+  674 |         });
+  675 |     }
+  676 | 
+  677 |     async openProcedureFromList(name: string) {
+  678 |         await test.step(`Open procedure from list: "${name}"`, async () => {
+  679 |             await this.navigateToProcedures();
+  680 |             const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
+  681 |             await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+  682 |             await searchInput.fill(name);
+  683 |             await this.page.waitForTimeout(1000);
+  684 | 
+  685 |             const row = this.tableBody.locator('tr').filter({ hasText: name }).first();
+  686 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  687 |             await row.click({ force: true });
+  688 |             await this.page.waitForLoadState('networkidle');
+  689 |             await this.page.waitForTimeout(1500);
+  690 |         });
+  691 |     }
+  692 | 
+  693 |     async clickConsentsTabInWizardOrEdit() {
+  694 |         await test.step('Click Consents tab/step in wizard or procedure view', async () => {
+  695 |             const consentsStep = this.page.locator('.cbx-stepper-item-text, [role="tab"], .MuiTab-root, nav button')
+  696 |                 .filter({ hasText: /Steps of the procedure|Pasos del procedimiento|Consents|Consentimientos/i })
+  697 |                 .first();
+  698 |             await consentsStep.waitFor({ state: 'visible', timeout: 10000 });
+  699 |             await consentsStep.click({ force: true });
+  700 |             await this.page.waitForTimeout(1000);
+  701 |         });
+  702 |     }
+  703 | 
+  704 |     async clickConfigurationTabInWizardOrEdit() {
+  705 |         await test.step('Click Configuration tab/step in wizard or procedure view', async () => {
+  706 |             const configStep = this.page.locator('.cbx-stepper-item-text').filter({ hasText: /^Configuration$|^Configuración$/i }).or(
+  707 |                 this.page.locator('[role="tab"], .MuiTab-root, p, div').filter({ hasText: /^Configuration$|^Configuración$/i })
+  708 |             ).first();
+  709 |             await configStep.waitFor({ state: 'visible', timeout: 10000 });
+  710 |             await configStep.click({ force: true });
+  711 |             await this.page.waitForTimeout(1000);
+  712 |             await this.generalHeading.waitFor({ state: 'visible', timeout: 15000 });
+  713 |         });
+  714 |     }
+  715 | 
+  716 |     async clickStepperTab(tabName: 'Details' | 'Entities' | 'Consents' | 'Documentation' | 'Configuration' | 'Review') {
+  717 |         await test.step(`Click stepper tab: ${tabName}`, async () => {
+  718 |             const patterns: Record<string, RegExp> = {
+  719 |                 Details: /Details|Detalles/i,
+  720 |                 Entities: /Entities|Entidades/i,
+  721 |                 Consents: /Consents|Consentimientos|Steps of the procedure|Pasos del procedimiento/i,
+  722 |                 Documentation: /Documentation|Documentación/i,
+  723 |                 Configuration: /Configuration|Configuración/i,
+  724 |                 Review: /Review|Revisión/i,
+  725 |             };
+  726 |             const pattern = patterns[tabName] || new RegExp(tabName, 'i');
+  727 |             const stepTab = this.page.locator('nav button, .cbx-stepper-item-contentText, .cbx-stepper-item-text, [role="tab"]')
+  728 |                 .filter({ hasText: pattern })
+  729 |                 .first();
+  730 |             await stepTab.waitFor({ state: 'visible', timeout: 10000 });
+  731 |             await stepTab.click();
+  732 |             await this.page.waitForTimeout(1000);
+  733 |         });
+  734 |     }
+  735 | 
+  736 |     async clickPrevious() {
+  737 |         await test.step('Click Previous button', async () => {
+  738 |             const prevBtn = this.page.getByRole('button', { name: /Previous|Anterior/i })
+  739 |                 .or(this.page.locator('#procedure-editor-prev'))
+  740 |                 .first();
+  741 |             await prevBtn.waitFor({ state: 'visible', timeout: 10000 });
+  742 |             await prevBtn.click({ force: true });
+  743 |             await this.page.waitForTimeout(1000);
+  744 |         });
+  745 |     }
+  746 | 
+  747 |     async searchProcedure(name: string) {
+  748 |         await test.step(`Search procedure: "${name}"`, async () => {
+  749 |             const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
+> 750 |             await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+      |                               ^ TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+  751 |             await searchInput.fill(name);
+  752 |             await this.page.waitForTimeout(1000);
+  753 |         });
+  754 |     }
+  755 | 
+  756 |     async verifyProcedureInTable(name: string) {
+  757 |         await test.step(`Verify procedure "${name}" is displayed in table`, async () => {
+  758 |             const row = this.tableBody.locator('tr').filter({ hasText: name }).first();
+  759 |             await expect(row).toBeVisible({ timeout: 10000 });
+  760 |         });
+  761 |     }
+  762 | 
+  763 |     async verifyProcedureNotInTable(name: string) {
+  764 |         await test.step(`Verify procedure "${name}" is NOT displayed in table`, async () => {
+  765 |             await this.page.waitForTimeout(1000);
+  766 |             const row = this.tableBody.locator('tr').filter({ hasText: name });
+  767 |             await expect(row).toHaveCount(0, { timeout: 5000 });
+  768 |         });
+  769 |     }
+  770 | 
+  771 |     async scrollToProcedureActions(name: string) {
+  772 |         await test.step(`Scroll horizontally to 3-dots action button for procedure: "${name}"`, async () => {
+  773 |             const row = this.page.getByRole('row', { name: new RegExp(name, 'i') }).or(
+  774 |                 this.tableBody.locator('tr').filter({ hasText: name })
+  775 |             ).first();
+  776 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  777 | 
+  778 |             // Hover row to ensure actions are active
+  779 |             await row.hover().catch(() => {});
+  780 | 
+  781 |             // Locate the 3-dots action button
+  782 |             const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').or(
+  783 |                 row.getByRole('button')
+  784 |             ).first();
+  785 | 
+  786 |             await actionButton.scrollIntoViewIfNeeded();
+  787 |             await this.page.waitForTimeout(500);
+  788 |         });
+  789 |     }
+  790 | 
+  791 |     async openEditProcedureFromRow(name: string) {
+  792 |         await test.step(`Open Edit form for procedure: "${name}"`, async () => {
+  793 |             const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
+  794 |             if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+  795 |                 await searchInput.fill(name);
+  796 |                 await this.page.waitForTimeout(1000);
+  797 |             }
+  798 |             const row = this.page.getByRole('row', { name: new RegExp(name, 'i') }).or(
+  799 |                 this.tableBody.locator('tr').filter({ hasText: name })
+  800 |             ).first();
+  801 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  802 |             await row.hover().catch(() => {});
+  803 | 
+  804 |             const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').or(
+  805 |                 row.getByRole('button')
+  806 |             ).first();
+  807 |             await actionButton.scrollIntoViewIfNeeded();
+  808 |             await actionButton.click();
+  809 |             await this.page.waitForTimeout(500);
+  810 | 
+  811 |             const editMenuItem = this.page.getByRole('button', { name: /Edit|Editar/i })
+  812 |                 .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+  813 |                 .or(this.page.getByText(/^Edit$|^Editar$/i))
+  814 |                 .first();
+  815 |             await editMenuItem.waitFor({ state: 'visible', timeout: 5000 });
+  816 |             await editMenuItem.click();
+  817 |             await this.page.waitForTimeout(1000);
+  818 |         });
+  819 |     }
+  820 | 
+  821 |     async deleteProcedure(name: string, reason: string = 'test something') {
+  822 |         await test.step(`Delete procedure: ${name}`, async () => {
+  823 |             const searchInput = this.page.getByPlaceholder(/Search for procedures|Buscar trámites|Buscar/i).or(this.page.locator('input[placeholder*="Search" i], input[placeholder*="Buscar" i]')).first();
+  824 | 
+  825 |             // Only navigate if search input is not already on screen
+  826 |             if (!await searchInput.isVisible({ timeout: 1500 }).catch(() => false)) {
+  827 |                 await this.navigateToProcedures().catch(() => {});
+  828 |                 await this.page.waitForTimeout(1000);
+  829 |             }
+  830 | 
+  831 |             if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+  832 |                 const currentSearch = await searchInput.inputValue().catch(() => '');
+  833 |                 if (!currentSearch.includes(name)) {
+  834 |                     await searchInput.fill(name);
+  835 |                     await this.page.waitForTimeout(1000);
+  836 |                 }
+  837 | 
+  838 |                 const row = this.page.getByRole('row', { name: new RegExp(name, 'i') }).or(
+  839 |                     this.tableBody.locator('tr').filter({ hasText: name })
+  840 |                 ).first();
+  841 |                 await row.waitFor({ state: 'visible', timeout: 10000 });
+  842 | 
+  843 |                 // Hover over the row so the button is interactive
+  844 |                 await row.hover().catch(() => {});
+  845 | 
+  846 |                 // Target the 3-dots action button
+  847 |                 const actionButton = row.locator('.cbx-dropdown-container button, button:has(.ri-more-2-fill), button:has(.ri-more-fill)').or(
+  848 |                     row.getByRole('button')
+  849 |                 ).first();
+  850 | 
+```

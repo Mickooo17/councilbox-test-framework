@@ -1,0 +1,591 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/institutions/institutionsTests.spec.ts >> Institutions - Organization & Company Settings Tests >> Verify Entity header screen informations @OVAC-5180 @regression
+- Location: tests/institutions/institutionsTests.spec.ts:267:7
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('heading', { level: 1 }).filter({ hasNotText: /^Entities$/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByRole('heading', { level: 1 }).filter({ hasNotText: /^Entities$/i }).first() with timeout 10000ms
+  - waiting for getByRole('heading', { level: 1 }).filter({ hasNotText: /^Entities$/i }).first()
+
+```
+
+```yaml
+- button ""
+- link " Activity":
+  - /url: /company/1112/activity/dashboardCouncils
+  - button " Activity"
+- link " Appointments":
+  - /url: /company/1112
+  - button " Appointments"
+- link " Processes":
+  - /url: /company/1112/managements
+  - button " Processes"
+- link " Procedures":
+  - /url: /company/1112/procedures
+  - button " Procedures"
+- link " Templates":
+  - /url: /company/1112/drafts
+  - button " Templates"
+- link " Documents":
+  - /url: /company/1112/documentation
+  - button " Documents"
+- link " Entities":
+  - /url: /company/1112/entities
+  - button " Entities"
+- link " Users":
+  - /url: /company/1112/users
+  - button " Users"
+- img "CBX white Logo"
+- text: © 2026 v8.8.0
+- banner:
+  - button "Logo Grupo Castelar Servicios Legales y Financieros S.A":
+    - img "Logo Grupo Castelar Servicios Legales y Financieros S.A"
+  - text: Grupo Castelar Servicios Legales y Financieros S.A
+  - button "Notifications":
+    - button "Notifications": 
+  - button "Button user":
+    - button "Button user":
+      - img "Logo Virtual Citizen Service Office"
+      - text: 
+- button "Actions": 
+- tablist "Pestañas":
+  - tab "Video-appointments" [selected]:
+    - paragraph: Video-appointments
+  - tab "In-person appointments":
+    - paragraph: In-person appointments
+- text:  List view
+- combobox "Campo de texto": "[object Object]"
+- text: Confirmed, In progress, Pending report, Completed, In pause
+- combobox "Status": Confirmed, In progress, Pending report, Completed, In pause
+- text: Status This week
+- combobox "Period": This week
+- text: Period
+- button "Botón": 
+- paragraph: Search by participant or record
+- button "Search": 
+- textbox "Search by participant or record":
+  - /placeholder: Search
+- button "Help": 
+- table:
+  - rowgroup:
+    - row "Selection Date Date  Ref. Ref.  External ID External ID  Record Record  Documents Entity Entity  Status Status  Actions [object Object]":
+      - columnheader "Selection"
+      - columnheader "Date Date ":
+        - text: Date
+        - button "Date "
+      - columnheader "Ref. Ref. ":
+        - text: Ref.
+        - button "Ref. "
+      - columnheader "External ID External ID ":
+        - text: External ID
+        - button "External ID "
+      - columnheader "Record Record ":
+        - text: Record
+        - button "Record "
+      - columnheader "Documents"
+      - columnheader "Entity Entity ":
+        - text: Entity
+        - button "Entity "
+      - columnheader "Status Status ":
+        - text: Status
+        - button "Status "
+      - columnheader "Actions [object Object]":
+        - text: Actions
+        - combobox "Settings": "[object Object]"
+  - rowgroup:
+    - row "Select  27/11/2026 10:00 67907 1112111267907202694083 0 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 27/11/2026 10:00"
+      - cell "67907"
+      - cell
+      - cell "1112111267907202694083"
+      - cell "0":
+        - button "0"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  27/11/2026 09:00 67811 111211126781120269bcf2 3 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 27/11/2026 09:00"
+      - cell "67811"
+      - cell
+      - cell "111211126781120269bcf2"
+      - cell "3":
+        - button "3"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  26/11/2026 10:00  67921 111211126792120261faab 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 26/11/2026 10:00 "
+      - cell "67921"
+      - cell
+      - cell "111211126792120261faab"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  26/11/2026 10:00  67919 1112111267919202659e67 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 26/11/2026 10:00 "
+      - cell "67919"
+      - cell
+      - cell "1112111267919202659e67"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  26/11/2026 10:00  67922 11121112679222026daf73 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 26/11/2026 10:00 "
+      - cell "67922"
+      - cell
+      - cell "11121112679222026daf73"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  26/11/2026 10:00  67915 11121112679152026a147a 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 26/11/2026 10:00 "
+      - cell "67915"
+      - cell
+      - cell "11121112679152026a147a"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  26/11/2026 10:00  67920 1112111267920202647e1b 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 26/11/2026 10:00 "
+      - cell "67920"
+      - cell
+      - cell "1112111267920202647e1b"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 18:00   67917 11121112679172026c72ec 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 18:00  "
+      - cell "67917"
+      - cell
+      - cell "11121112679172026c72ec"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 13:15  67906 11121112679062026d9a31 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 13:15 "
+      - cell "67906"
+      - cell
+      - cell "11121112679062026d9a31"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67895 1112111267895202600714 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67895"
+      - cell
+      - cell "1112111267895202600714"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67890 11121112678902026125a0 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67890"
+      - cell
+      - cell "11121112678902026125a0"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67889 1112111267889202628109 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67889"
+      - cell
+      - cell "1112111267889202628109"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67893 11121112678932026bd872 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67893"
+      - cell
+      - cell "11121112678932026bd872"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67894 11121112678942026b1daa 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67894"
+      - cell
+      - cell "11121112678942026b1daa"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67891 11121112678912026c3ff6 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67891"
+      - cell
+      - cell "11121112678912026c3ff6"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67896 11121112678962026c480a 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67896"
+      - cell
+      - cell "11121112678962026c480a"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67886 11121112678862026592f2 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67886"
+      - cell
+      - cell "11121112678862026592f2"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67884 1112111267884202664c60 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67884"
+      - cell
+      - cell "1112111267884202664c60"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67885 11121112678852026f8476 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67885"
+      - cell
+      - cell "11121112678852026f8476"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+    - row "Select  25/11/2026 10:00   67887 111211126788720269872c 1 Grupo Castelar Servicios Legales y Financieros S.A Confirmed More":
+      - cell "Select":
+        - checkbox "Select"
+      - cell " 25/11/2026 10:00  "
+      - cell "67887"
+      - cell
+      - cell "111211126788720269872c"
+      - cell "1":
+        - button "1"
+      - cell "Grupo Castelar Servicios Legales y Financieros S.A"
+      - cell "Confirmed"
+      - cell "More":
+        - button "More": 
+- text: 1 - 20 of 82
+- navigation "Paginación de resultados":
+  - button "Página 1": "1"
+  - button "Página 2": "2"
+  - button "Página 3": "3"
+  - button "Página 4": "4"
+  - button "Página 5": "5"
+  - button "Página siguiente"
+- text: Legal notice and Terms and conditions of use Privacy policy  0 selected SELECT ALL
+- img
+- text: New version OVAC 8.8 We have updated the app to the latest version to offer you a better experience. This update includes important improvements, error corrections and optimizations so that use will be easier and friendlier. Review upgrades
+- button
+```
+
+# Test source
+
+```ts
+  618 |                 .or(this.page.locator('[role="menu"] button:has-text("Available period"), [role="menuitem"]:has-text("Available period")'))
+  619 |                 .first();
+  620 |             if (await periodOption.isVisible({ timeout: 5000 }).catch(() => false)) {
+  621 |                 await periodOption.click();
+  622 |                 await this.page.waitForTimeout(1000);
+  623 |             }
+  624 | 
+  625 |             // Assert drawer or dialog is opened
+  626 |             const drawer = this.page.locator('.MuiDrawer-root:visible, .MuiDialog-root:visible, [role="dialog"]:visible').last();
+  627 |             await expect(drawer).toBeVisible({ timeout: 10000 });
+  628 | 
+  629 |             // Inside drawer, click "Add" / "Save" button without assigning professionals
+  630 |             const saveBtn = drawer.getByRole('button', { name: /^Add$|^Añadir$|^Save$|^Guardar$/i })
+  631 |                 .or(drawer.locator('button[type="submit"]'))
+  632 |                 .last();
+  633 |             if (await saveBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+  634 |                 await saveBtn.click();
+  635 |                 await this.page.waitForTimeout(1000);
+  636 |             }
+  637 | 
+  638 |             // Assert alert, error message, or required validation is displayed
+  639 |             const alertOrError = this.page.locator('.MuiAlert-root, [role="alert"], .cbx-Alert, .Mui-error, [aria-invalid="true"]').first();
+  640 |             await expect(alertOrError).toBeVisible({ timeout: 10000 });
+  641 | 
+  642 |             // Close drawer with Escape
+  643 |             await this.page.keyboard.press('Escape');
+  644 |             await this.page.waitForTimeout(500);
+  645 |         });
+  646 |     }
+  647 | 
+  648 |     /**
+  649 |      * Gets the company Main language setting text (OVAC-5768 / XR-1627).
+  650 |      */
+  651 |     async getCompanyMainLanguage(): Promise<string> {
+  652 |         return await test.step('Get company main language', async () => {
+  653 |             const langContainer = this.page.locator('.cbx-inputText-container, .MuiFormControl-root')
+  654 |                 .filter({ hasText: /Main language|Idioma principal/i })
+  655 |                 .first();
+  656 |             await langContainer.waitFor({ state: 'visible', timeout: 10000 });
+  657 |             return (await langContainer.innerText()).trim();
+  658 |         });
+  659 |     }
+  660 | 
+  661 |     /**
+  662 |      * Updates the company Main language selector (OVAC-5768 / XR-1627).
+  663 |      */
+  664 |     async updateCompanyMainLanguage(languageName: string = 'English') {
+  665 |         await test.step(`Update company main language to: "${languageName}"`, async () => {
+  666 |             const langContainer = this.page.locator('.cbx-inputText-container, .MuiFormControl-root')
+  667 |                 .filter({ hasText: /Main language|Idioma principal/i })
+  668 |                 .first();
+  669 |             await langContainer.waitFor({ state: 'visible', timeout: 10000 });
+  670 |             const combobox = langContainer.locator('[role="combobox"], [role="button"], input').first();
+  671 |             await combobox.click({ force: true });
+  672 |             await this.page.waitForTimeout(500);
+  673 | 
+  674 |             const option = this.page.locator('[role="option"], li.MuiMenuItem-root')
+  675 |                 .filter({ hasText: new RegExp(`^${languageName}$`, 'i') })
+  676 |                 .first();
+  677 |             await option.waitFor({ state: 'visible', timeout: 5000 });
+  678 |             await option.click();
+  679 |             await this.page.waitForTimeout(500);
+  680 |         });
+  681 |     }
+  682 | 
+  683 |     /**
+  684 |      * Navigates to Customization -> Appearance tab (OVAC-5769 / XR-1632).
+  685 |      */
+  686 |     async navigateToCustomizationAppearance(companyId: number = 1112) {
+  687 |         await test.step(`Navigate to Customization -> Appearance for company #${companyId}`, async () => {
+  688 |             await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}/personalization/appearance`);
+  689 |             await this.page.waitForLoadState('networkidle');
+  690 |             await this.dismissToastOrModal();
+  691 |         });
+  692 |     }
+  693 | 
+  694 |     /**
+  695 |      * Uploads an organization logo in the Appearance settings (OVAC-5769 / XR-1632).
+  696 |      */
+  697 |     async uploadOrganizationLogo(filePath: string = 'test-data/test-logo.png') {
+  698 |         await test.step('Upload organization logo in appearance settings', async () => {
+  699 |             const logoInput = this.page.locator('#raised-button-file-subdomain-logo');
+  700 |             await expect(logoInput).toBeAttached();
+  701 |             const resolvedPath = path.resolve(filePath);
+  702 |             await logoInput.setInputFiles(resolvedPath);
+  703 |             await this.page.waitForTimeout(1000);
+  704 |         });
+  705 |     }
+  706 | 
+  707 |     /**
+  708 |      * Verifies Entity header screen informations: icon, name, type, status, actions menu (OVAC-5180).
+  709 |      */
+  710 |     async verifyEntitiesHeadingInformation(companyId: number = 1112) {
+  711 |         await test.step('Verify entity header screen informations: icon, name, type, status, actions menu', async () => {
+  712 |             await this.page.goto(`https://qa.ovac.pre.councilbox.com/company/${companyId}/companies/edit/${companyId}`);
+  713 |             await this.page.waitForLoadState('domcontentloaded');
+  714 |             await this.dismissToastOrModal();
+  715 | 
+  716 |             // 1. Verify entity name (heading level 1)
+  717 |             const entityHeading = this.page.getByRole('heading', { level: 1 }).filter({ hasNotText: /^Entities$/i }).first();
+> 718 |             await expect(entityHeading).toBeVisible({ timeout: 10000 });
+      |                                         ^ Error: expect(locator).toBeVisible() failed
+  719 | 
+  720 |             // 2. Verify entity icon
+  721 |             const entityIcon = this.page.locator('img[alt*="Logo" i], .ri-building-line, .ri-government-line, .cbx-IconButton, i[class*="ri-"]').first();
+  722 |             await expect(entityIcon).toBeVisible({ timeout: 5000 });
+  723 | 
+  724 |             // 3. Verify type (Organization or entity / Organización o entidad)
+  725 |             const typeIndicator = this.page.locator('p:visible, span:visible, div:visible').filter({ hasText: /^Organization$|^Organización$|^Entity$|^Entidad$/i }).first();
+  726 |             await expect(typeIndicator).toBeVisible({ timeout: 5000 });
+  727 | 
+  728 |             // 4. Verify Actions / Save button
+  729 |             const saveBtn = this.page.getByRole('button', { name: /Save|Guardar/i }).first();
+  730 |             await expect(saveBtn).toBeVisible({ timeout: 5000 });
+  731 |         });
+  732 |     }
+  733 | 
+  734 |     /**
+  735 |      * Navigates to company settings and verifies the Consumptions section contains Roles and External Services/Storage data (OVAC-5377).
+  736 |      */
+  737 |     async verifyConsumptionsSectionRefined(companyId: number = 1112) {
+  738 |         await test.step(`Verify Consumptions section on company #${companyId} settings`, async () => {
+  739 |             await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}`));
+  740 |             await this.page.waitForLoadState('networkidle');
+  741 |             await this.dismissToastOrModal();
+  742 | 
+  743 |             const consumptionsHeading = this.page.getByRole('heading', { name: /^Consumptions$|^Consumos$/i }).first();
+  744 |             await expect(consumptionsHeading).toBeVisible({ timeout: 15000 });
+  745 | 
+  746 |             // External Services metrics section (SMS, Uanataca, Autofirma, Biometry)
+  747 |             await expect(this.page.getByText(/^SMS$/i).first()).toBeVisible({ timeout: 10000 });
+  748 |             await expect(this.page.getByText(/Uanataca/i).first()).toBeVisible({ timeout: 10000 });
+  749 |             await expect(this.page.getByText(/Autofirma/i).first()).toBeVisible({ timeout: 10000 });
+  750 |             await expect(this.page.getByText(/Biometry|Biometría/i).first()).toBeVisible({ timeout: 10000 });
+  751 | 
+  752 |             // Roles consumption section (Admin agent, Global administrator, Kiosk)
+  753 |             await expect(this.page.getByText(/^Roles$/i).first()).toBeVisible({ timeout: 10000 });
+  754 |             await expect(this.page.getByText(/Admin agent|Agente administrador/i).first()).toBeVisible({ timeout: 10000 });
+  755 | 
+  756 |             // Date filter selector in Consumptions
+  757 |             const dateCombo = this.page.getByRole('combobox', { name: /^Date$|^Fecha$/i }).first();
+  758 |             await expect(dateCombo).toBeVisible({ timeout: 5000 });
+  759 |         });
+  760 |     }
+  761 | 
+  762 |     /**
+  763 |      * Edits an existing entity via the Entities list Edit action and verifies persistence (OVAC-5298).
+  764 |      */
+  765 |     async editInstitutionAndVerify(currentName: string, updatedName: string) {
+  766 |         await test.step(`Edit entity "${currentName}" to "${updatedName}"`, async () => {
+  767 |             await this.searchInstitution(currentName);
+  768 |             const row = this.page.locator('table tbody tr').filter({ hasText: currentName }).first();
+  769 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  770 | 
+  771 |             const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill)').first();
+  772 |             await actionBtn.click();
+  773 | 
+  774 |             const editOption = this.page.getByRole('button', { name: /Edit|Editar/i })
+  775 |                 .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+  776 |                 .first();
+  777 |             await editOption.waitFor({ state: 'visible', timeout: 5000 });
+  778 |             await editOption.click();
+  779 |             await this.page.waitForURL(/\/companies\/edit\/\d+/i, { timeout: 15000 });
+  780 |             await this.dismissToastOrModal();
+  781 | 
+  782 |             await this.updateCompanyName(updatedName);
+  783 |             await this.saveCompanySettings();
+  784 |             await this.verifyCompanySettingsSavedAlert();
+  785 | 
+  786 |             await this.searchInstitution(updatedName);
+  787 |             await this.verifyInstitutionInTable(updatedName);
+  788 |         });
+  789 |     }
+  790 | 
+  791 |     /**
+  792 |      * Bans an existing entity via the Entities list Ban action and verifies it is banned/removed from active list (OVAC-5261).
+  793 |      */
+  794 |     async banInstitutionAndVerify(name: string) {
+  795 |         await test.step(`Ban entity "${name}" and verify it is removed from active list`, async () => {
+  796 |             await this.searchInstitution(name);
+  797 |             const row = this.page.locator('table tbody tr').filter({ hasText: name }).first();
+  798 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  799 | 
+  800 |             const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button:has-text("button")').last();
+  801 |             await actionBtn.click();
+  802 | 
+  803 |             const banOption = this.page.getByRole('button', { name: /Ban|Bloquear/i })
+  804 |                 .or(this.page.getByRole('menuitem', { name: /Ban|Bloquear/i }))
+  805 |                 .first();
+  806 |             await banOption.waitFor({ state: 'visible', timeout: 5000 });
+  807 |             await banOption.click();
+  808 | 
+  809 |             const confirmDialog = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').filter({ hasText: /Ban|Bloquear|Accept|Aceptar/i }).first();
+  810 |             await expect(confirmDialog).toBeVisible({ timeout: 10000 });
+  811 |             const acceptBtn = confirmDialog.locator('#modal-button-accept, #alert-confirm-button-accept')
+  812 |                 .or(confirmDialog.getByRole('button', { name: /^OK$|^Accept$|^Aceptar$|^Ban$|^Bloquear$/i }))
+  813 |                 .last();
+  814 |             await acceptBtn.click();
+  815 |             await expect(confirmDialog).toBeHidden({ timeout: 15000 });
+  816 |             await this.page.waitForTimeout(1000);
+  817 | 
+  818 |             // Verify banned entity no longer appears in the active Entities table
+```
