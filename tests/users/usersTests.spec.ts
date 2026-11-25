@@ -736,4 +736,11 @@ f.test.describe('Users - Details Page Tests', () => {
         // 6. Click Satisfaction section and verify Satisfaction window opens
         await usersPage.verifySatisfactionWindowFromActivityTab();
     });
+
+    f.test('Verify User header screen information @OVAC-5182 @regression', async ({ usersPage }) => {
+        // 1-3. Navigate to Users, open user profile, and verify header information
+        await usersPage.navigateToUsers();
+        await usersPage.clickUserRow('Ammar Professional');
+        await usersPage.verifyUserHeaderScreenInformation('Ammar Professional');
+    });
 });

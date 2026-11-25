@@ -321,4 +321,73 @@ export class DocumentationPage extends BasePage {
             await expect(this.page.locator('#CardsContainerBody').getByText(oldName)).toHaveCount(0, { timeout: 10000 });
         });
     }
+
+    /**
+     * Verifies all expected filters, controls, storage bar, and actions are present on Documents page (OVAC-5042).
+     */
+    async verifyDocumentsFormContainsAllFields() {
+        await test.step('Verify Documents page contains Order, File type, Search, View toggle, Select, Quota, and Add button', async () => {
+            await expect(this.page.getByRole('combobox', { name: /^Order$|^Orden$/i }).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.page.getByRole('combobox', { name: /^File type$|^Tipo de archivo$/i }).first()).toBeVisible({ timeout: 10000 });
+            await expect(this.searchInput).toBeVisible({ timeout: 10000 });
+            await expect(this.page.getByRole('button', { name: /List view|Table view|Vista de lista/i }).first()).toBeVisible({ timeout: 5000 });
+            await expect(this.page.getByRole('button', { name: /Select files|Seleccionar archivos/i }).first()).toBeVisible({ timeout: 5000 });
+            await expect(this.page.getByText(/OVAC Storage/i).first()).toBeVisible({ timeout: 5000 });
+            await expect(this.page.locator('#add-document-button, .MuiFab-root, button[aria-label="Floating action button"]').first()).toBeVisible({ timeout: 5000 });
+        });
+    }
+
+    /**
+     * Marks multiple folders on Documentation page and deletes them in bulk (OVAC-4919).
+     */
+    async markMultipleFoldersAndDelete(folderNames: string[], searchPrefix?: string) {
+        await test.step(`Mark ${folderNames.length} folders and delete them in bulk`, async () => {
+            await this.dismissToastOrModal();
+            if (searchPrefix) {
+                await this.searchDocument(searchPrefix);
+            }
+
+            for (const folder of folderNames) {
+                await this.verifyFolderInContainer(folder);
+            }
+
+            // Enable multi-select mode
+            const selectBtn = this.page.getByRole('button', { name: /Select files|Seleccionar archivos/i }).first();
+            await selectBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await selectBtn.click();
+            await this.page.waitForTimeout(400);
+
+            for (const folder of folderNames) {
+                const card = this.page.locator('#CardsContainerBody > div').filter({ hasText: folder }).first();
+                await card.waitFor({ state: 'visible', timeout: 10000 });
+                const checkbox = card.locator('input[type="checkbox"]').first();
+                if (await checkbox.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await checkbox.check({ force: true });
+                } else {
+                    // Click the folder title text rather than the card container so 3-dots menu isn't triggered
+                    await card.getByText(folder).first().click();
+                }
+                await this.page.waitForTimeout(200);
+            }
+
+            await expect(this.page.getByText(new RegExp(`${folderNames.length}\\s+selected`, 'i')).first()).toBeVisible({ timeout: 5000 });
+
+            // Click bulk delete control in the bottom multi-select bar
+            const bulkDeleteBtn = this.page.getByText(/^Delete$|^Eliminar$/i)
+                .or(this.page.locator('button:has(.ri-delete-bin-line), button:has(.ri-delete-bin-6-line), button[aria-label*="Delete" i]'))
+                .last();
+            await bulkDeleteBtn.waitFor({ state: 'visible', timeout: 5000 });
+            await bulkDeleteBtn.click({ force: true });
+
+            const dialog = this.page.getByRole('dialog').first();
+            await dialog.waitFor({ state: 'visible', timeout: 5000 });
+            await dialog.getByRole('button', { name: /^Accept$|^Aceptar$|^Delete$|^Eliminar$/i }).first().click();
+            await expect(dialog).toBeHidden({ timeout: 15000 });
+            await this.page.waitForTimeout(1000);
+
+            for (const folder of folderNames) {
+                await expect(this.page.locator('#CardsContainerBody').getByText(folder)).toHaveCount(0, { timeout: 10000 });
+            }
+        });
+    }
 }

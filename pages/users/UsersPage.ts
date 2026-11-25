@@ -993,4 +993,40 @@ export class UsersPage extends BasePage {
             }
         });
     }
+
+    /**
+     * Verifies User edit screen header information: avatar/icon, name, role, status, and actions/save button (OVAC-5182).
+     */
+    async verifyUserHeaderScreenInformation(expectedName?: string) {
+        await test.step('Verify User header screen info: avatar, full name, role, status, save action', async () => {
+            await this.dismissModal();
+            await expect(this.page).toHaveURL(/\/users\/\d+\/edit/i, { timeout: 10000 });
+
+            // 1. Back button and User avatar/initials icon in edit header
+            await expect(this.page.getByRole('button', { name: /Back|Volver/i }).first()).toBeVisible({ timeout: 10000 });
+            const avatar = this.page.locator('.MuiAvatar-root:visible, [role="img"]:visible, img[alt]:visible').filter({ hasNot: this.page.locator('[alt*="Logo" i], [alt*="See more" i]') }).first();
+            await expect(avatar).toBeVisible({ timeout: 10000 });
+
+            // 2. User full name display in header
+            if (expectedName) {
+                await expect(this.page.getByText(expectedName).first()).toBeVisible({ timeout: 10000 });
+            } else {
+                const nameVal = await this.nameInput.inputValue();
+                expect(nameVal.length).toBeGreaterThan(0);
+                await expect(this.page.getByText(nameVal).first()).toBeVisible({ timeout: 10000 });
+            }
+
+            // 3. Role label
+            const roleText = this.page.getByText(/Agent with video attention|Administrator|Admin agent|Professional|Supervisor|Calendar manager|Agente/i).first();
+            await expect(roleText).toBeVisible({ timeout: 10000 });
+
+            // 4. Status indicator
+            const statusText = this.page.getByText(/Confirmed|Active|Inactive|Not confirmed|Confirmado|Activo|Inactivo/i).first();
+            await expect(statusText).toBeVisible({ timeout: 10000 });
+
+            // 5. Save button and header action menu
+            const saveBtn = this.page.getByRole('button', { name: /^Save$|^Guardar$/i }).first();
+            await expect(saveBtn).toBeVisible({ timeout: 10000 });
+        });
+    }
 }

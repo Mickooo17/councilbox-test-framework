@@ -562,7 +562,9 @@ export class InstitutionsPage extends BasePage {
             await this.navigateToCustomizationNotifications(1112);
 
             const pattern = typeof notificationName === 'string' ? new RegExp(notificationName, 'i') : notificationName;
-            const notifRow = this.page.locator('tr, li, [role="row"]').filter({ hasText: pattern }).first();
+            const notifRow = this.page.locator('tr, li, [role="row"]')
+                .filter({ has: this.page.locator('td:first-child div, td:first-child p, td:first-child span').filter({ hasText: pattern }) })
+                .first();
             await notifRow.waitFor({ state: 'visible', timeout: 15000 });
 
             // Click the title cell link to open the notification edit page
@@ -783,6 +785,73 @@ export class InstitutionsPage extends BasePage {
 
             await this.searchInstitution(updatedName);
             await this.verifyInstitutionInTable(updatedName);
+        });
+    }
+
+    /**
+     * Bans an existing entity via the Entities list Ban action and verifies it is banned/removed from active list (OVAC-5261).
+     */
+    async banInstitutionAndVerify(name: string) {
+        await test.step(`Ban entity "${name}" and verify it is removed from active list`, async () => {
+            await this.searchInstitution(name);
+            const row = this.page.locator('table tbody tr').filter({ hasText: name }).first();
+            await row.waitFor({ state: 'visible', timeout: 10000 });
+
+            const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button:has-text("button")').last();
+            await actionBtn.click();
+
+            const banOption = this.page.getByRole('button', { name: /Ban|Bloquear/i })
+                .or(this.page.getByRole('menuitem', { name: /Ban|Bloquear/i }))
+                .first();
+            await banOption.waitFor({ state: 'visible', timeout: 5000 });
+            await banOption.click();
+
+            const confirmDialog = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').filter({ hasText: /Ban|Bloquear|Accept|Aceptar/i }).first();
+            await expect(confirmDialog).toBeVisible({ timeout: 10000 });
+            const acceptBtn = confirmDialog.locator('#modal-button-accept, #alert-confirm-button-accept')
+                .or(confirmDialog.getByRole('button', { name: /^OK$|^Accept$|^Aceptar$|^Ban$|^Bloquear$/i }))
+                .last();
+            await acceptBtn.click();
+            await expect(confirmDialog).toBeHidden({ timeout: 15000 });
+            await this.page.waitForTimeout(1000);
+
+            // Verify banned entity no longer appears in the active Entities table
+            await this.searchInstitution(name);
+            await this.verifyInstitutionNotInTable(name);
+        });
+    }
+
+    /**
+     * Navigates to Customization -> Appearance and verifies the Translations section and title edit modal (OVAC-4912).
+     */
+    async verifyTranslationsSectionInAppearance(companyId: number = 1112) {
+        await test.step(`Verify Translations section in Appearance tab for company #${companyId}`, async () => {
+            await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}/personalization/appearance`));
+            await this.page.waitForLoadState('networkidle');
+            await this.dismissToastOrModal();
+
+            const translationsHeading = this.page.getByRole('heading', { name: /Translations|Traducciones/i })
+                .or(this.page.getByText(/Translations|Traducciones/i))
+                .first();
+            await translationsHeading.scrollIntoViewIfNeeded();
+            await expect(translationsHeading).toBeVisible({ timeout: 10000 });
+
+            // Verify at least one translation row/item and Edit action opens title edit modal
+            const transRow = this.page.locator('table tbody tr, [role="row"]').filter({ has: this.page.locator('button') }).first();
+            await transRow.waitFor({ state: 'visible', timeout: 10000 });
+            await transRow.locator('button').last().click();
+            await this.page.waitForTimeout(400);
+
+            const editOption = this.page.getByRole('button', { name: /Edit|Editar/i })
+                .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+                .first();
+            await editOption.waitFor({ state: 'visible', timeout: 5000 });
+            await editOption.click();
+
+            const editDialog = this.page.locator('[role="dialog"], .MuiDrawer-root:visible').last();
+            await expect(editDialog).toBeVisible({ timeout: 10000 });
+            await expect(editDialog.locator('input, textarea').first()).toBeVisible({ timeout: 5000 });
+            await this.page.keyboard.press('Escape');
         });
     }
 }

@@ -1167,4 +1167,12 @@ test.describe('Appointments Management - Status Verification Tests', () => {
     await appointmentsPage.verifyAllAppointmentFiltersAvailable();
   });
 
+  test('The admin is able to see the "Entities" filter if he linked to the several entites @OVAC-5162 @regression', async ({
+    appointmentsPage,
+  }) => {
+    // 1-6. Navigate to Appointments, open Entities filter dropdown, verify linked entities and filter
+    await appointmentsPage.navigateToAppointmentsPage(1112);
+    await appointmentsPage.verifyEntitiesFilterWithMultipleEntities();
+  });
+
 });

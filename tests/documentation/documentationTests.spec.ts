@@ -128,4 +128,31 @@ f.test.describe('Documentation - Folder Management Tests', () => {
             await documentationPage.deleteFolder(renamedVisible ? updatedName : originalName).catch(() => {});
         }
     });
+
+    f.test('Verify that "Documents" form contains all fields @OVAC-5042 @regression', async ({ documentationPage }) => {
+        // 1-5. Verify all controls and fields on Documents page
+        await documentationPage.verifyDocumentsFormContainsAllFields();
+    });
+
+    f.test('The user is able to mark multiple files/folders and delete them on the Documentation page @OVAC-4919 @regression', async ({ documentationPage }) => {
+        const ts = Date.now();
+        const prefix = `MultiDel_${ts}`;
+        const folderA = `${prefix}_A`;
+        const folderB = `${prefix}_B`;
+
+        await documentationPage.createFolder(folderA);
+        await documentationPage.createFolder(folderB);
+
+        try {
+            await documentationPage.markMultipleFoldersAndDelete([folderA, folderB], prefix);
+        } finally {
+            await documentationPage.searchDocument(prefix).catch(() => {});
+            for (const fName of [folderA, folderB]) {
+                const stillThere = await documentationPage.page.locator('#CardsContainerBody').getByText(fName).isVisible().catch(() => false);
+                if (stillThere) {
+                    await documentationPage.deleteFolder(fName).catch(() => {});
+                }
+            }
+        }
+    });
 });

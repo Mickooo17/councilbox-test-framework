@@ -1894,6 +1894,48 @@ export class AppointmentsPage extends BasePage {
       await expect(this.appointmentsTable).toBeVisible({ timeout: 10000 });
     });
   }
+
+  /**
+   * Verifies that Entities filter is available when linked to multiple entities and filters appointments cleanly (OVAC-5162).
+   */
+  async verifyEntitiesFilterWithMultipleEntities() {
+    await test.step('Verify Entities filter in Appointments drawer displays linked entities and applies filter', async () => {
+      await this.dismissToastOrModal();
+      const eqBtn = this.page.locator('button:has(.ri-equalizer-line)').first();
+      await eqBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await eqBtn.click();
+      await this.page.waitForTimeout(500);
+
+      const filterDialog = this.page.getByRole('dialog').filter({ hasText: /Filters|Filtros/i }).first();
+      await expect(filterDialog).toBeVisible({ timeout: 10000 });
+
+      const entitiesCombo = filterDialog.getByRole('combobox', { name: /Entities|Entidades/i }).first();
+      await expect(entitiesCombo).toBeVisible({ timeout: 5000 });
+      await entitiesCombo.evaluate((el: HTMLElement) => el.click());
+      await this.page.waitForTimeout(400);
+
+      const listbox = this.page.locator('ul[role="listbox"], [role="listbox"]').last();
+      await expect(listbox).toBeVisible({ timeout: 5000 });
+      const options = listbox.locator('[role="option"], li');
+      expect(await options.count()).toBeGreaterThan(1);
+
+      // Select Grupo Castelar option and close
+      const targetOption = options.filter({ hasText: /Grupo Castelar/i }).first();
+      await targetOption.click();
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(300);
+
+      const applyBtn = filterDialog.getByRole('button', { name: /^Apply$|^Aplicar$|^Save$|^Guardar$/i }).first();
+      if (await applyBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await applyBtn.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await this.page.waitForTimeout(1000);
+      await expect(this.appointmentsTable).toBeVisible({ timeout: 10000 });
+    });
+  }
+
 }
 
 

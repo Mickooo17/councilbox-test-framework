@@ -120,6 +120,30 @@ f.test.describe('HomePage - User Profile Tests', () => {
     // 6. Click on the Log out button and verify redirect to login page
     await homePage.clickSignOff();
   });
+
+  f.test('Verify that Agent with video attention is not able to see "Entities" button in the navigation bar @OVAC-5037 @regression', async ({ homePage, page }) => {
+    // 1-2. Simulate Agent with video attention role
+    await homePage.simulateUserRole('appointmentAgent');
+
+    // 3. Verify Appointments remains visible while Entities navigation link/button is not visible
+    await expect(page.getByRole('link', { name: /Appointments/i }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('link', { name: /Entities|Institutions/i })).toHaveCount(0, { timeout: 10000 });
+    await expect(page.locator('a[href*="/companies"]:visible, button:visible:has-text("Entities"), button:visible:has-text("Institutions")')).toHaveCount(0, { timeout: 10000 });
+  });
+
+  f.test('Verify that Entity administrator can see the "Entities" button in the navigation bar @OVAC-5033 @regression', async ({ homePage, page }) => {
+    // 1. Simulate Entity Administrator role
+    await homePage.simulateUserRole('admin');
+
+    // 2. Verify Entities button in the navigation bar is visible, enabled, and navigates to /companies
+    const entitiesNav = page.getByRole('link', { name: /Entities|Institutions/i }).first();
+    await expect(entitiesNav).toBeVisible({ timeout: 10000 });
+    await expect(entitiesNav).toBeEnabled();
+
+    await entitiesNav.click();
+    await expect(page).toHaveURL(/\/companies/i, { timeout: 15000 });
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15000 });
+  });
 });
 
 

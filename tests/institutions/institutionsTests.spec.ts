@@ -339,4 +339,32 @@ f.test.describe('Institutions - Organization & Company Settings Tests', () => {
             });
         }
     });
+
+    f.test('The fields for the "Intention to attend" email notification should have default texts if the notification is not modified @OVAC-5713 @regression', async ({ institutionsPage }) => {
+        // 1-6. Navigate to Customization -> Notifications and open Intention to attend notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('Intention to attend|Intención de asistir', ['{{', 'name']);
+    });
+
+    f.test('The fields for the "Reminder" email notification should have default texts if the notification is not modified @OVAC-5717 @regression', async ({ institutionsPage }) => {
+        // 1-6. Navigate to Customization -> Notifications and open Reminder notification
+        await institutionsPage.navigateToCustomizationNotifications(1112);
+        await institutionsPage.verifyNotificationDefaultTemplateText('^Reminder$|^Recordatorio$', ['{{']);
+    });
+
+    f.test('The user is able to Ban Entity - Entities section @OVAC-5261 @regression', async ({ institutionsPage }) => {
+        // 1. Create a fresh test institution so shared data stays clean
+        const instData = DataGenerator.randomInstitutionData();
+        await institutionsPage.navigateToInstitutions();
+        await institutionsPage.createInstitution(instData);
+        await institutionsPage.verifySuccessAlert();
+
+        // 2-5. Ban entity and verify it is removed from active list
+        await institutionsPage.banInstitutionAndVerify(instData.name);
+    });
+
+    f.test('The "Translations" section has been included within the "Appearance" tab, enabling users to edit titles @OVAC-4912 @regression', async ({ institutionsPage }) => {
+        // 1-7. Open Appearance tab, verify Translations section and open title Edit dialog
+        await institutionsPage.verifyTranslationsSectionInAppearance(1112);
+    });
 });

@@ -117,7 +117,7 @@ export class HomePage extends BasePage {
   /**
    * Simulates a user role (e.g. 'professional' or 'calendarManager') via GraphQL interception (XR-2522).
    */
-  async simulateUserRole(role: 'professional' | 'calendarManager' | 'admin' | 'superadmin') {
+  async simulateUserRole(role: 'professional' | 'appointmentAgent' | 'calendarManager' | 'admin' | 'superadmin') {
     await test.step(`Simulate user role as "${role}" via GraphQL interception`, async () => {
       await this.page.route('**/graphql', async route => {
         const postData = route.request().postDataJSON();
