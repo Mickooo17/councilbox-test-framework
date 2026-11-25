@@ -871,3 +871,103 @@ test.describe('Procedures - Configuration & Documentation Tab Tests', () => {
         await proceduresPage.verifyProcessConfigurationLanguageAndRequestCheckbox();
     });
 });
+
+test.describe('Procedures - Consents & Validation Tests', () => {
+    let createdProcedureId: string | undefined;
+
+    test.beforeEach(async ({ homePage, proceduresPage, request }) => {
+        await homePage.validateHomePageIsOpened();
+        const procedureData = DataGenerator.randomProcedureData();
+        const created = await proceduresPage.createProcedureViaApi(request, {
+            title: procedureData.name,
+            description: procedureData.description,
+            companyId: 1112,
+        });
+        createdProcedureId = created.id;
+        await proceduresPage.navigateToProcedureConsents(createdProcedureId, 1112);
+    });
+
+    test.afterEach(async ({ proceduresPage, request }) => {
+        if (createdProcedureId) {
+            await proceduresPage.deleteProceduresByIdsViaApi(request, [createdProcedureId]).catch(() => {});
+            createdProcedureId = undefined;
+        }
+    });
+
+    test('The user is able to add more options in the FORM consent type - Appointment creation flow @OVAC-4861 @regression', async ({ proceduresPage }) => {
+        const consentTitle = `Form Multi ${Date.now()}`;
+        await proceduresPage.createFormConsent({
+            title: consentTitle,
+            fields: [
+                { label: 'Option 1' },
+                { label: 'Option 2' },
+                { label: 'Option 3' },
+                { label: 'Option 4' },
+            ],
+        });
+    });
+
+    test('The user is able to add optional type of option in the FORM consent type - Appointment creation flow @OVAC-4865 @regression', async ({ proceduresPage }) => {
+        const consentTitle = `Form Optional ${Date.now()}`;
+        await proceduresPage.createFormConsent({
+            title: consentTitle,
+            fields: [
+                { label: 'Required Field 1', required: true },
+                { label: 'Optional Field 2', required: false },
+            ],
+        });
+    });
+
+    test('The user is able to remove already added option in the FORM consent type - appointment creation flow @OVAC-4878 @regression', async ({ proceduresPage }) => {
+        const consentTitle = `Form Remove ${Date.now()}`;
+        await proceduresPage.createFormConsent({
+            title: consentTitle,
+            fields: [
+                { label: 'Kept Option 1' },
+                { label: 'Kept Option 2' },
+            ],
+            extraOptionsToAddAndRemove: 1,
+        });
+    });
+
+    test('The user is not able to add FORM consent type without options and alert message is displayed as expected @OVAC-4884 @regression', async ({ proceduresPage }) => {
+        await proceduresPage.verifyFormConsentRequiresOptionAlert(`Form Empty ${Date.now()}`);
+    });
+
+    test('The user is able to add consent type "Informative" @OVAC-5090 @regression', async ({ proceduresPage }) => {
+        const title = `Informative ${Date.now()}`;
+        await proceduresPage.addInformativeConsent(title, 'Informative consent test description');
+    });
+
+    test('The user is able to Edit already added consent - Consents tab @OVAC-5156 @regression', async ({ proceduresPage }) => {
+        const oldTitle = `Consent Edit Before ${Date.now()}`;
+        const newTitle = `Consent Edit After ${Date.now()}`;
+        await proceduresPage.addInformativeConsent(oldTitle, 'Initial consent description');
+        await proceduresPage.editConsentTitle(oldTitle, newTitle);
+    });
+
+    test('The user is able to delete already added consent - Consents tab @OVAC-5151 @regression', async ({ proceduresPage }) => {
+        const title = `Consent Delete ${Date.now()}`;
+        await proceduresPage.addInformativeConsent(title, 'Consent to be deleted');
+        await proceduresPage.deleteConsentByTitle(title);
+    });
+
+    test('The user is not able to add any file except PDF during creation of consent - Signatures type @OVAC-5160 @regression', async ({ proceduresPage }, testInfo) => {
+        const fs = await import('fs');
+        const nonPdfPath = testInfo.outputPath('invalid-nonpdf.txt');
+        const validPdfPath = testInfo.outputPath('valid-signature-doc.pdf');
+        fs.writeFileSync(nonPdfPath, 'This is plain text, not a PDF');
+        fs.writeFileSync(validPdfPath, '%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n');
+
+        await proceduresPage.verifySignatureConsentPdfOnlyRestriction(
+            `Signature PDF Only ${Date.now()}`,
+            nonPdfPath,
+            validPdfPath,
+            'valid-signature-doc'
+        );
+    });
+
+    test("The user is not able to 'Add consent' without populating Title field @OVAC-5124 @regression", async ({ proceduresPage }) => {
+        await proceduresPage.verifyConsentRequiresTitle();
+    });
+});

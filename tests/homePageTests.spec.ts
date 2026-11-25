@@ -144,6 +144,21 @@ f.test.describe('HomePage - User Profile Tests', () => {
     await expect(page).toHaveURL(/\/companies/i, { timeout: 15000 });
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15000 });
   });
+
+  f.test('Verify that Professional is able to see Activity tab for himself @OVAC-5013 @regression', async ({ homePage, page }) => {
+    // 1. Simulate Professional role
+    await homePage.simulateUserRole('professional');
+
+    // 2. Verify Activity link is visible in navigation bar while admin-only Entities link is hidden
+    const activityNav = page.locator('a[href*="professionalActivity"], a[href*="/activity"]').first();
+    await expect(activityNav).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('link', { name: /Entities|Institutions/i })).toHaveCount(0, { timeout: 10000 });
+
+    // 3. Navigate to Activity page and verify personal Activity dashboard renders for Professional
+    await activityNav.click();
+    await expect(page).toHaveURL(/\/(professionalActivity|activity)/i, { timeout: 15000 });
+    await expect(page.getByText(/TOTAL APPOINTMENTS|MY PERFORMANCE|MY BADGES/i).first()).toBeVisible({ timeout: 15000 });
+  });
 });
 
 

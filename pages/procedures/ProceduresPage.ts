@@ -1151,4 +1151,272 @@ export class ProceduresPage extends BasePage {
             await expect(requestProcessControl).toBeVisible({ timeout: 10000 });
         });
     }
+
+    /**
+     * Opens the Add Procedure Step / Consent card selection and opens the requested consent type drawer.
+     */
+    async openConsentTypeDrawer(cardDescriptionPattern: RegExp) {
+        return await test.step(`Open consent type drawer matching ${cardDescriptionPattern}`, async () => {
+            await this.dismissToastOrModal();
+            await this.page.waitForTimeout(500);
+
+            const addBtn = this.page.getByRole('button', { name: /^Add$|^Añadir$/i })
+                .or(this.page.locator('.MuiFab-root, button.MuiFab-primary'))
+                .first();
+            await addBtn.waitFor({ state: 'visible', timeout: 15000 });
+            await addBtn.click({ force: true });
+            await this.page.waitForTimeout(800);
+
+            if (await this.page.locator('.MuiCard-root').count() === 0) {
+                await addBtn.click({ force: true });
+                await this.page.waitForTimeout(800);
+            }
+
+            const card = this.page.locator('.MuiCard-root').filter({ hasText: cardDescriptionPattern }).first();
+            await card.waitFor({ state: 'visible', timeout: 15000 });
+            await card.click({ force: true });
+            await this.page.waitForTimeout(800);
+
+            const drawer = this.page.locator('[role="dialog"]').last();
+            const titleInput = drawer.locator('#agenda-editor-title-input').or(drawer.getByLabel(/Title/i)).first();
+            await titleInput.waitFor({ state: 'visible', timeout: 15000 });
+            return drawer;
+        });
+    }
+
+    /**
+     * Creates a Form consent with multiple options, optional/required toggles, and optional removal of extra options (OVAC-4861, OVAC-4865, OVAC-4878).
+     */
+    async createFormConsent(options: {
+        title: string;
+        fields: Array<{ label: string; required?: boolean }>;
+        extraOptionsToAddAndRemove?: number;
+    }) {
+        await test.step(`Create Form consent "${options.title}" with ${options.fields.length} option(s)`, async () => {
+            const drawer = await this.openConsentTypeDrawer(/Create a form with fields|Crear un formulario/i);
+            const titleInput = drawer.locator('#agenda-editor-title-input').first();
+            await titleInput.fill(options.title);
+
+            const addOptionBtn = drawer.getByRole('button', { name: /ADD OPTION|Añadir opción/i }).first();
+            await addOptionBtn.waitFor({ state: 'visible', timeout: 10000 });
+
+            const extraCount = options.extraOptionsToAddAndRemove ?? 0;
+            const totalToAdd = Math.max(0, options.fields.length + extraCount - 1);
+            for (let i = 0; i < totalToAdd; i++) {
+                await addOptionBtn.click();
+                await this.page.waitForTimeout(200);
+            }
+
+            if (extraCount > 0) {
+                const countBeforeRemove = await drawer.locator('i.ri-close-fill:visible').count();
+                expect(countBeforeRemove).toBeGreaterThanOrEqual(options.fields.length + extraCount);
+                for (let r = 0; r < extraCount; r++) {
+                    await drawer.locator('i.ri-close-fill:visible').last().click({ force: true });
+                    await this.page.waitForTimeout(200);
+                }
+                const countAfterRemove = await drawer.locator('i.ri-close-fill:visible').count();
+                expect(countAfterRemove).toBe(countBeforeRemove - extraCount);
+            }
+
+            const fieldTextareas = drawer.locator('textarea');
+            expect(await fieldTextareas.count()).toBe(options.fields.length);
+
+            for (let i = 0; i < options.fields.length; i++) {
+                await fieldTextareas.nth(i).fill(options.fields[i].label);
+
+                if (options.fields[i].required !== undefined) {
+                    // Checkbox 0 is consent-level "Optional"; Field i's "Required" checkbox follows sequentially after index 0
+                    const fieldCheckbox = drawer.locator('input[type="checkbox"]').nth(i + 1);
+                    const isChecked = await fieldCheckbox.isChecked();
+                    if (isChecked !== options.fields[i].required) {
+                        await fieldCheckbox.evaluate(el => (el as HTMLElement).click());
+                        await this.page.waitForTimeout(200);
+                    }
+                    if (options.fields[i].required) {
+                        await expect(fieldCheckbox).toBeChecked();
+                    } else {
+                        await expect(fieldCheckbox).not.toBeChecked();
+                    }
+                }
+            }
+
+            const saveBtn = drawer.locator('button').filter({ hasText: /^SAVE$|^GUARDAR$/i }).first();
+            await saveBtn.click({ force: true });
+            await titleInput.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+            await this.page.waitForTimeout(1500);
+
+            const createdCard = this.page.locator('.MuiAccordion-root').filter({ hasText: options.title }).first();
+            await expect(createdCard).toBeVisible({ timeout: 15000 });
+        });
+    }
+
+    /**
+     * Verifies Form consent cannot be saved without populated option values and displays validation alert (OVAC-4884).
+     */
+    async verifyFormConsentRequiresOptionAlert(title: string) {
+        await test.step('Verify saving Form consent without populated options shows validation error', async () => {
+            const drawer = await this.openConsentTypeDrawer(/Create a form with fields|Crear un formulario/i);
+            const titleInput = drawer.locator('#agenda-editor-title-input').first();
+            await titleInput.fill(title);
+
+            // Add a second empty option then remove it via close icon (matching Xray OVAC-4884), leaving Option 1 unpopulated
+            const addOptionBtn = drawer.getByRole('button', { name: /ADD OPTION|Añadir opción/i }).first();
+            await addOptionBtn.click();
+            await this.page.waitForTimeout(200);
+            await drawer.locator('i.ri-close-fill:visible').last().click({ force: true });
+            await this.page.waitForTimeout(200);
+
+            const saveBtn = drawer.locator('button').filter({ hasText: /^SAVE$|^GUARDAR$/i }).first();
+            await saveBtn.click({ force: true });
+            await this.page.waitForTimeout(1000);
+
+            await expect(
+                this.page.getByText(/You have not indicated a value for this option|An error has been found in the consent data|No ha indicado un valor/i).first()
+            ).toBeVisible({ timeout: 10000 });
+            await expect(titleInput).toBeVisible();
+            await expect(this.page.locator('.MuiAccordion-root').filter({ hasText: title })).toHaveCount(0);
+
+            // Close drawer cleanly
+            await drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first().click({ force: true }).catch(() => {});
+        });
+    }
+
+    /**
+     * Adds an "Informative" consent step and verifies it appears in the procedure steps list (OVAC-5090).
+     */
+    async addInformativeConsent(title: string, description: string) {
+        await test.step(`Add Informative consent "${title}"`, async () => {
+            const drawer = await this.openConsentTypeDrawer(/Add an informative item|Añadir un elemento informativo/i);
+            const titleInput = drawer.locator('#agenda-editor-title-input').first();
+            await titleInput.fill(title);
+
+            const descEditor = drawer.locator('.ql-editor').first();
+            if (await descEditor.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await descEditor.fill(description);
+            }
+
+            const saveBtn = drawer.locator('button').filter({ hasText: /^SAVE$|^GUARDAR$/i }).first();
+            await saveBtn.click({ force: true });
+            await titleInput.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+            await this.page.waitForTimeout(1500);
+
+            await expect(this.page.locator('.MuiAccordion-root').filter({ hasText: title }).first()).toBeVisible({ timeout: 15000 });
+        });
+    }
+
+    /**
+     * Opens the 3-dots menu for a consent card and selects an action (e.g., Details/Edit or Delete).
+     */
+    private async clickConsentCardMenuOption(title: string, optionPattern: RegExp) {
+        const card = this.page.locator('.MuiAccordion-root').filter({ hasText: title }).first();
+        await card.waitFor({ state: 'visible', timeout: 15000 });
+
+        const menuBtn = card.locator('button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button[aria-label*="more" i]').first();
+        await menuBtn.click({ force: true });
+        await this.page.waitForTimeout(400);
+
+        const option = this.page.locator('ul, [role="list"], [role="menu"]').last()
+            .getByRole('button', { name: optionPattern })
+            .or(this.page.locator('ul, [role="list"], [role="menu"]').last().locator('[role="menuitem"], .MuiMenuItem-root, .cbx-menuItem, li').filter({ hasText: optionPattern }))
+            .first();
+        await option.waitFor({ state: 'visible', timeout: 5000 });
+        await option.click({ force: true });
+    }
+
+    /**
+     * Edits an existing consent step's title via its 3-dots menu -> Details/Edit option (OVAC-5156).
+     */
+    async editConsentTitle(oldTitle: string, newTitle: string) {
+        await test.step(`Edit consent "${oldTitle}" to "${newTitle}"`, async () => {
+            await this.clickConsentCardMenuOption(oldTitle, /Details|Edit|Detalles|Editar/i);
+            await this.page.waitForTimeout(800);
+
+            const drawer = this.page.locator('[role="dialog"]').last();
+            const titleInput = drawer.locator('#agenda-editor-title-input').or(drawer.getByLabel(/Title/i)).first();
+            await titleInput.waitFor({ state: 'visible', timeout: 10000 });
+            await titleInput.fill(newTitle);
+            await titleInput.press('Tab');
+            await this.page.waitForTimeout(300);
+
+            const saveBtn = drawer.getByRole('button', { name: /^Save$|^Guardar$/i }).first();
+            await expect(saveBtn).toBeEnabled({ timeout: 5000 });
+            await saveBtn.click();
+            await titleInput.waitFor({ state: 'hidden', timeout: 15000 });
+            await this.page.waitForTimeout(1000);
+
+            await expect(this.page.locator('.MuiAccordion-root').filter({ hasText: newTitle }).first()).toBeVisible({ timeout: 15000 });
+            await expect(this.page.locator('.MuiAccordion-root').filter({ hasText: oldTitle })).toHaveCount(0);
+        });
+    }
+
+    /**
+     * Deletes an existing consent step via its 3-dots menu -> Delete option (OVAC-5151).
+     */
+    async deleteConsentByTitle(title: string) {
+        await test.step(`Delete consent "${title}"`, async () => {
+            await this.clickConsentCardMenuOption(title, /Delete|Eliminar/i);
+            await this.page.waitForTimeout(500);
+
+            const confirmBtn = this.page.locator('#modal-button-accept, #alert-confirm button, .MuiDialog-root button')
+                .filter({ hasText: /^Delete$|^Eliminar$|^Accept$|^Aceptar$|^Confirm$/i })
+                .last();
+            if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await confirmBtn.click({ force: true });
+            }
+            await this.page.waitForTimeout(1500);
+
+            await expect(this.page.locator('.MuiAccordion-root').filter({ hasText: title })).toHaveCount(0, { timeout: 15000 });
+        });
+    }
+
+    /**
+     * Verifies Signature consent rejects non-PDF uploads with an error alert and accepts valid PDF files (OVAC-5160).
+     */
+    async verifySignatureConsentPdfOnlyRestriction(title: string, nonPdfPath: string, validPdfPath: string, expectedPdfNameToken: string) {
+        await test.step('Verify Signature consent blocks non-PDF attachment and accepts PDF', async () => {
+            const drawer = await this.openConsentTypeDrawer(/Request the signature of one or more PDF|Solicitar la firma/i);
+            const titleInput = drawer.locator('#agenda-editor-title-input').first();
+            await titleInput.fill(title);
+
+            const attTab = drawer.locator('[role="tab"], .MuiTab-root').filter({ hasText: /Attachment|Adjunt/i }).first();
+            await attTab.click();
+            await this.page.waitForTimeout(800);
+
+            const fileInput = this.page.locator('input[type="file"]').first();
+            await expect(fileInput).toHaveAttribute('accept', /\.pdf/i);
+
+            // Upload non-PDF -> expect error message and file not attached
+            await fileInput.setInputFiles(nonPdfPath);
+            await expect(
+                this.page.getByText(/error uploading|fulfills all the requirements|error al subir/i).first()
+            ).toBeVisible({ timeout: 10000 });
+
+            // Upload valid PDF -> expect attachment listed inside drawer
+            await fileInput.setInputFiles(validPdfPath);
+            await expect(drawer.getByText(new RegExp(expectedPdfNameToken, 'i')).first()).toBeVisible({ timeout: 15000 });
+
+            await drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first().click({ force: true }).catch(() => {});
+        });
+    }
+
+    /**
+     * Verifies attempting to save/create a consent without Title displays Required field error (OVAC-5124).
+     */
+    async verifyConsentRequiresTitle() {
+        await test.step('Verify creating consent without Title shows Required field error', async () => {
+            const drawer = await this.openConsentTypeDrawer(/Request acceptance\/rejection|Solicitar aceptación/i);
+            const titleInput = drawer.locator('#agenda-editor-title-input').first();
+            await expect(titleInput).toHaveValue('');
+
+            const saveBtn = drawer.locator('button').filter({ hasText: /^SAVE$|^GUARDAR$/i }).first();
+            await saveBtn.click({ force: true });
+            await this.page.waitForTimeout(600);
+
+            await expect(drawer.getByText(/Required field|Campo obligatorio|Campo requerido/i).first()).toBeVisible({ timeout: 10000 });
+            await expect(titleInput).toBeVisible();
+            await expect(this.page.locator('.MuiAccordion-root')).toHaveCount(0);
+
+            await drawer.locator('button[aria-label="Close panel"], button:has(.ri-close-line)').first().click({ force: true }).catch(() => {});
+        });
+    }
 }
