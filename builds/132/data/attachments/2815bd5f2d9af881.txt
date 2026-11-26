@@ -1,0 +1,2 @@
+[AppointmentDataStore] Saved appointment ID #67946 (111211126794620261144b)
+[AppointmentApiHelper] Successfully canceled appointment ID #67946
