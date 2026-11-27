@@ -1,2 +1,0 @@
-[UserDataStore] Saved user ID #5029 (AUTO_NAME_979420 AUTO_SURNAME_979420 - auto_user_979420@test0207.com)
-[UserDataStore] Updated user ID #5029 (EDITED_072986 AUTO_SURNAME_979420)

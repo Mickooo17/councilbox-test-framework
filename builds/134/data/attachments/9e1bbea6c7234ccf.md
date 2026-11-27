@@ -1,0 +1,739 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/institutions/institutionsTests.spec.ts >> Institutions - Organization & Company Settings Tests >> The "Translations" section has been included within the "Appearance" tab, enabling users to edit titles @OVAC-4912 @regression
+- Location: tests/institutions/institutionsTests.spec.ts:366:7
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+```
+Error: locator.scrollIntoViewIfNeeded: Test timeout of 60000ms exceeded.
+Call log:
+  - waiting for getByRole('heading', { name: /Translations|Traducciones/i }).or(getByText(/Translations|Traducciones/i)).first()
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f5e3]:
+  - generic [ref=f5e4]:
+    - button "" [ref=f5e5] [cursor=pointer]
+    - generic [ref=f5e10]:
+      - link [ref=f5e12] [cursor=pointer]:
+        - /url: /company/1112/activity/dashboardCouncils
+        - button " Activity" [ref=f5e13]:
+          - generic [ref=f5e14]: 
+          - generic [ref=f5e16]: Activity
+      - link [ref=f5e18] [cursor=pointer]:
+        - /url: /company/1112
+        - button " Appointments" [ref=f5e19]:
+          - generic [ref=f5e20]: 
+          - generic [ref=f5e22]: Appointments
+      - link [ref=f5e24] [cursor=pointer]:
+        - /url: /company/1112/managements
+        - button " Processes" [ref=f5e25]:
+          - generic [ref=f5e26]: 
+          - generic [ref=f5e28]: Processes
+      - link [ref=f5e30] [cursor=pointer]:
+        - /url: /company/1112/procedures
+        - button " Procedures" [ref=f5e31]:
+          - generic [ref=f5e32]: 
+          - generic [ref=f5e34]: Procedures
+      - link [ref=f5e36] [cursor=pointer]:
+        - /url: /company/1112/drafts
+        - button " Templates" [ref=f5e37]:
+          - generic [ref=f5e38]: 
+          - generic [ref=f5e40]: Templates
+      - link [ref=f5e42] [cursor=pointer]:
+        - /url: /company/1112/documentation
+        - button " Documents" [ref=f5e43]:
+          - generic [ref=f5e44]: 
+          - generic [ref=f5e46]: Documents
+      - link [ref=f5e48] [cursor=pointer]:
+        - /url: /company/1112/entities
+        - button " Entities" [ref=f5e49]:
+          - generic [ref=f5e50]: 
+          - generic [ref=f5e52]: Entities
+      - link [ref=f5e54] [cursor=pointer]:
+        - /url: /company/1112/users
+        - button " Users" [ref=f5e55]:
+          - generic [ref=f5e56]: 
+          - generic [ref=f5e58]: Users
+    - generic [ref=f5e60]:
+      - img "CBX white Logo" [ref=f5e61]
+      - generic [ref=f5e62]: © 2026 v8.8.0
+  - generic [ref=f5e64]:
+    - banner [ref=f5e65]:
+      - button [ref=f5e67] [cursor=pointer]:
+        - img "Logo Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e68]
+      - generic [ref=f5e69]: Grupo Castelar Servicios Legales y Financieros S.A
+      - generic [ref=f5e75]:
+        - button [ref=f5e78] [cursor=pointer]:
+          - button "Notifications" [ref=f5e79]:
+            - generic [ref=f5e80]: 
+        - button [ref=f5e82] [cursor=pointer]:
+          - button "Button user" [ref=f5e84]:
+            - generic [ref=f5e87]:
+              - img "Logo Virtual Citizen Service Office" [ref=f5e89]
+              - generic [ref=f5e90]: 
+    - generic [ref=f5e92]:
+      - button "Actions" [ref=f5e95] [cursor=pointer]:
+        - generic [ref=f5e96]: 
+      - generic [ref=f5e98]:
+        - tablist "Pestañas" [ref=f5e102]:
+          - tab "Video-appointments" [selected] [ref=f5e103] [cursor=pointer]:
+            - paragraph [ref=f5e105]: Video-appointments
+          - tab "In-person appointments" [ref=f5e106] [cursor=pointer]:
+            - paragraph [ref=f5e108]: In-person appointments
+        - generic [ref=f5e110]:
+          - generic [ref=f5e112]:
+            - generic [ref=f5e113]:
+              - generic [ref=f5e115]:
+                - generic [ref=f5e118]:
+                  - generic [ref=f5e119] [cursor=pointer]:
+                    - generic [ref=f5e121]:
+                      - generic [ref=f5e122]: 
+                      - generic [ref=f5e123]: List view
+                    - combobox "Campo de texto": "[object Object]"
+                  - group [aria-hidden]
+                - generic [ref=f5e129]:
+                  - generic [ref=f5e130] [cursor=pointer]:
+                    - generic [ref=f5e131]: Confirmed, In progress, Pending report, Completed, In pause
+                    - combobox "Status": Confirmed, In progress, Pending report, Completed, In pause
+                    - generic [ref=f5e132]: Status
+                  - group [aria-hidden]
+                - generic [ref=f5e138]:
+                  - generic [ref=f5e139] [cursor=pointer]:
+                    - generic [ref=f5e140]: This week
+                    - combobox "Period": This week
+                    - generic [ref=f5e141]: Period
+                  - group [aria-hidden]
+                - button "Botón" [ref=f5e145] [cursor=pointer]:
+                  - generic [ref=f5e146]: 
+              - generic [ref=f5e147]:
+                - generic [ref=f5e148]:
+                  - paragraph [ref=f5e149]: Search by participant or record
+                  - generic [ref=f5e152]:
+                    - button "Search" [ref=f5e154] [cursor=pointer]:
+                      - generic [ref=f5e155]: 
+                    - textbox "Search by participant or record" [ref=f5e156]:
+                      - /placeholder: Search
+                - button "Help" [ref=f5e157] [cursor=pointer]:
+                  - generic [ref=f5e158]: 
+            - generic [ref=f5e166]:
+              - table [ref=f5e167]:
+                - rowgroup [ref=f5e168]:
+                  - row [ref=f5e169]:
+                    - columnheader "Selection" [ref=f5e170]
+                    - columnheader "Date Date " [ref=f5e172]:
+                      - generic [ref=f5e173]: Date
+                      - button "Date " [ref=f5e174] [cursor=pointer]:
+                        - generic [ref=f5e175]: Date
+                        - generic [ref=f5e176]: 
+                    - columnheader "Ref. Ref. " [ref=f5e178]:
+                      - generic [ref=f5e179]: Ref.
+                      - button "Ref. " [ref=f5e180] [cursor=pointer]:
+                        - generic [ref=f5e181]: Ref.
+                        - generic [ref=f5e182]: 
+                    - columnheader "External ID External ID " [ref=f5e184]:
+                      - generic [ref=f5e185]: External ID
+                      - button "External ID " [ref=f5e186] [cursor=pointer]:
+                        - generic [ref=f5e187]: External ID
+                        - generic [ref=f5e188]: 
+                    - columnheader "Record Record " [ref=f5e190]:
+                      - generic [ref=f5e191]: Record
+                      - button "Record " [ref=f5e192] [cursor=pointer]:
+                        - generic [ref=f5e193]: Record
+                        - generic [ref=f5e194]: 
+                    - columnheader "Documents" [ref=f5e196]
+                    - columnheader "Entity Entity " [ref=f5e197]:
+                      - generic [ref=f5e198]: Entity
+                      - button "Entity " [ref=f5e199] [cursor=pointer]:
+                        - generic [ref=f5e200]: Entity
+                        - generic [ref=f5e201]: 
+                    - columnheader "Status Status " [ref=f5e203]:
+                      - generic [ref=f5e204]: Status
+                      - button "Status " [ref=f5e205] [cursor=pointer]:
+                        - generic [ref=f5e206]: Status
+                        - generic [ref=f5e207]: 
+                    - columnheader "Actions [object Object]" [ref=f5e209]:
+                      - generic [ref=f5e210]: Actions
+                      - generic [ref=f5e213]:
+                        - generic [ref=f5e214] [cursor=pointer]:
+                          - generic [aria-hidden] [ref=f5e216]: 
+                          - combobox "Settings": "[object Object]"
+                        - group [aria-hidden]
+                - rowgroup [ref=f5e218]:
+                  - row [ref=f5e219] [cursor=pointer]:
+                    - cell [ref=f5e220]:
+                      - checkbox "Select" [ref=f5e225]
+                    - cell " 28/11/2026 10:00 " [ref=f5e228]:
+                      - generic [ref=f5e229]:
+                        - generic [ref=f5e230]: 
+                        - generic [ref=f5e233]:
+                          - generic [ref=f5e234]: 28/11/2026
+                          - generic [ref=f5e235]: 10:00
+                        - generic [ref=f5e236]: 
+                    - cell "68144" [ref=f5e239]
+                    - cell [ref=f5e240]
+                    - cell "111211126814420268f765" [ref=f5e241]
+                    - cell [ref=f5e242]:
+                      - button "1" [ref=f5e244]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e245]
+                    - cell "Confirmed" [ref=f5e248]
+                    - cell [ref=f5e256]:
+                      - button "More" [ref=f5e259]:
+                        - generic [ref=f5e260]: 
+                  - row [ref=f5e262] [cursor=pointer]:
+                    - cell [ref=f5e263]:
+                      - checkbox "Select" [ref=f5e268]
+                    - cell " 28/11/2026 10:00  " [ref=f5e271]:
+                      - generic [ref=f5e272]:
+                        - generic [ref=f5e273]: 
+                        - generic [ref=f5e276]:
+                          - generic [ref=f5e277]: 28/11/2026
+                          - generic [ref=f5e278]: 10:00
+                        - generic [ref=f5e279]:
+                          - generic [ref=f5e280]: 
+                          - generic [ref=f5e282]: 
+                    - cell "68138" [ref=f5e284]
+                    - cell [ref=f5e285]
+                    - cell "11121112681382026f150c" [ref=f5e286]
+                    - cell [ref=f5e287]:
+                      - button "1" [ref=f5e289]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e290]
+                    - cell "Confirmed" [ref=f5e293]
+                    - cell [ref=f5e301]:
+                      - button "More" [ref=f5e304]:
+                        - generic [ref=f5e305]: 
+                  - row [ref=f5e307] [cursor=pointer]:
+                    - cell [ref=f5e308]:
+                      - checkbox "Select" [ref=f5e313]
+                    - cell " 28/11/2026 10:00  " [ref=f5e316]:
+                      - generic [ref=f5e317]:
+                        - generic [ref=f5e318]: 
+                        - generic [ref=f5e321]:
+                          - generic [ref=f5e322]: 28/11/2026
+                          - generic [ref=f5e323]: 10:00
+                        - generic [ref=f5e324]:
+                          - generic [ref=f5e325]: 
+                          - generic [ref=f5e327]: 
+                    - cell "68140" [ref=f5e329]
+                    - cell [ref=f5e330]
+                    - cell "1112111268140202630c84" [ref=f5e331]
+                    - cell [ref=f5e332]:
+                      - button "1" [ref=f5e334]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e335]
+                    - cell "Confirmed" [ref=f5e338]
+                    - cell [ref=f5e346]:
+                      - button "More" [ref=f5e349]:
+                        - generic [ref=f5e350]: 
+                  - row [ref=f5e352] [cursor=pointer]:
+                    - cell [ref=f5e353]:
+                      - checkbox "Select" [ref=f5e358]
+                    - cell " 28/11/2026 10:00 " [ref=f5e361]:
+                      - generic [ref=f5e362]:
+                        - generic [ref=f5e363]: 
+                        - generic [ref=f5e366]:
+                          - generic [ref=f5e367]: 28/11/2026
+                          - generic [ref=f5e368]: 10:00
+                        - generic [ref=f5e369]: 
+                    - cell "68129" [ref=f5e372]
+                    - cell [ref=f5e373]
+                    - cell "1112111268129202688e36" [ref=f5e374]
+                    - cell [ref=f5e375]:
+                      - button "1" [ref=f5e377]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e378]
+                    - cell "Confirmed" [ref=f5e381]
+                    - cell [ref=f5e389]:
+                      - button "More" [ref=f5e392]:
+                        - generic [ref=f5e393]: 
+                  - row [ref=f5e395] [cursor=pointer]:
+                    - cell [ref=f5e396]:
+                      - checkbox "Select" [ref=f5e401]
+                    - cell " 28/11/2026 10:00 " [ref=f5e404]:
+                      - generic [ref=f5e405]:
+                        - generic [ref=f5e406]: 
+                        - generic [ref=f5e409]:
+                          - generic [ref=f5e410]: 28/11/2026
+                          - generic [ref=f5e411]: 10:00
+                        - generic [ref=f5e412]: 
+                    - cell "68133" [ref=f5e415]
+                    - cell [ref=f5e416]
+                    - cell "1112111268133202690581" [ref=f5e417]
+                    - cell [ref=f5e418]:
+                      - button "1" [ref=f5e420]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e421]
+                    - cell "Confirmed" [ref=f5e424]
+                    - cell [ref=f5e432]:
+                      - button "More" [ref=f5e435]:
+                        - generic [ref=f5e436]: 
+                  - row [ref=f5e438] [cursor=pointer]:
+                    - cell [ref=f5e439]:
+                      - checkbox "Select" [ref=f5e444]
+                    - cell " 28/11/2026 10:00 " [ref=f5e447]:
+                      - generic [ref=f5e448]:
+                        - generic [ref=f5e449]: 
+                        - generic [ref=f5e452]:
+                          - generic [ref=f5e453]: 28/11/2026
+                          - generic [ref=f5e454]: 10:00
+                        - generic [ref=f5e455]: 
+                    - cell "68137" [ref=f5e458]
+                    - cell [ref=f5e459]
+                    - cell "111211126813720262d702" [ref=f5e460]
+                    - cell [ref=f5e461]:
+                      - button "1" [ref=f5e463]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e464]
+                    - cell "Confirmed" [ref=f5e467]
+                    - cell [ref=f5e475]:
+                      - button "More" [ref=f5e478]:
+                        - generic [ref=f5e479]: 
+                  - row [ref=f5e481] [cursor=pointer]:
+                    - cell [ref=f5e482]:
+                      - checkbox "Select" [ref=f5e487]
+                    - cell " 28/11/2026 10:00 " [ref=f5e490]:
+                      - generic [ref=f5e491]:
+                        - generic [ref=f5e492]: 
+                        - generic [ref=f5e495]:
+                          - generic [ref=f5e496]: 28/11/2026
+                          - generic [ref=f5e497]: 10:00
+                        - generic [ref=f5e498]: 
+                    - cell "68130" [ref=f5e501]
+                    - cell [ref=f5e502]
+                    - cell "11121112681302026e1c13" [ref=f5e503]
+                    - cell [ref=f5e504]:
+                      - button "1" [ref=f5e506]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e507]
+                    - cell "Confirmed" [ref=f5e510]
+                    - cell [ref=f5e518]:
+                      - button "More" [ref=f5e521]:
+                        - generic [ref=f5e522]: 
+                  - row [ref=f5e524] [cursor=pointer]:
+                    - cell [ref=f5e525]:
+                      - checkbox "Select" [ref=f5e530]
+                    - cell " 28/11/2026 10:00 " [ref=f5e533]:
+                      - generic [ref=f5e534]:
+                        - generic [ref=f5e535]: 
+                        - generic [ref=f5e538]:
+                          - generic [ref=f5e539]: 28/11/2026
+                          - generic [ref=f5e540]: 10:00
+                        - generic [ref=f5e541]: 
+                    - cell "68139" [ref=f5e544]
+                    - cell [ref=f5e545]
+                    - cell "11121112681392026531fe" [ref=f5e546]
+                    - cell [ref=f5e547]:
+                      - button "1" [ref=f5e549]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e550]
+                    - cell "Confirmed" [ref=f5e553]
+                    - cell [ref=f5e561]:
+                      - button "More" [ref=f5e564]:
+                        - generic [ref=f5e565]: 
+                  - row [ref=f5e567] [cursor=pointer]:
+                    - cell [ref=f5e568]:
+                      - checkbox "Select" [ref=f5e573]
+                    - cell " 28/11/2026 10:00 " [ref=f5e576]:
+                      - generic [ref=f5e577]:
+                        - generic [ref=f5e578]: 
+                        - generic [ref=f5e581]:
+                          - generic [ref=f5e582]: 28/11/2026
+                          - generic [ref=f5e583]: 10:00
+                        - generic [ref=f5e584]: 
+                    - cell "68127" [ref=f5e587]
+                    - cell [ref=f5e588]
+                    - cell "11121112681272026a5c7e" [ref=f5e589]
+                    - cell [ref=f5e590]:
+                      - button "1" [ref=f5e592]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e593]
+                    - cell "Confirmed" [ref=f5e596]
+                    - cell [ref=f5e604]:
+                      - button "More" [ref=f5e607]:
+                        - generic [ref=f5e608]: 
+                  - row [ref=f5e610] [cursor=pointer]:
+                    - cell [ref=f5e611]:
+                      - checkbox "Select" [ref=f5e616]
+                    - cell " 28/11/2026 10:00 " [ref=f5e619]:
+                      - generic [ref=f5e620]:
+                        - generic [ref=f5e621]: 
+                        - generic [ref=f5e624]:
+                          - generic [ref=f5e625]: 28/11/2026
+                          - generic [ref=f5e626]: 10:00
+                        - generic [ref=f5e627]: 
+                    - cell "68128" [ref=f5e630]
+                    - cell [ref=f5e631]
+                    - cell "11121112681282026adcc3" [ref=f5e632]
+                    - cell [ref=f5e633]:
+                      - button "1" [ref=f5e635]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e636]
+                    - cell "Confirmed" [ref=f5e639]
+                    - cell [ref=f5e647]:
+                      - button "More" [ref=f5e650]:
+                        - generic [ref=f5e651]: 
+                  - row [ref=f5e653] [cursor=pointer]:
+                    - cell [ref=f5e654]:
+                      - checkbox "Select" [ref=f5e659]
+                    - cell " 28/11/2026 10:00 " [ref=f5e662]:
+                      - generic [ref=f5e663]:
+                        - generic [ref=f5e664]: 
+                        - generic [ref=f5e667]:
+                          - generic [ref=f5e668]: 28/11/2026
+                          - generic [ref=f5e669]: 10:00
+                        - generic [ref=f5e670]: 
+                    - cell "68131" [ref=f5e673]
+                    - cell [ref=f5e674]
+                    - cell "1112111268131202696952" [ref=f5e675]
+                    - cell [ref=f5e676]:
+                      - button "1" [ref=f5e678]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e679]
+                    - cell "Confirmed" [ref=f5e682]
+                    - cell [ref=f5e690]:
+                      - button "More" [ref=f5e693]:
+                        - generic [ref=f5e694]: 
+                  - row [ref=f5e696] [cursor=pointer]:
+                    - cell [ref=f5e697]:
+                      - checkbox "Select" [ref=f5e702]
+                    - cell " 28/11/2026 10:00 " [ref=f5e705]:
+                      - generic [ref=f5e706]:
+                        - generic [ref=f5e707]: 
+                        - generic [ref=f5e710]:
+                          - generic [ref=f5e711]: 28/11/2026
+                          - generic [ref=f5e712]: 10:00
+                        - generic [ref=f5e713]: 
+                    - cell "68132" [ref=f5e716]
+                    - cell [ref=f5e717]
+                    - cell "111211126813220263916a" [ref=f5e718]
+                    - cell [ref=f5e719]:
+                      - button "1" [ref=f5e721]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e722]
+                    - cell "Confirmed" [ref=f5e725]
+                    - cell [ref=f5e733]:
+                      - button "More" [ref=f5e736]:
+                        - generic [ref=f5e737]: 
+                  - row [ref=f5e739] [cursor=pointer]:
+                    - cell [ref=f5e740]:
+                      - checkbox "Select" [ref=f5e745]
+                    - cell " 28/11/2026 10:00 " [ref=f5e748]:
+                      - generic [ref=f5e749]:
+                        - generic [ref=f5e750]: 
+                        - generic [ref=f5e753]:
+                          - generic [ref=f5e754]: 28/11/2026
+                          - generic [ref=f5e755]: 10:00
+                        - generic [ref=f5e756]: 
+                    - cell "68134" [ref=f5e759]
+                    - cell [ref=f5e760]
+                    - cell "1112111268134202613067" [ref=f5e761]
+                    - cell [ref=f5e762]:
+                      - button "1" [ref=f5e764]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e765]
+                    - cell "Confirmed" [ref=f5e768]
+                    - cell [ref=f5e776]:
+                      - button "More" [ref=f5e779]:
+                        - generic [ref=f5e780]: 
+                  - row [ref=f5e782] [cursor=pointer]:
+                    - cell [ref=f5e783]:
+                      - checkbox "Select" [ref=f5e788]
+                    - cell " 28/11/2026 10:00 " [ref=f5e791]:
+                      - generic [ref=f5e792]:
+                        - generic [ref=f5e793]: 
+                        - generic [ref=f5e796]:
+                          - generic [ref=f5e797]: 28/11/2026
+                          - generic [ref=f5e798]: 10:00
+                        - generic [ref=f5e799]: 
+                    - cell "68135" [ref=f5e802]
+                    - cell [ref=f5e803]
+                    - cell "11121112681352026aa49f" [ref=f5e804]
+                    - cell [ref=f5e805]:
+                      - button "1" [ref=f5e807]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e808]
+                    - cell "Confirmed" [ref=f5e811]
+                    - cell [ref=f5e819]:
+                      - button "More" [ref=f5e822]:
+                        - generic [ref=f5e823]: 
+                  - row [ref=f5e825] [cursor=pointer]:
+                    - cell [ref=f5e826]:
+                      - checkbox "Select" [ref=f5e831]
+                    - cell " 28/11/2026 10:00 " [ref=f5e834]:
+                      - generic [ref=f5e835]:
+                        - generic [ref=f5e836]: 
+                        - generic [ref=f5e839]:
+                          - generic [ref=f5e840]: 28/11/2026
+                          - generic [ref=f5e841]: 10:00
+                        - generic [ref=f5e842]: 
+                    - cell "68120" [ref=f5e845]
+                    - cell [ref=f5e846]
+                    - cell "11121112681202026a99ac" [ref=f5e847]
+                    - cell [ref=f5e848]:
+                      - button "1" [ref=f5e850]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e851]
+                    - cell "Confirmed" [ref=f5e854]
+                    - cell [ref=f5e862]:
+                      - button "More" [ref=f5e865]:
+                        - generic [ref=f5e866]: 
+                  - row [ref=f5e868] [cursor=pointer]:
+                    - cell [ref=f5e869]:
+                      - checkbox "Select" [ref=f5e874]
+                    - cell " 28/11/2026 10:00 " [ref=f5e877]:
+                      - generic [ref=f5e878]:
+                        - generic [ref=f5e879]: 
+                        - generic [ref=f5e882]:
+                          - generic [ref=f5e883]: 28/11/2026
+                          - generic [ref=f5e884]: 10:00
+                        - generic [ref=f5e885]: 
+                    - cell "68125" [ref=f5e888]
+                    - cell [ref=f5e889]
+                    - cell "111211126812520266ac03" [ref=f5e890]
+                    - cell [ref=f5e891]:
+                      - button "1" [ref=f5e893]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e894]
+                    - cell "Confirmed" [ref=f5e897]
+                    - cell [ref=f5e905]:
+                      - button "More" [ref=f5e908]:
+                        - generic [ref=f5e909]: 
+                  - row [ref=f5e911] [cursor=pointer]:
+                    - cell [ref=f5e912]:
+                      - checkbox "Select" [ref=f5e917]
+                    - cell " 28/11/2026 10:00 " [ref=f5e920]:
+                      - generic [ref=f5e921]:
+                        - generic [ref=f5e922]: 
+                        - generic [ref=f5e925]:
+                          - generic [ref=f5e926]: 28/11/2026
+                          - generic [ref=f5e927]: 10:00
+                        - generic [ref=f5e928]: 
+                    - cell "68124" [ref=f5e931]
+                    - cell [ref=f5e932]
+                    - cell "11121112681242026586aa" [ref=f5e933]
+                    - cell [ref=f5e934]:
+                      - button "1" [ref=f5e936]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e937]
+                    - cell "Confirmed" [ref=f5e940]
+                    - cell [ref=f5e948]:
+                      - button "More" [ref=f5e951]:
+                        - generic [ref=f5e952]: 
+                  - row [ref=f5e954] [cursor=pointer]:
+                    - cell [ref=f5e955]:
+                      - checkbox "Select" [ref=f5e960]
+                    - cell " 28/11/2026 10:00 " [ref=f5e963]:
+                      - generic [ref=f5e964]:
+                        - generic [ref=f5e965]: 
+                        - generic [ref=f5e968]:
+                          - generic [ref=f5e969]: 28/11/2026
+                          - generic [ref=f5e970]: 10:00
+                        - generic [ref=f5e971]: 
+                    - cell "68123" [ref=f5e974]
+                    - cell [ref=f5e975]
+                    - cell "11121112681232026c8f9c" [ref=f5e976]
+                    - cell [ref=f5e977]:
+                      - button "1" [ref=f5e979]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e980]
+                    - cell "Confirmed" [ref=f5e983]
+                    - cell [ref=f5e991]:
+                      - button "More" [ref=f5e994]:
+                        - generic [ref=f5e995]: 
+                  - row [ref=f5e997] [cursor=pointer]:
+                    - cell [ref=f5e998]:
+                      - checkbox "Select" [ref=f5e1003]
+                    - cell " 28/11/2026 10:00 " [ref=f5e1006]:
+                      - generic [ref=f5e1007]:
+                        - generic [ref=f5e1008]: 
+                        - generic [ref=f5e1011]:
+                          - generic [ref=f5e1012]: 28/11/2026
+                          - generic [ref=f5e1013]: 10:00
+                        - generic [ref=f5e1014]: 
+                    - cell "68126" [ref=f5e1017]
+                    - cell [ref=f5e1018]
+                    - cell "11121112681262026bb30e" [ref=f5e1019]
+                    - cell [ref=f5e1020]:
+                      - button "1" [ref=f5e1022]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e1023]
+                    - cell "Confirmed" [ref=f5e1026]
+                    - cell [ref=f5e1034]:
+                      - button "More" [ref=f5e1037]:
+                        - generic [ref=f5e1038]: 
+                  - row [ref=f5e1040] [cursor=pointer]:
+                    - cell [ref=f5e1041]:
+                      - checkbox "Select" [ref=f5e1046]
+                    - cell " 27/11/2026 18:00  " [ref=f5e1049]:
+                      - generic [ref=f5e1050]:
+                        - generic [ref=f5e1051]: 
+                        - generic [ref=f5e1054]:
+                          - generic [ref=f5e1055]: 27/11/2026
+                          - generic [ref=f5e1056]: 18:00
+                        - generic [ref=f5e1057]:
+                          - generic [ref=f5e1058]: 
+                          - generic [ref=f5e1060]: 
+                    - cell "68121" [ref=f5e1062]
+                    - cell [ref=f5e1063]
+                    - cell "111211126812120261b448" [ref=f5e1064]
+                    - cell [ref=f5e1065]:
+                      - button "1" [ref=f5e1067]
+                    - cell "Grupo Castelar Servicios Legales y Financieros S.A" [ref=f5e1068]
+                    - cell "Confirmed" [ref=f5e1071]
+                    - cell [ref=f5e1079]:
+                      - button "More" [ref=f5e1082]:
+                        - generic [ref=f5e1083]: 
+              - generic [ref=f5e1085]:
+                - generic [ref=f5e1086]: 1 - 20 of 161
+                - navigation "Paginación de resultados" [ref=f5e1089]:
+                  - generic [ref=f5e1090]:
+                    - button "Página 1" [ref=f5e1091] [cursor=pointer]: "1"
+                    - button "Página 2" [ref=f5e1092] [cursor=pointer]: "2"
+                    - button "Página 3" [ref=f5e1093] [cursor=pointer]: "3"
+                    - generic [ref=f5e1097]:
+                      - generic [ref=f5e1098] [cursor=pointer]:
+                        - generic [ref=f5e1099]: ...
+                        - combobox "Ir a otra página": ...
+                      - group [aria-hidden]
+                    - button "Página 7" [ref=f5e1101] [cursor=pointer]: "7"
+                    - button "Página 8" [ref=f5e1102] [cursor=pointer]: "8"
+                    - button "Página 9" [ref=f5e1103] [cursor=pointer]: "9"
+                  - button "Página siguiente" [ref=f5e1105] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f5e1106]: 
+          - generic [ref=f5e1108]:
+            - generic [ref=f5e1109] [cursor=pointer]: Legal notice and Terms and conditions of use
+            - generic [ref=f5e1110] [cursor=pointer]: Privacy policy
+          - generic [ref=f5e1111]:
+            - generic [ref=f5e1112]:
+              - generic [ref=f5e1113] [cursor=pointer]: 
+              - generic [ref=f5e1115]: 0 selected
+            - generic [ref=f5e1118] [cursor=pointer]:
+              - generic [ref=f5e1120]: 
+              - generic [ref=f5e1121]: SELECT ALL
+```
+
+# Test source
+
+```ts
+  736 |      */
+  737 |     async verifyConsumptionsSectionRefined(companyId: number = 1112) {
+  738 |         await test.step(`Verify Consumptions section on company #${companyId} settings`, async () => {
+  739 |             await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}`));
+  740 |             await this.page.waitForLoadState('networkidle');
+  741 |             await this.dismissToastOrModal();
+  742 | 
+  743 |             const consumptionsHeading = this.page.getByRole('heading', { name: /^Consumptions$|^Consumos$/i }).first();
+  744 |             await expect(consumptionsHeading).toBeVisible({ timeout: 15000 });
+  745 | 
+  746 |             // External Services metrics section (SMS, Uanataca, Autofirma, Biometry)
+  747 |             await expect(this.page.getByText(/^SMS$/i).first()).toBeVisible({ timeout: 10000 });
+  748 |             await expect(this.page.getByText(/Uanataca/i).first()).toBeVisible({ timeout: 10000 });
+  749 |             await expect(this.page.getByText(/Autofirma/i).first()).toBeVisible({ timeout: 10000 });
+  750 |             await expect(this.page.getByText(/Biometry|Biometría/i).first()).toBeVisible({ timeout: 10000 });
+  751 | 
+  752 |             // Roles consumption section (Admin agent, Global administrator, Kiosk)
+  753 |             await expect(this.page.getByText(/^Roles$/i).first()).toBeVisible({ timeout: 10000 });
+  754 |             await expect(this.page.getByText(/Admin agent|Agente administrador/i).first()).toBeVisible({ timeout: 10000 });
+  755 | 
+  756 |             // Date filter selector in Consumptions
+  757 |             const dateCombo = this.page.getByRole('combobox', { name: /^Date$|^Fecha$/i }).first();
+  758 |             await expect(dateCombo).toBeVisible({ timeout: 5000 });
+  759 |         });
+  760 |     }
+  761 | 
+  762 |     /**
+  763 |      * Edits an existing entity via the Entities list Edit action and verifies persistence (OVAC-5298).
+  764 |      */
+  765 |     async editInstitutionAndVerify(currentName: string, updatedName: string) {
+  766 |         await test.step(`Edit entity "${currentName}" to "${updatedName}"`, async () => {
+  767 |             await this.searchInstitution(currentName);
+  768 |             const row = this.page.locator('table tbody tr').filter({ hasText: currentName }).first();
+  769 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  770 | 
+  771 |             const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill)').first();
+  772 |             await actionBtn.click();
+  773 | 
+  774 |             const editOption = this.page.getByRole('button', { name: /Edit|Editar/i })
+  775 |                 .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+  776 |                 .first();
+  777 |             await editOption.waitFor({ state: 'visible', timeout: 5000 });
+  778 |             await editOption.click();
+  779 |             await this.page.waitForURL(/\/companies\/edit\/\d+/i, { timeout: 15000 });
+  780 |             await this.dismissToastOrModal();
+  781 | 
+  782 |             await this.updateCompanyName(updatedName);
+  783 |             await this.saveCompanySettings();
+  784 |             await this.verifyCompanySettingsSavedAlert();
+  785 | 
+  786 |             await this.searchInstitution(updatedName);
+  787 |             await this.verifyInstitutionInTable(updatedName);
+  788 |         });
+  789 |     }
+  790 | 
+  791 |     /**
+  792 |      * Bans an existing entity via the Entities list Ban action and verifies it is banned/removed from active list (OVAC-5261).
+  793 |      */
+  794 |     async banInstitutionAndVerify(name: string) {
+  795 |         await test.step(`Ban entity "${name}" and verify it is removed from active list`, async () => {
+  796 |             await this.searchInstitution(name);
+  797 |             const row = this.page.locator('table tbody tr').filter({ hasText: name }).first();
+  798 |             await row.waitFor({ state: 'visible', timeout: 10000 });
+  799 | 
+  800 |             const actionBtn = row.locator('td:last-child button, button:has(.ri-more-2-line), button:has(.ri-more-fill), button:has(.ri-more-2-fill), button:has-text("button")').last();
+  801 |             await actionBtn.click();
+  802 | 
+  803 |             const banOption = this.page.getByRole('button', { name: /Ban|Bloquear/i })
+  804 |                 .or(this.page.getByRole('menuitem', { name: /Ban|Bloquear/i }))
+  805 |                 .first();
+  806 |             await banOption.waitFor({ state: 'visible', timeout: 5000 });
+  807 |             await banOption.click();
+  808 | 
+  809 |             const confirmDialog = this.page.locator('#modal, .MuiDialog-root, [role="dialog"]').filter({ hasText: /Ban|Bloquear|Accept|Aceptar/i }).first();
+  810 |             await expect(confirmDialog).toBeVisible({ timeout: 10000 });
+  811 |             const acceptBtn = confirmDialog.locator('#modal-button-accept, #alert-confirm-button-accept')
+  812 |                 .or(confirmDialog.getByRole('button', { name: /^OK$|^Accept$|^Aceptar$|^Ban$|^Bloquear$/i }))
+  813 |                 .last();
+  814 |             await acceptBtn.click();
+  815 |             await expect(confirmDialog).toBeHidden({ timeout: 15000 });
+  816 |             await this.page.waitForTimeout(1000);
+  817 | 
+  818 |             // Verify banned entity no longer appears in the active Entities table
+  819 |             await this.searchInstitution(name);
+  820 |             await this.verifyInstitutionNotInTable(name);
+  821 |         });
+  822 |     }
+  823 | 
+  824 |     /**
+  825 |      * Navigates to Customization -> Appearance and verifies the Translations section and title edit modal (OVAC-4912).
+  826 |      */
+  827 |     async verifyTranslationsSectionInAppearance(companyId: number = 1112) {
+  828 |         await test.step(`Verify Translations section in Appearance tab for company #${companyId}`, async () => {
+  829 |             await this.page.goto(resolveCompanyUrl(companyId, `companies/edit/${companyId}/personalization/appearance`));
+  830 |             await this.page.waitForLoadState('networkidle');
+  831 |             await this.dismissToastOrModal();
+  832 | 
+  833 |             const translationsHeading = this.page.getByRole('heading', { name: /Translations|Traducciones/i })
+  834 |                 .or(this.page.getByText(/Translations|Traducciones/i))
+  835 |                 .first();
+> 836 |             await translationsHeading.scrollIntoViewIfNeeded();
+      |                                       ^ Error: locator.scrollIntoViewIfNeeded: Test timeout of 60000ms exceeded.
+  837 |             await expect(translationsHeading).toBeVisible({ timeout: 10000 });
+  838 | 
+  839 |             // Verify at least one translation row/item and Edit action opens title edit modal
+  840 |             const transRow = this.page.locator('table tbody tr, [role="row"]').filter({ has: this.page.locator('button') }).first();
+  841 |             await transRow.waitFor({ state: 'visible', timeout: 10000 });
+  842 |             await transRow.locator('button').last().click();
+  843 |             await this.page.waitForTimeout(400);
+  844 | 
+  845 |             const editOption = this.page.getByRole('button', { name: /Edit|Editar/i })
+  846 |                 .or(this.page.getByRole('menuitem', { name: /Edit|Editar/i }))
+  847 |                 .first();
+  848 |             await editOption.waitFor({ state: 'visible', timeout: 5000 });
+  849 |             await editOption.click();
+  850 | 
+  851 |             const editDialog = this.page.locator('[role="dialog"], .MuiDrawer-root:visible').last();
+  852 |             await expect(editDialog).toBeVisible({ timeout: 10000 });
+  853 |             await expect(editDialog.locator('input, textarea').first()).toBeVisible({ timeout: 5000 });
+  854 |             await this.page.keyboard.press('Escape');
+  855 |         });
+  856 |     }
+  857 | }
+  858 | 
+```
